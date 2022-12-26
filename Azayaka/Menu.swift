@@ -57,7 +57,9 @@ extension AppDelegate {
 
     func updateIcon() {
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: isRecording ? "record.circle.fill" : "record.circle", accessibilityDescription: "Azayaka")
+            DispatchQueue.main.async {
+                button.image = NSImage(systemSymbolName: self.isRecording ? "record.circle.fill" : "record.circle", accessibilityDescription: "Azayaka")
+            }
         }
     }
 }

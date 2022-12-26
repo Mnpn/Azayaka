@@ -13,50 +13,63 @@ import AVFAudio
 extension AppDelegate {
     @objc func prepRecord(_ sender: NSMenuItem) {
         // todo: prep filtering stuff
-        Task { await record(screen: sender.identifier?.rawValue != "audio") }
-        if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "record.circle.fill", accessibilityDescription: "Azayaka")
+        // file preparation
+        audioOnly = sender.identifier?.rawValue == "audio"
+        if audioOnly {
+            audioFile = try! AVAudioFile(forWriting: NSURL(fileURLWithPath: "/Users/mnpn/Downloads/" + getFileName() + ".m4a") as URL, settings: audioSettings, commonFormat: .pcmFormatFloat32, interleaved: false)
         }
+        Task { await record(screen: !audioOnly) }
     }
 
     func record(screen: Bool) async {
         let conf = SCStreamConfiguration()
-        conf.width = screen ? availableContent!.displays[0].width : 2
-        conf.height = screen ? availableContent!.displays[0].height : 2
-        conf.minimumFrameInterval = CMTime(value: 1, timescale: screen ? CMTimeScale(60) : CMTimeScale(1))
+        if screen && window != nil { // todo: cleanup
+            conf.width = window == nil ? availableContent!.displays[0].width*2 : Int((window?.frame.width)!*2)
+            conf.height = window == nil ? availableContent!.displays[0].height*2 : Int((window?.frame.height)!*2)
+        } else {
+            conf.width = 2
+            conf.height = 2
+        }
+
+        conf.minimumFrameInterval = CMTime(value: 1, timescale: screen ? 60 : CMTimeScale(1))
         conf.showsCursor = true
         conf.capturesAudio = true
         conf.sampleRate = 48000
         conf.channelCount = 2
 
         stream = SCStream(filter: filter!, configuration: conf, delegate: self)
-
-        // file preparation
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "y-MM-dd HH.mm.ss"
-        audioFile = try! AVAudioFile(forWriting: NSURL(fileURLWithPath: "/Users/mnpn/Downloads/Recording at " + dateFormatter.string(from: Date()) + ".m4a") as URL, settings:
-                                        [AVFormatIDKey: kAudioFormatMPEG4AAC,
-                              AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
-                                       AVSampleRateKey: 48000,
-                                   AVEncoderBitRateKey: 320000,
-                                 AVNumberOfChannelsKey: 2],
-                                     commonFormat: .pcmFormatFloat32, interleaved: false)
         do {
             try! stream?.addStreamOutput(self, type: .screen, sampleHandlerQueue: .global())
             try! stream?.addStreamOutput(self, type: .audio, sampleHandlerQueue: .global())
+            if screen {
+                initVideo(conf: conf)
+            }
             try await stream?.startCapture()
         } catch {
             assertionFailure("capture failed")
+            return
         }
         isRecording = true
+        updateIcon()
         createMenu()
     }
 
     @objc func stopRecording() {
+        if !audioOnly {
+            closeVideo()
+        } else {
+            audioFile = nil // nilling the file closes it
+        }
         stream?.stopCapture()
-        audioFile = nil // nilling the file closes it
         isRecording = false
+        window = nil
         updateIcon()
         createMenu()
+    }
+
+    func getFileName() -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "y-MM-dd HH.mm.ss"
+        return "Recording at " + dateFormatter.string(from: Date())
     }
 }

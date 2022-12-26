@@ -6,7 +6,9 @@
 //
 
 import Foundation
+import AVFoundation
 import AVFAudio
+import ScreenCaptureKit
 
 // https://developer.apple.com/documentation/screencapturekit/capturing_screen_content_in_macos
 func createPCMBuffer(for sampleBuffer: CMSampleBuffer) -> AVAudioPCMBuffer? {
@@ -18,4 +20,48 @@ func createPCMBuffer(for sampleBuffer: CMSampleBuffer) -> AVAudioPCMBuffer? {
           let absd = sampleBuffer.formatDescription?.audioStreamBasicDescription,
           let format = AVAudioFormat(standardFormatWithSampleRate: absd.mSampleRate, channels: absd.mChannelsPerFrame) else { return nil }
     return AVAudioPCMBuffer(pcmFormat: format, bufferListNoCopy: audioBufferList)
+}
+
+extension AppDelegate {
+    func initVideo(conf: SCStreamConfiguration) {
+        sessionBeginAtSourceTime = nil
+
+        vW = try? AVAssetWriter.init(outputURL: URL(fileURLWithPath: "/Users/mnpn/Downloads/\(getFileName()).mov"), fileType: AVFileType.mov)
+        let videoSettings: [String: Any] = [
+            AVVideoCodecKey: AVVideoCodecType.h264,
+            AVVideoWidthKey: conf.width,
+            AVVideoHeightKey: conf.width,
+            AVVideoCompressionPropertiesKey: [
+                AVVideoAverageBitRateKey: (Double(conf.width) * Double(conf.height) * 10.1),
+                //AVVideoExpectedSourceFrameRateKey: 30
+            ]
+        ]
+        vwInput = AVAssetWriterInput(mediaType: AVMediaType.video, outputSettings: videoSettings)
+        vwInput.expectsMediaDataInRealTime = true
+
+        if vW.canAdd(vwInput) {
+            vW.add(vwInput)
+        }
+
+        awInput = AVAssetWriterInput(mediaType: AVMediaType.audio, outputSettings: audioSettings)
+        awInput.expectsMediaDataInRealTime = true
+
+        if vW.canAdd(awInput!) {
+            vW.add(awInput!)
+        }
+
+        vW.startWriting()
+    }
+
+    func closeVideo() {
+        let dispatchGroup = DispatchGroup()
+        dispatchGroup.enter()
+        vwInput.markAsFinished()
+        awInput.markAsFinished()
+        vW.finishWriting {
+            self.sessionBeginAtSourceTime = nil
+            dispatchGroup.leave()
+        }
+        dispatchGroup.wait()
+    }
 }
