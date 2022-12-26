@@ -19,18 +19,18 @@ extension AppDelegate {
             screen = availableContent!.displays.first // todo: pick the actual display
         } else if sender.identifier?.rawValue != "audio" {
             window = availableContent!.windows.first(where: { app in
-                sender.title == app.owningApplication!.bundleIdentifier
+                sender.title == app.owningApplication!.bundleIdentifier && sender.identifier == NSUserInterfaceItemIdentifier(String(app.windowID))
             })
         }
         if window != nil {
             filter = SCContentFilter(desktopIndependentWindow: window!)
-        }
-        if screen != nil {
+        } else {
             let excluded = self.availableContent?.applications.filter { app in
                 //self.excludedWindows.contains(app.bundleIdentifier)
-                Bundle.main.bundleIdentifier == app.bundleIdentifier
+                //Bundle.main.bundleIdentifier == app.bundleIdentifier
+                false
             }
-            filter = SCContentFilter(display: screen!, excludingApplications: excluded ?? [], exceptingWindows: [])
+            filter = SCContentFilter(display: screen ?? availableContent!.displays.first!, excludingApplications: excluded ?? [], exceptingWindows: [])
         }
         let audioOnly = screen == nil && window == nil
         if audioOnly {
@@ -43,9 +43,10 @@ extension AppDelegate {
         let conf = SCStreamConfiguration()
         conf.width = 2
         conf.height = 2
+        let scale: Int = NSScreen.main != nil ? Int(NSScreen.main!.backingScaleFactor) : 1
         if !audioOnly {
-            conf.width = window == nil ? availableContent!.displays[0].width*2 : Int((window?.frame.width)!*2)
-            conf.height = window == nil ? availableContent!.displays[0].height*2 : Int((window?.frame.height)!*2)
+            conf.width = window == nil ? availableContent!.displays[0].width*scale : Int((window?.frame.width)!*CGFloat(scale))
+            conf.height = window == nil ? availableContent!.displays[0].height*scale : Int((window?.frame.height)!*CGFloat(scale))
         }
 
         conf.minimumFrameInterval = CMTime(value: 1, timescale: audioOnly ? 1 : 60)
@@ -89,5 +90,14 @@ extension AppDelegate {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "y-MM-dd HH.mm.ss"
         return "Recording at " + dateFormatter.string(from: Date())
+    }
+
+    func getRecordingLength() -> String {
+        let time = (lastSample?.seconds ?? 0) - (sessionBeginAtSourceTime?.seconds ?? 0)
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.minute, .second]
+        formatter.zeroFormattingBehavior = .pad
+        formatter.unitsStyle = .positional
+        return formatter.string(from: TimeInterval(time))!
     }
 }

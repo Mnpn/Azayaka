@@ -14,7 +14,7 @@ import ScreenCaptureKit
 class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOutput {
     var vwInput, awInput: AVAssetWriterInput!
     var vW: AVAssetWriter!
-    var sessionBeginAtSourceTime: CMTime!
+    var sessionBeginAtSourceTime, lastSample: CMTime!
 
     let audioSettings: [String : Any] = [AVFormatIDKey: kAudioFormatMPEG4AAC,
                               AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
@@ -61,6 +61,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         switch outputType {
             case .screen:
                 if screen == nil && window == nil { break }
+                lastSample = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
                 guard let attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false) as? [[SCStreamFrameInfo: Any]],
                       let attachments = attachmentsArray.first else { return }
                 guard let statusRawValue = attachments[SCStreamFrameInfo.status] as? Int,

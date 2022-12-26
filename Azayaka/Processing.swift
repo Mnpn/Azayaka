@@ -5,7 +5,6 @@
 //  Created by Martin Persson on 2022-12-26.
 //
 
-import Foundation
 import AVFoundation
 import AVFAudio
 import ScreenCaptureKit
@@ -37,14 +36,13 @@ extension AppDelegate {
             ]
         ]
         vwInput = AVAssetWriterInput(mediaType: AVMediaType.video, outputSettings: videoSettings)
+        awInput = AVAssetWriterInput(mediaType: AVMediaType.audio, outputSettings: audioSettings)
         vwInput.expectsMediaDataInRealTime = true
+        awInput.expectsMediaDataInRealTime = true
 
         if vW.canAdd(vwInput) {
             vW.add(vwInput)
         }
-
-        awInput = AVAssetWriterInput(mediaType: AVMediaType.audio, outputSettings: audioSettings)
-        awInput.expectsMediaDataInRealTime = true
 
         if vW.canAdd(awInput!) {
             vW.add(awInput!)

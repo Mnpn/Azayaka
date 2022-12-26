@@ -17,10 +17,21 @@ extension AppDelegate {
 
         let title = NSMenuItem(title: "Title", action: nil, keyEquivalent: "")
         if isRecording {
-            title.attributedTitle = NSAttributedString(string: "RECORDING", attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12, weight: .heavy), .paragraphStyle: centreText])
+            var typeText = ""
+            if screen != nil {
+                typeText = "A DISPLAY"
+            } else if window != nil {
+                typeText = window?.owningApplication?.applicationName.uppercased() ?? "A WINDOW"
+            } else {
+                typeText = "SYSTEM AUDIO"
+            }
+            title.attributedTitle = NSMutableAttributedString(string: "RECORDING " + typeText, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12, weight: .heavy), .paragraphStyle: centreText])
             menu.addItem(title)
             menu.addItem(NSMenuItem(title: "Stop Recording", action: #selector(stopRecording), keyEquivalent: ""))
             // todo: display recording stats such as length and size
+            let info = NSMenuItem(title: "Placeholder", action: nil, keyEquivalent: "")
+            info.attributedTitle = NSAttributedString(string: "Duration: \(getRecordingLength())\nFile size: 0MB")
+            menu.addItem(info)
         } else {
             title.attributedTitle = NSAttributedString(string: "SELECT CONTENT TO RECORD", attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12, weight: .heavy), .paragraphStyle: centreText])
             menu.addItem(title)
@@ -45,10 +56,11 @@ extension AppDelegate {
             windows.attributedTitle = NSAttributedString(string: "WINDOWS", attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 10, weight: .heavy)])
             menu.addItem(windows)
 
-            for app in availableContent!.applications.filter({ !excludedWindows.contains($0.bundleIdentifier) }) {
+            for app in availableContent!.windows.filter({ !excludedWindows.contains($0.owningApplication!.bundleIdentifier) && !$0.title!.contains("Item-0") }) { // hide menu bar apps
                 let window = NSMenuItem(title: "Placeholder", action: #selector(prepRecord), keyEquivalent: "")
-                window.attributedTitle = NSAttributedString(string: app.applicationName)
-                window.title = app.bundleIdentifier
+                window.attributedTitle = NSAttributedString(string: app.owningApplication!.applicationName + ": " + app.title!) // todo: only show title if there are several windows
+                window.title = app.owningApplication!.bundleIdentifier
+                window.identifier = NSUserInterfaceItemIdentifier(String(app.windowID))
                 menu.addItem(window)
             }
         }
