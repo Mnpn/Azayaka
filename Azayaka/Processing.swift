@@ -30,7 +30,7 @@ extension AppDelegate {
         let videoSettings: [String: Any] = [
             AVVideoCodecKey: AVVideoCodecType.h264,
             AVVideoWidthKey: conf.width,
-            AVVideoHeightKey: conf.width,
+            AVVideoHeightKey: conf.height,
             AVVideoCompressionPropertiesKey: [
                 AVVideoAverageBitRateKey: (Double(conf.width) * Double(conf.height) * 10.1),
                 //AVVideoExpectedSourceFrameRateKey: 30

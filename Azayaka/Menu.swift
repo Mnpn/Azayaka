@@ -46,7 +46,10 @@ extension AppDelegate {
             menu.addItem(windows)
 
             for app in availableContent!.applications.filter({ !excludedWindows.contains($0.bundleIdentifier) }) {
-                menu.addItem(NSMenuItem(title: app.applicationName, action: #selector(prepRecord), keyEquivalent: ""))
+                let window = NSMenuItem(title: "Placeholder", action: #selector(prepRecord), keyEquivalent: "")
+                window.attributedTitle = NSAttributedString(string: app.applicationName)
+                window.title = app.bundleIdentifier
+                menu.addItem(window)
             }
         }
         menu.addItem(NSMenuItem.separator())

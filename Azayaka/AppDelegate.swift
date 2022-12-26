@@ -28,7 +28,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     var filter: SCContentFilter?
 
     var isRecording = false
-    var audioOnly = false // todo: just store a screen
+    var screen: SCDisplay?
     var window: SCWindow?
 
     let excludedWindows = ["", "com.apple.dock", "com.apple.controlcenter", "dev.mnpn.Azayaka"]
@@ -51,14 +51,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
             }
             self.availableContent = content
             assert((self.availableContent?.displays.count)! > 0, "There needs to be at least one display connected")
-            let excluded = self.availableContent?.applications.filter { app in
-                self.excludedWindows.contains(app.bundleIdentifier)
-            }
-            self.window = self.availableContent!.windows.first(where: { app in
-                "com.colliderli.iina" == app.owningApplication!.bundleIdentifier
-            })
-            self.filter = SCContentFilter(desktopIndependentWindow: self.window!)
-            //self.filter = SCContentFilter(display: (self.availableContent?.displays[0])!, excludingApplications: [], exceptingWindows: [])
             self.createMenu()
         }
     }
@@ -68,7 +60,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
 
         switch outputType {
             case .screen:
-                if audioOnly { break }
+                if screen == nil && window == nil { break }
                 guard let attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false) as? [[SCStreamFrameInfo: Any]],
                       let attachments = attachmentsArray.first else { return }
                 guard let statusRawValue = attachments[SCStreamFrameInfo.status] as? Int,
@@ -84,13 +76,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                 }
                 break
             case .audio:
-                if audioOnly {
+                if screen == nil && window == nil { // write directly to file if not video recording
                     guard let samples = createPCMBuffer(for: sampleBuffer) else { return }
                     do {
                         try audioFile?.write(from: samples)
                     }
                     catch { assertionFailure("audio file writing issue") }
-                } else {
+                } else { // otherwise send the audio data to AVAssetWriter
                     if awInput.isReadyForMoreMediaData {
                         awInput.append(sampleBuffer)
                     }
@@ -104,6 +96,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         DispatchQueue.main.async {
             print("stream commited sudoku with error:")
             print(error)
+            print("presumably this is due to the window closing")
+            self.stopRecording()
         }
     }
 
