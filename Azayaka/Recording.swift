@@ -52,8 +52,8 @@ extension AppDelegate {
         conf.minimumFrameInterval = CMTime(value: 1, timescale: audioOnly ? 1 : 60)
         conf.showsCursor = true
         conf.capturesAudio = true
-        conf.sampleRate = 48000
-        conf.channelCount = 2
+        conf.sampleRate = audioSettings["AVSampleRateKey"] as! Int
+        conf.channelCount = audioSettings["AVNumberOfChannelsKey"] as! Int
 
         stream = SCStream(filter: filter!, configuration: conf, delegate: self)
         do {
@@ -83,6 +83,7 @@ extension AppDelegate {
         window = nil
         screen = nil
         updateIcon()
+        updateTimer?.invalidate()
         createMenu()
     }
 
@@ -93,11 +94,10 @@ extension AppDelegate {
     }
 
     func getRecordingLength() -> String {
-        let time = (lastSample?.seconds ?? 0) - (sessionBeginAtSourceTime?.seconds ?? 0)
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.minute, .second]
         formatter.zeroFormattingBehavior = .pad
         formatter.unitsStyle = .positional
-        return formatter.string(from: TimeInterval(time))!
+        return formatter.string(from: TimeInterval(duration))!
     }
 }

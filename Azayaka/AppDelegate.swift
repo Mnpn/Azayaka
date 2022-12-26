@@ -14,7 +14,8 @@ import ScreenCaptureKit
 class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOutput {
     var vwInput, awInput: AVAssetWriterInput!
     var vW: AVAssetWriter!
-    var sessionBeginAtSourceTime, lastSample: CMTime!
+    var sessionBeginAtSourceTime: CMTime!
+    var duration: Double = 0.0
 
     let audioSettings: [String : Any] = [AVFormatIDKey: kAudioFormatMPEG4AAC,
                               AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
@@ -26,6 +27,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     var audioFile: AVAudioFile?
     var availableContent: SCShareableContent?
     var filter: SCContentFilter?
+    var updateTimer: Timer?
+    var menu = NSMenu()
 
     var isRecording = false
     var screen: SCDisplay?
@@ -34,16 +37,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     let excludedWindows = ["", "com.apple.dock", "com.apple.controlcenter", "dev.mnpn.Azayaka"]
 
     var statusItem: NSStatusItem!
+    let info = NSMenuItem(title: "One moment, waiting on update", action: nil, keyEquivalent: "")
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // create a menu bar item
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         updateIcon()
-
+        statusItem.menu = menu
         updateAvailableContent()
     }
 
-    func updateAvailableContent() {
+    @objc func updateAvailableContent() {
         SCShareableContent.getExcludingDesktopWindows(true, onScreenWindowsOnly: true) { content, error in
             if error != nil {
                 print("[err] failed to fetch available content, permission error?")
@@ -61,7 +65,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         switch outputType {
             case .screen:
                 if screen == nil && window == nil { break }
-                lastSample = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+                duration = CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sampleBuffer)) - (sessionBeginAtSourceTime?.seconds ?? 0) // this probably runs a bit too much, can this be moved?
                 guard let attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false) as? [[SCStreamFrameInfo: Any]],
                       let attachments = attachmentsArray.first else { return }
                 guard let statusRawValue = attachments[SCStreamFrameInfo.status] as? Int,
@@ -95,9 +99,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
 
     func stream(_ stream: SCStream, didStopWithError error: Error) {
         DispatchQueue.main.async {
-            print("stream commited sudoku with error:")
-            print(error)
-            print("presumably this is due to the window closing")
+            print("Closing stream with error:", error)
+            print("This might be due to the window closing")
             self.stopRecording()
         }
     }
@@ -112,9 +115,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
 }
 
 extension AppDelegate: NSMenuDelegate {
+    // todo: hmm, the label takes a second to update, worth it to save perf on not constantly updating it?
     func menuWillOpen(_ menu: NSMenu) {
-        updateAvailableContent()
+        if isRecording { // todo: what about the program list refresh?
+            updateTimer?.invalidate()
+            updateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+                self.updateMenu()
+            }
+            RunLoop.current.add(updateTimer!, forMode: .common)
+        }
     }
 
-    func menuDidClose(_ menu: NSMenu) { }
+    func menuDidClose(_ menu: NSMenu) {
+        if isRecording {
+            updateTimer?.invalidate()
+        }
+    }
 }

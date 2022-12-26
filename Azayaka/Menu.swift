@@ -10,7 +10,7 @@ import AppKit
 
 extension AppDelegate {
     func createMenu() {
-        let menu = NSMenu()
+        menu.removeAllItems()
         menu.delegate = self
         let centreText = NSMutableParagraphStyle()
         centreText.alignment = .center
@@ -28,9 +28,6 @@ extension AppDelegate {
             title.attributedTitle = NSMutableAttributedString(string: "RECORDING " + typeText, attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12, weight: .heavy), .paragraphStyle: centreText])
             menu.addItem(title)
             menu.addItem(NSMenuItem(title: "Stop Recording", action: #selector(stopRecording), keyEquivalent: ""))
-            // todo: display recording stats such as length and size
-            let info = NSMenuItem(title: "Placeholder", action: nil, keyEquivalent: "")
-            info.attributedTitle = NSAttributedString(string: "Duration: \(getRecordingLength())\nFile size: 0MB")
             menu.addItem(info)
         } else {
             title.attributedTitle = NSAttributedString(string: "SELECT CONTENT TO RECORD", attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12, weight: .heavy), .paragraphStyle: centreText])
@@ -56,18 +53,29 @@ extension AppDelegate {
             windows.attributedTitle = NSAttributedString(string: "WINDOWS", attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 10, weight: .heavy)])
             menu.addItem(windows)
 
-            for app in availableContent!.windows.filter({ !excludedWindows.contains($0.owningApplication!.bundleIdentifier) && !$0.title!.contains("Item-0") }) { // hide menu bar apps
+            for app in availableContent!.windows.filter({ !excludedWindows.contains($0.owningApplication!.bundleIdentifier) && !$0.title!.contains("Item-0") && $0.title! != "" }) { // hide menu bar apps
                 let window = NSMenuItem(title: "Placeholder", action: #selector(prepRecord), keyEquivalent: "")
                 window.attributedTitle = NSAttributedString(string: app.owningApplication!.applicationName + ": " + app.title!) // todo: only show title if there are several windows
                 window.title = app.owningApplication!.bundleIdentifier
                 window.identifier = NSUserInterfaceItemIdentifier(String(app.windowID))
                 menu.addItem(window)
             }
+            menu.addItem(NSMenuItem.separator())
+            menu.addItem(NSMenuItem(title: "Refresh List", action: #selector(updateAvailableContent), keyEquivalent: "r")) // todo: try to get rid of
         }
+
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Preferences…", action: nil, keyEquivalent: ","))
         menu.addItem(NSMenuItem(title: "Quit Azayaka", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         statusItem.menu = menu
+    }
+
+    func updateMenu() {
+        // check duration here so we don't do it in the poor stream on every sample
+        if screen == nil && window == nil {
+            duration = Double(audioFile?.length ?? 0) / (audioFile?.fileFormat.sampleRate ?? 1) // やばい
+        }
+        info.attributedTitle = NSAttributedString(string: "Duration: \(getRecordingLength())\nFile size: 0MB")
     }
 
     func updateIcon() {
