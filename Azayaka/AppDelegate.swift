@@ -20,61 +20,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
 
     let excludedWindows = ["", "com.apple.dock", "com.apple.controlcenter", "dev.mnpn.Azayaka"]
 
-    private var statusItem: NSStatusItem!
+    var statusItem: NSStatusItem!
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // create a menu bar item
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "record.circle", accessibilityDescription: "Azayaka")
-        }
+        updateIcon()
 
         updateAvailableContent()
-    }
-
-    func createMenu() {
-        let menu = NSMenu()
-        menu.delegate = self
-        let centreText = NSMutableParagraphStyle()
-        centreText.alignment = .center
-
-        let title = NSMenuItem(title: "Title", action: nil, keyEquivalent: "")
-        if isRecording {
-            title.attributedTitle = NSAttributedString(string: "RECORDING", attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12, weight: .heavy), .paragraphStyle: centreText])
-            menu.addItem(title)
-            menu.addItem(NSMenuItem(title: "Stop Recording", action: #selector(stopRecording), keyEquivalent: ""))
-        } else {
-            title.attributedTitle = NSAttributedString(string: "SELECT CONTENT TO RECORD", attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12, weight: .heavy), .paragraphStyle: centreText])
-            menu.addItem(title)
-
-            let audio = NSMenuItem(title: "System Audio", action: #selector(prepRecord), keyEquivalent: "")
-            audio.identifier = NSUserInterfaceItemIdentifier(rawValue: "audio")
-            menu.addItem(audio)
-
-            menu.addItem(NSMenuItem.separator())
-
-            let displays = NSMenuItem(title: "Displays", action: nil, keyEquivalent: "")
-            displays.attributedTitle = NSAttributedString(string: "DISPLAYS", attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 10, weight: .heavy)])
-            menu.addItem(displays)
-
-            for (i, display) in availableContent!.displays.enumerated() {
-                let display = NSMenuItem(title: "Display \(i+1)" + (display.displayID == CGMainDisplayID() ? " (Main)" : ""), action: #selector(prepRecord), keyEquivalent: "")
-                display.identifier = NSUserInterfaceItemIdentifier(rawValue: "display")
-                menu.addItem(display)
-            }
-
-            let windows = NSMenuItem(title: "Windows", action: nil, keyEquivalent: "")
-            windows.attributedTitle = NSAttributedString(string: "WINDOWS", attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 10, weight: .heavy)])
-            menu.addItem(windows)
-
-            for app in availableContent!.applications.filter({ !excludedWindows.contains($0.bundleIdentifier) }) {
-                menu.addItem(NSMenuItem(title: app.applicationName, action: #selector(prepRecord), keyEquivalent: ""))
-            }
-        }
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Preferences…", action: nil, keyEquivalent: ","))
-        menu.addItem(NSMenuItem(title: "Quit Azayaka", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
-        statusItem.menu = menu
     }
 
     func updateAvailableContent() {
@@ -93,57 +46,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         }
     }
 
-    @objc func prepRecord(_ sender: NSMenuItem) {
-        // todo: prep filtering stuff
-        Task { await record(screen: sender.identifier?.rawValue != "audio") }
-        if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "record.circle.fill", accessibilityDescription: "Azayaka")
-        }
-    }
-
-    func record(screen: Bool) async {
-        let conf = SCStreamConfiguration()
-        conf.width = screen ? availableContent!.displays[0].width : 2
-        conf.height = screen ? availableContent!.displays[0].height : 2
-        conf.minimumFrameInterval = CMTime(value: 1, timescale: screen ? CMTimeScale(60) : CMTimeScale(1))
-        conf.showsCursor = true
-        conf.capturesAudio = true
-        conf.sampleRate = 48000
-        conf.channelCount = 2
-
-        stream = SCStream(filter: filter!, configuration: conf, delegate: self)
-
-        // file preparation
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "y-MM-dd HH.mm.ss"
-        audioFile = try! AVAudioFile(forWriting: NSURL(fileURLWithPath: "/Users/mnpn/Downloads/Recording at " + dateFormatter.string(from: Date()) + ".m4a") as URL, settings:
-                                        [AVFormatIDKey: kAudioFormatMPEG4AAC,
-                              AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
-                                       AVSampleRateKey: 48000,
-                                   AVEncoderBitRateKey: 320000,
-                                 AVNumberOfChannelsKey: 2],
-                                     commonFormat: .pcmFormatFloat32, interleaved: false)
-        do {
-            try! stream?.addStreamOutput(self, type: .screen, sampleHandlerQueue: .global())
-            try! stream?.addStreamOutput(self, type: .audio, sampleHandlerQueue: .global())
-            try await stream?.startCapture()
-        } catch {
-            assertionFailure("capture failed")
-        }
-        isRecording = true
-        createMenu()
-    }
-
-    @objc func stopRecording() {
-        stream?.stopCapture()
-        audioFile = nil // nilling the file closes it
-        isRecording = false
-        if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "record.circle", accessibilityDescription: "Azayaka")
-        }
-        createMenu()
-    }
-
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of outputType: SCStreamOutputType) {
         guard sampleBuffer.isValid else { return }
         
@@ -158,18 +60,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
             @unknown default:
                 assertionFailure("unknown stream type")
         }
-    }
-
-    // https://developer.apple.com/documentation/screencapturekit/capturing_screen_content_in_macos
-    private func createPCMBuffer(for sampleBuffer: CMSampleBuffer) -> AVAudioPCMBuffer? {
-        var ablPointer: UnsafePointer<AudioBufferList>?
-        try? sampleBuffer.withAudioBufferList { audioBufferList, blockBuffer in
-            ablPointer = audioBufferList.unsafePointer
-        }
-        guard let audioBufferList = ablPointer,
-              let absd = sampleBuffer.formatDescription?.audioStreamBasicDescription,
-              let format = AVAudioFormat(standardFormatWithSampleRate: absd.mSampleRate, channels: absd.mChannelsPerFrame) else { return nil }
-        return AVAudioPCMBuffer(pcmFormat: format, bufferListNoCopy: audioBufferList)
     }
 
     func stream(_ stream: SCStream, didStopWithError error: Error) {

@@ -11,6 +11,9 @@
 		17322D4D2958D07E00185BB6 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D4C2958D07E00185BB6 /* ViewController.swift */; };
 		17322D4F2958D08000185BB6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 17322D4E2958D08000185BB6 /* Assets.xcassets */; };
 		17322D522958D08000185BB6 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 17322D502958D08000185BB6 /* Main.storyboard */; };
+		17322D5A2959286100185BB6 /* Processing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D592959286100185BB6 /* Processing.swift */; };
+		17322D5C295928BE00185BB6 /* Recording.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D5B295928BE00185BB6 /* Recording.swift */; };
+		17322D5E295929A000185BB6 /* Menu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D5D295929A000185BB6 /* Menu.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +23,9 @@
 		17322D4E2958D08000185BB6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		17322D512958D08000185BB6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		17322D532958D08000185BB6 /* Azayaka.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Azayaka.entitlements; sourceTree = "<group>"; };
+		17322D592959286100185BB6 /* Processing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Processing.swift; sourceTree = "<group>"; };
+		17322D5B295928BE00185BB6 /* Recording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recording.swift; sourceTree = "<group>"; };
+		17322D5D295929A000185BB6 /* Menu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Menu.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +59,9 @@
 			isa = PBXGroup;
 			children = (
 				17322D4A2958D07E00185BB6 /* AppDelegate.swift */,
+				17322D5D295929A000185BB6 /* Menu.swift */,
+				17322D5B295928BE00185BB6 /* Recording.swift */,
+				17322D592959286100185BB6 /* Processing.swift */,
 				17322D4C2958D07E00185BB6 /* ViewController.swift */,
 				17322D4E2958D08000185BB6 /* Assets.xcassets */,
 				17322D502958D08000185BB6 /* Main.storyboard */,
@@ -132,7 +141,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				17322D4D2958D07E00185BB6 /* ViewController.swift in Sources */,
+				17322D5A2959286100185BB6 /* Processing.swift in Sources */,
 				17322D4B2958D07E00185BB6 /* AppDelegate.swift in Sources */,
+				17322D5C295928BE00185BB6 /* Recording.swift in Sources */,
+				17322D5E295929A000185BB6 /* Menu.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -272,7 +284,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 35BSP6SUG9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -302,7 +314,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = 35BSP6SUG9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
