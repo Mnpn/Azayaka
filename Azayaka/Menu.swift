@@ -7,6 +7,7 @@
 
 import Foundation
 import AppKit
+import ScreenCaptureKit
 
 extension AppDelegate {
     func createMenu() {
@@ -52,16 +53,9 @@ extension AppDelegate {
             let windows = NSMenuItem(title: "Windows", action: nil, keyEquivalent: "")
             windows.attributedTitle = NSAttributedString(string: "WINDOWS", attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 10, weight: .heavy)])
             menu.addItem(windows)
-
-            for app in availableContent!.windows.filter({ !excludedWindows.contains($0.owningApplication!.bundleIdentifier) && !$0.title!.contains("Item-0") && $0.title! != "" }) { // hide menu bar apps
-                let window = NSMenuItem(title: "Placeholder", action: #selector(prepRecord), keyEquivalent: "")
-                window.attributedTitle = NSAttributedString(string: app.owningApplication!.applicationName + ": " + app.title!) // todo: only show title if there are several windows
-                window.title = app.owningApplication!.bundleIdentifier
-                window.identifier = NSUserInterfaceItemIdentifier(String(app.windowID))
-                menu.addItem(window)
-            }
-            menu.addItem(NSMenuItem.separator())
-            menu.addItem(NSMenuItem(title: "Refresh List", action: #selector(updateAvailableContent), keyEquivalent: "r")) // todo: try to get rid of
+            noneAvailable.isHidden = true
+            menu.addItem(noneAvailable)
+            Task { await refreshWindows() } // have to refresh here to be able to come back from recording state
         }
 
         menu.addItem(NSMenuItem.separator())
@@ -76,6 +70,36 @@ extension AppDelegate {
             duration = Double(audioFile?.length ?? 0) / (audioFile?.fileFormat.sampleRate ?? 1) // やばい
         }
         info.attributedTitle = NSAttributedString(string: "Duration: \(getRecordingLength())\nFile size: 0MB")
+    }
+
+    func refreshWindows() async {
+        noneAvailable.isHidden = true
+        let validWindows = availableContent!.windows.filter { !excludedWindows.contains($0.owningApplication!.bundleIdentifier) && !$0.title!.contains("Item-0") && $0.title! != "" }
+
+        let programIDs = validWindows.compactMap { $0.windowID.description }
+        for window in menu.items.filter({ !programIDs.contains($0.title) && $0.identifier?.rawValue == "window" }) {
+            menu.removeItem(window)
+        }
+        usleep(10000) // -sigh- sometimes the menu can add/remove so fast that the text doesn't update until a hover. somehow this fixes that.
+        if validWindows.count == 0 {
+            noneAvailable.isHidden = false
+            sleep(2) // WTF?
+            return // nothing to add if no windows exist, so why bother
+        }
+
+        // add valid windows which are not yet in the list
+        let addedItems = menu.items.compactMap { $0.identifier?.rawValue == "window" ? $0.title : "" }
+        for window in validWindows.filter({ !addedItems.contains($0.windowID.description) }) {
+            newWindow(window: window)
+        }
+    }
+
+    func newWindow(window: SCWindow) {
+        let win = NSMenuItem(title: "Placeholder", action: #selector(prepRecord), keyEquivalent: "")
+        win.attributedTitle = NSAttributedString(string: window.owningApplication!.applicationName + ": " + window.title!) // todo: only show title if there are several windows
+        win.title = String(window.windowID)
+        win.identifier = NSUserInterfaceItemIdentifier("window")
+        menu.insertItem(win, at: menu.numberOfItems - 3)
     }
 
     func updateIcon() {

@@ -12,14 +12,13 @@ import AVFAudio
 
 extension AppDelegate {
     @objc func prepRecord(_ sender: NSMenuItem) {
-        // todo: prep filtering stuff
         // file preparation
         //audioOnly = sender.identifier?.rawValue == "audio"
         if sender.identifier?.rawValue == "display" {
             screen = availableContent!.displays.first // todo: pick the actual display
         } else if sender.identifier?.rawValue != "audio" {
             window = availableContent!.windows.first(where: { app in
-                sender.title == app.owningApplication!.bundleIdentifier && sender.identifier == NSUserInterfaceItemIdentifier(String(app.windowID))
+                sender.title == String(app.windowID) // sender.title == app.owningApplication!.bundleIdentifier
             })
         }
         if window != nil {
@@ -37,6 +36,13 @@ extension AppDelegate {
             audioFile = try! AVAudioFile(forWriting: NSURL(fileURLWithPath: "/Users/mnpn/Downloads/" + getFileName() + ".m4a") as URL, settings: audioSettings, commonFormat: .pcmFormatFloat32, interleaved: false)
         }
         Task { await record(audioOnly: audioOnly) }
+
+        // while recording, keep a timer which updates the menu's stats
+        updateTimer?.invalidate()
+        updateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            self.updateMenu()
+        }
+        RunLoop.current.add(updateTimer!, forMode: .common) // required to have the menu update while open
     }
 
     func record(audioOnly: Bool) async {

@@ -34,20 +34,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     var screen: SCDisplay?
     var window: SCWindow?
 
-    let excludedWindows = ["", "com.apple.dock", "com.apple.controlcenter", "dev.mnpn.Azayaka"]
+    let excludedWindows = ["", "com.apple.dock", "com.apple.controlcenter", "com.apple.notificationcenterui", "dev.mnpn.Azayaka"]
 
     var statusItem: NSStatusItem!
     let info = NSMenuItem(title: "One moment, waiting on update", action: nil, keyEquivalent: "")
+    let noneAvailable = NSMenuItem(title: "None available", action: nil, keyEquivalent: "")
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // create a menu bar item
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         updateIcon()
         statusItem.menu = menu
-        updateAvailableContent()
+        updateAvailableContent(buildMenu: true)
     }
 
-    @objc func updateAvailableContent() {
+    @objc func updateAvailableContent(buildMenu: Bool) {
         SCShareableContent.getExcludingDesktopWindows(true, onScreenWindowsOnly: true) { content, error in
             if error != nil {
                 print("[err] failed to fetch available content, permission error?")
@@ -55,7 +56,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
             }
             self.availableContent = content
             assert((self.availableContent?.displays.count)! > 0, "There needs to be at least one display connected")
-            self.createMenu()
+            if buildMenu {
+                self.createMenu()
+                return
+            }
+            Task { await self.refreshWindows() } // ask to just refresh the windows list instead of rebuilding it all
         }
     }
 
@@ -115,20 +120,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
 }
 
 extension AppDelegate: NSMenuDelegate {
-    // todo: hmm, the label takes a second to update, worth it to save perf on not constantly updating it?
     func menuWillOpen(_ menu: NSMenu) {
-        if isRecording { // todo: what about the program list refresh?
-            updateTimer?.invalidate()
-            updateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-                self.updateMenu()
-            }
-            RunLoop.current.add(updateTimer!, forMode: .common)
+        if !isRecording {
+            updateAvailableContent(buildMenu: false)
         }
     }
 
-    func menuDidClose(_ menu: NSMenu) {
-        if isRecording {
-            updateTimer?.invalidate()
-        }
-    }
+    func menuDidClose(_ menu: NSMenu) {}
 }
