@@ -13,14 +13,8 @@ import AVFAudio
 extension AppDelegate {
     @objc func prepRecord(_ sender: NSMenuItem) {
         // file preparation
-        //audioOnly = sender.identifier?.rawValue == "audio"
-        if sender.identifier?.rawValue == "display" {
-            screen = availableContent!.displays.first // todo: pick the actual display
-        } else if sender.identifier?.rawValue != "audio" {
-            window = availableContent!.windows.first(where: { app in
-                sender.title == String(app.windowID) // sender.title == app.owningApplication!.bundleIdentifier
-            })
-        }
+        screen = availableContent!.displays.first(where: { sender.title == $0.displayID.description })
+        window = availableContent!.windows.first(where: { sender.title == $0.windowID.description })
         if window != nil {
             filter = SCContentFilter(desktopIndependentWindow: window!)
         } else {
@@ -49,8 +43,10 @@ extension AppDelegate {
         let conf = SCStreamConfiguration()
         conf.width = 2
         conf.height = 2
-        let scale: Int = NSScreen.main != nil ? Int(NSScreen.main!.backingScaleFactor) : 1
+
         if !audioOnly {
+            let scale: Int = Int((screen != nil ? NSScreen.screens.first(where: { $0.displayID == screen?.displayID })!.backingScaleFactor : NSScreen.main?.backingScaleFactor) ?? 1)
+            // todo: find relevant scaling factor. it seems windows are available on all displays though, and there's no way to get a window's display, so this is tricky
             conf.width = window == nil ? availableContent!.displays[0].width*scale : Int((window?.frame.width)!*CGFloat(scale))
             conf.height = window == nil ? availableContent!.displays[0].height*scale : Int((window?.frame.height)!*CGFloat(scale))
         }
@@ -105,5 +101,11 @@ extension AppDelegate {
         formatter.zeroFormattingBehavior = .pad
         formatter.unitsStyle = .positional
         return formatter.string(from: TimeInterval(duration))!
+    }
+}
+
+extension NSScreen {
+    var displayID: CGDirectDisplayID? {
+        return deviceDescription[NSDeviceDescriptionKey(rawValue: "NSScreenNumber")] as? CGDirectDisplayID
     }
 }

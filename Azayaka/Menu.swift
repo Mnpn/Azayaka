@@ -20,7 +20,7 @@ extension AppDelegate {
         if isRecording {
             var typeText = ""
             if screen != nil {
-                typeText = "A DISPLAY"
+                typeText = "DISPLAY " + String((availableContent?.displays.firstIndex(where: { $0.displayID == screen?.displayID }))!+1)
             } else if window != nil {
                 typeText = window?.owningApplication?.applicationName.uppercased() ?? "A WINDOW"
             } else {
@@ -45,9 +45,11 @@ extension AppDelegate {
             menu.addItem(displays)
 
             for (i, display) in availableContent!.displays.enumerated() {
-                let display = NSMenuItem(title: "Display \(i+1)" + (display.displayID == CGMainDisplayID() ? " (Main)" : ""), action: #selector(prepRecord), keyEquivalent: "")
-                display.identifier = NSUserInterfaceItemIdentifier(rawValue: "display")
-                menu.addItem(display)
+                let displayItem = NSMenuItem(title: "Placeholder", action: #selector(prepRecord), keyEquivalent: "")
+                displayItem.attributedTitle = NSAttributedString(string: "Display \(i+1)" + (display.displayID == CGMainDisplayID() ? " (Main)" : ""))
+                displayItem.title = display.displayID.description
+                displayItem.identifier = NSUserInterfaceItemIdentifier(rawValue: "display")
+                menu.addItem(displayItem)
             }
 
             let windows = NSMenuItem(title: "Windows", action: nil, keyEquivalent: "")
