@@ -62,13 +62,12 @@ struct Preferences: View {
                 Button("Select output directory", action: updateOutputDirectory).disabled(true)
                 Text("Currently set to \"Downloads\"").font(.footnote).foregroundColor(Color.gray)
             }.frame(maxWidth: .infinity)
+        }.frame(width: 260).padding(.leading, 10).padding(.trailing, 10).padding(.top, 10) // pls.
+        HStack {
+            Text("Azayaka \(getVersion()) (\(getBuild()))")
             Spacer()
-            HStack {
-                Text("Azayaka \(getVersion()) (\(getBuild()))")
-                Spacer()
-                Text("https://mnpn.dev")
-            }.padding(5).background(.thickMaterial) .frame( maxWidth: .infinity, alignment: .topLeading)
-        }.frame(width: 260, height: 350).padding(10)
+            Text("https://mnpn.dev")
+        }.padding(10).background(VisualEffectView()).frame(height: 40)
     }
 
     func updateOutputDirectory() { }
@@ -79,6 +78,11 @@ struct Preferences: View {
 
     func getBuild() -> String {
         return Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "Unknown"
+    }
+
+    struct VisualEffectView: NSViewRepresentable {
+        func makeNSView(context: Context) -> NSVisualEffectView { return NSVisualEffectView() }
+        func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
     }
 }
 

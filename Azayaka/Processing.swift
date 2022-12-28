@@ -71,4 +71,50 @@ extension AppDelegate {
         }
         dispatchGroup.wait()
     }
+    
+    func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of outputType: SCStreamOutputType) {
+        guard sampleBuffer.isValid else { return }
+
+        switch outputType {
+            case .screen:
+                if screen == nil && window == nil { break }
+                duration = CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sampleBuffer)) - (sessionBeginAtSourceTime?.seconds ?? 0) // todo: this probably runs a bit too much, can this be moved?
+                guard let attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false) as? [[SCStreamFrameInfo: Any]],
+                      let attachments = attachmentsArray.first else { return }
+                guard let statusRawValue = attachments[SCStreamFrameInfo.status] as? Int,
+                      let status = SCFrameStatus(rawValue: statusRawValue),
+                      status == .complete else { return }
+
+                if vW != nil && vW?.status == .writing, sessionBeginAtSourceTime == nil {
+                    sessionBeginAtSourceTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+                    vW.startSession(atSourceTime: sessionBeginAtSourceTime!)
+                }
+                if vwInput.isReadyForMoreMediaData {
+                    vwInput.append(sampleBuffer)
+                }
+                break
+            case .audio:
+                if screen == nil && window == nil { // write directly to file if not video recording
+                    guard let samples = createPCMBuffer(for: sampleBuffer) else { return }
+                    do {
+                        try audioFile?.write(from: samples)
+                    }
+                    catch { assertionFailure("audio file writing issue") }
+                } else { // otherwise send the audio data to AVAssetWriter
+                    if awInput.isReadyForMoreMediaData {
+                        awInput.append(sampleBuffer)
+                    }
+                }
+            @unknown default:
+                assertionFailure("unknown stream type")
+        }
+    }
+
+    func stream(_ stream: SCStream, didStopWithError error: Error) { // stream error
+        DispatchQueue.main.async {
+            print("Closing stream with error:", error)
+            print("This might be due to the window closing")
+            self.stopRecording()
+        }
+    }
 }

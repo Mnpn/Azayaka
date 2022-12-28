@@ -91,6 +91,7 @@ extension AppDelegate {
     }
 
     func updateAudioSettings() {
+        audioSettings = [AVSampleRateKey : 48000, AVNumberOfChannelsKey : 2] // reset audioSettings
         switch ud.string(forKey: "audioFormat") {
         case AudioFormat.aac.rawValue:
             audioSettings[AVFormatIDKey] = kAudioFormatMPEG4AAC
@@ -104,13 +105,21 @@ extension AppDelegate {
             audioSettings[AVFormatIDKey] = ud.string(forKey: "videoFormat") != VideoFormat.mp4.rawValue ? kAudioFormatOpus : kAudioFormatMPEG4AAC
             audioSettings[AVEncoderBitRateKey] =  ud.integer(forKey: "audioQuality")*1000
         default:
-            assertionFailure("unknown audio format while updating audio settings: " + (ud.string(forKey: "audioFormat") ?? "[no ud]"))
+            assertionFailure("unknown audio format while setting audio settings: " + (ud.string(forKey: "audioFormat") ?? "[no defaults]"))
         }
     }
 
     func prepareAudioRecording() {
-        audioFile = try! AVAudioFile(forWriting: NSURL(fileURLWithPath: "/Users/mnpn/Downloads/" + getFileName() + ".alac") as URL, settings: audioSettings, commonFormat: .pcmFormatFloat32, interleaved: false)
-        // todo: fix file ending
+        var fileEnding = ud.string(forKey: "audioFormat") ?? ""
+        switch fileEnding { // todo: consider structs which contain relevant file format data
+            case AudioFormat.aac.rawValue: fallthrough
+            case AudioFormat.alac.rawValue: fileEnding = "m4a"
+            case AudioFormat.flac.rawValue: fileEnding = "flac"
+            case AudioFormat.opus.rawValue: fileEnding = "ogg"
+            default: assertionFailure("loaded unknown audio format: " + fileEnding)
+        }
+        print(fileEnding)
+        audioFile = try! AVAudioFile(forWriting: NSURL(fileURLWithPath: "/Users/mnpn/Downloads/\(getFileName()).\(fileEnding)") as URL, settings: audioSettings, commonFormat: .pcmFormatFloat32, interleaved: false)
         // todo: should this really be .pcmFormatFloat32?
     }
 
