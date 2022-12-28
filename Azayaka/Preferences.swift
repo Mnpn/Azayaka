@@ -55,7 +55,7 @@ struct Preferences: View {
                     }.scaledToFit().disabled(audioFormat == .alac || audioFormat == .flac)
                 }.frame(maxWidth: .infinity).padding(.top, 10)
                 Text("These settings are also used when recording video. If set to Opus, MP4 will fall back to AAC.")
-                .font(.footnote).foregroundColor(Color.gray).padding(.leading, 2).padding(.trailing, 2).padding(.bottom, 8)
+                .font(.footnote).foregroundColor(Color.gray).padding(.leading, 2).padding(.trailing, 2).padding(.bottom, 8).fixedSize(horizontal: false, vertical: true)
             }
             Divider()
             Spacer()
