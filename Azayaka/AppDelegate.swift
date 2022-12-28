@@ -17,11 +17,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     var sessionBeginAtSourceTime: CMTime!
     var duration: Double = 0.0
 
-    let audioSettings: [String : Any] = [AVFormatIDKey: kAudioFormatMPEG4AAC,
-                              AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
-                                       AVSampleRateKey: 48000,
-                                   AVEncoderBitRateKey: 320000,
-                                 AVNumberOfChannelsKey: 2]
+    var audioSettings: [String : Any] = [AVSampleRateKey : 48000, AVNumberOfChannelsKey : 2]
 
     var stream: SCStream?
     var audioFile: AVAudioFile?
@@ -34,13 +30,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     var screen: SCDisplay?
     var window: SCWindow?
 
-    let excludedWindows = ["", "com.apple.dock", "com.apple.controlcenter", "com.apple.notificationcenterui", "dev.mnpn.Azayaka"]
+    let excludedWindows = ["", "com.apple.dock", "com.apple.controlcenter", "com.apple.notificationcenterui", "dev.mnpn.Azayaka", "com.gaosun.eul"]
 
     var statusItem: NSStatusItem!
+    let preferences = NSWindow()
+    let ud = UserDefaults.standard
     let info = NSMenuItem(title: "One moment, waiting on update", action: nil, keyEquivalent: "")
     let noneAvailable = NSMenuItem(title: "None available", action: nil, keyEquivalent: "")
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        ud.register( // default defaults (used if not set)
+            defaults: [
+                "audioFormat": AudioFormat.aac.rawValue,
+                "audioQuality": AudioQuality.high.rawValue,
+                "frameRate": 60,
+                "videoFormat": VideoFormat.mp4.rawValue,
+                "encoder": Encoder.h264.rawValue,
+            ]
+        )
         // create a menu bar item
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         updateIcon()
@@ -51,7 +58,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     @objc func updateAvailableContent(buildMenu: Bool) {
         SCShareableContent.getExcludingDesktopWindows(true, onScreenWindowsOnly: true) { content, error in
             if error != nil {
-                print("[err] failed to fetch available content, permission error?")
+                print("[err] failed to fetch available content, permission error?:", error!.localizedDescription)
                 return
             }
             self.availableContent = content
@@ -111,7 +118,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
-        stopRecording()
+        if isRecording {
+            stopRecording()
+        }
     }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {

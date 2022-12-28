@@ -12,6 +12,7 @@ import AVFAudio
 
 extension AppDelegate {
     @objc func prepRecord(_ sender: NSMenuItem) {
+        updateAudioSettings()
         // file preparation
         screen = availableContent!.displays.first(where: { sender.title == $0.displayID.description })
         window = availableContent!.windows.first(where: { sender.title == $0.windowID.description })
@@ -27,7 +28,7 @@ extension AppDelegate {
         }
         let audioOnly = screen == nil && window == nil
         if audioOnly {
-            audioFile = try! AVAudioFile(forWriting: NSURL(fileURLWithPath: "/Users/mnpn/Downloads/" + getFileName() + ".m4a") as URL, settings: audioSettings, commonFormat: .pcmFormatFloat32, interleaved: false)
+            prepareAudioRecording()
         }
         Task { await record(audioOnly: audioOnly) }
 
@@ -51,7 +52,7 @@ extension AppDelegate {
             conf.height = window == nil ? availableContent!.displays[0].height*scale : Int((window?.frame.height)!*CGFloat(scale))
         }
 
-        conf.minimumFrameInterval = CMTime(value: 1, timescale: audioOnly ? 1 : 60)
+        conf.minimumFrameInterval = CMTime(value: 1, timescale: audioOnly ? 1 : CMTimeScale(ud.integer(forKey: "frameRate")))
         conf.showsCursor = true
         conf.capturesAudio = true
         conf.sampleRate = audioSettings["AVSampleRateKey"] as! Int
@@ -87,6 +88,30 @@ extension AppDelegate {
         updateIcon()
         updateTimer?.invalidate()
         createMenu()
+    }
+
+    func updateAudioSettings() {
+        switch ud.string(forKey: "audioFormat") {
+        case AudioFormat.aac.rawValue:
+            audioSettings[AVFormatIDKey] = kAudioFormatMPEG4AAC
+            audioSettings[AVEncoderBitRateKey] = ud.integer(forKey: "audioQuality")*1000
+        case AudioFormat.alac.rawValue:
+            audioSettings[AVFormatIDKey] = kAudioFormatAppleLossless
+            audioSettings[AVEncoderBitDepthHintKey] = 16
+        case AudioFormat.flac.rawValue:
+            audioSettings[AVFormatIDKey] = kAudioFormatFLAC
+        case AudioFormat.opus.rawValue:
+            audioSettings[AVFormatIDKey] = ud.string(forKey: "videoFormat") != VideoFormat.mp4.rawValue ? kAudioFormatOpus : kAudioFormatMPEG4AAC
+            audioSettings[AVEncoderBitRateKey] =  ud.integer(forKey: "audioQuality")*1000
+        default:
+            assertionFailure("unknown audio format while updating audio settings: " + (ud.string(forKey: "audioFormat") ?? "[no ud]"))
+        }
+    }
+
+    func prepareAudioRecording() {
+        audioFile = try! AVAudioFile(forWriting: NSURL(fileURLWithPath: "/Users/mnpn/Downloads/" + getFileName() + ".alac") as URL, settings: audioSettings, commonFormat: .pcmFormatFloat32, interleaved: false)
+        // todo: fix file ending
+        // todo: should this really be .pcmFormatFloat32?
     }
 
     func getFileName() -> String {

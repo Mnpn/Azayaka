@@ -25,14 +25,23 @@ extension AppDelegate {
     func initVideo(conf: SCStreamConfiguration) {
         sessionBeginAtSourceTime = nil
 
-        vW = try? AVAssetWriter.init(outputURL: URL(fileURLWithPath: "/Users/mnpn/Downloads/\(getFileName()).mov"), fileType: AVFileType.mov)
+        let fileEnding = ud.string(forKey: "videoFormat") ?? ""
+        var fileType: AVFileType?
+        switch fileEnding {
+            case VideoFormat.mov.rawValue: fileType = AVFileType.mov
+            case VideoFormat.mp4.rawValue: fileType = AVFileType.mp4
+            default: assertionFailure("loaded unknown video format")
+        }
+
+        vW = try? AVAssetWriter.init(outputURL: URL(fileURLWithPath: "/Users/mnpn/Downloads/\(getFileName()).\(fileEnding)"), fileType: fileType!)
         let videoSettings: [String: Any] = [
-            AVVideoCodecKey: AVVideoCodecType.h264,
+            AVVideoCodecKey: ud.string(forKey: "encoder") == Encoder.h264.rawValue ? AVVideoCodecType.h264 : AVVideoCodecType.hevc,
+            // yes, not ideal if we want more than these encoders in the future, but it's ok for now
             AVVideoWidthKey: conf.width,
             AVVideoHeightKey: conf.height,
             AVVideoCompressionPropertiesKey: [
                 AVVideoAverageBitRateKey: (Double(conf.width) * Double(conf.height) * 10.1),
-                //AVVideoExpectedSourceFrameRateKey: 30
+                AVVideoExpectedSourceFrameRateKey: ud.integer(forKey: "frameRate")
             ]
         ]
         vwInput = AVAssetWriterInput(mediaType: AVMediaType.video, outputSettings: videoSettings)
@@ -44,8 +53,8 @@ extension AppDelegate {
             vW.add(vwInput)
         }
 
-        if vW.canAdd(awInput!) {
-            vW.add(awInput!)
+        if vW.canAdd(awInput) {
+            vW.add(awInput)
         }
 
         vW.startWriting()
