@@ -40,6 +40,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     let noneAvailable = NSMenuItem(title: "None available", action: nil, keyEquivalent: "")
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        let userDesktop = (NSSearchPathForDirectoriesInDomains(.desktopDirectory, .userDomainMask, true) as [String]).first
         ud.register( // default defaults (used if not set)
             defaults: [
                 "audioFormat": AudioFormat.aac.rawValue,
@@ -47,6 +48,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                 "frameRate": 60,
                 "videoFormat": VideoFormat.mp4.rawValue,
                 "encoder": Encoder.h264.rawValue,
+                "saveDirectory": userDesktop!
             ]
         )
         // create a menu bar item

@@ -13,6 +13,7 @@ struct Preferences: View {
     @AppStorage("frameRate") private var frameRate: Int = 60
     @AppStorage("videoFormat") private var videoFormat: VideoFormat = .mp4
     @AppStorage("encoder") private var encoder: Encoder = .h264
+    @AppStorage("saveDirectory") private var saveDirectory: String?
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -59,8 +60,8 @@ struct Preferences: View {
             Divider()
             Spacer()
             VStack(spacing: 2) {
-                Button("Select output directory", action: updateOutputDirectory).disabled(true)
-                Text("Currently set to \"Downloads\"").font(.footnote).foregroundColor(Color.gray)
+                Button("Select output directory", action: updateOutputDirectory)
+                Text("Currently set to \"\(URL(fileURLWithPath: saveDirectory!).lastPathComponent)\"").font(.footnote).foregroundColor(Color.gray)
             }.frame(maxWidth: .infinity)
         }.frame(width: 260).padding(.leading, 10).padding(.trailing, 10).padding(.top, 10) // pls.
         HStack {
@@ -70,7 +71,16 @@ struct Preferences: View {
         }.padding(10).background(VisualEffectView()).frame(height: 40)
     }
 
-    func updateOutputDirectory() { }
+    func updateOutputDirectory() { // todo: re-sandbox
+        let openPanel = NSOpenPanel()
+        openPanel.canChooseFiles = false
+        openPanel.canChooseDirectories = true
+        openPanel.allowedContentTypes = []
+        openPanel.allowsOtherFileTypes = false
+        if openPanel.runModal() == NSApplication.ModalResponse.OK {
+            saveDirectory = openPanel.urls.first?.path
+        }
+    }
 
     func getVersion() -> String {
         return Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown"

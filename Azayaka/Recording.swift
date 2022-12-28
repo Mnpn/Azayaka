@@ -118,8 +118,7 @@ extension AppDelegate {
             case AudioFormat.opus.rawValue: fileEnding = "ogg"
             default: assertionFailure("loaded unknown audio format: " + fileEnding)
         }
-        print(fileEnding)
-        audioFile = try! AVAudioFile(forWriting: NSURL(fileURLWithPath: "/Users/mnpn/Downloads/\(getFileName()).\(fileEnding)") as URL, settings: audioSettings, commonFormat: .pcmFormatFloat32, interleaved: false)
+        audioFile = try! AVAudioFile(forWriting: URL(fileURLWithPath: ud.string(forKey: "saveDirectory")! + "/\(getFileName()).\(fileEnding)"), settings: audioSettings, commonFormat: .pcmFormatFloat32, interleaved: false)
         // todo: should this really be .pcmFormatFloat32?
     }
 
