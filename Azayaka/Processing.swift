@@ -33,7 +33,8 @@ extension AppDelegate {
             default: assertionFailure("loaded unknown video format")
         }
 
-        vW = try? AVAssetWriter.init(outputURL: URL(fileURLWithPath: ud.string(forKey: "saveDirectory")! + "/\(getFileName()).\(fileEnding)"), fileType: fileType!)
+        filePath = "\(getFilePath()).\(fileEnding)"
+        vW = try? AVAssetWriter.init(outputURL: URL(fileURLWithPath: filePath), fileType: fileType!)
         let videoSettings: [String: Any] = [
             AVVideoCodecKey: ud.string(forKey: "encoder") == Encoder.h264.rawValue ? AVVideoCodecType.h264 : AVVideoCodecType.hevc,
             // yes, not ideal if we want more than these encoders in the future, but it's ok for now

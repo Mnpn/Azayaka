@@ -12,20 +12,17 @@ import ScreenCaptureKit
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOutput {
-    // todo: clear these up
-    var vwInput, awInput: AVAssetWriterInput!
     var vW: AVAssetWriter!
+    var vwInput, awInput: AVAssetWriterInput!
     var sessionBeginAtSourceTime: CMTime!
-    var duration: Double = 0.0
-
-    var audioSettings: [String : Any]!
-
-    var stream: SCStream?
+    var stream: SCStream!
+    var filePath: String!
     var audioFile: AVAudioFile?
+    var audioSettings: [String : Any]!
     var availableContent: SCShareableContent?
     var filter: SCContentFilter?
+    var duration: Double = 0.0
     var updateTimer: Timer?
-    var menu = NSMenu()
 
     var isRecording = false
     var screen: SCDisplay?
@@ -34,10 +31,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     let excludedWindows = ["", "com.apple.dock", "com.apple.controlcenter", "com.apple.notificationcenterui", "dev.mnpn.Azayaka", "com.gaosun.eul"]
 
     var statusItem: NSStatusItem!
-    let preferences = NSWindow()
-    let ud = UserDefaults.standard
+    var menu = NSMenu()
     let info = NSMenuItem(title: "One moment, waiting on update", action: nil, keyEquivalent: "")
     let noneAvailable = NSMenuItem(title: "None available", action: nil, keyEquivalent: "")
+    let preferences = NSWindow()
+    let ud = UserDefaults.standard
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         let userDesktop = (NSSearchPathForDirectoriesInDomains(.desktopDirectory, .userDomainMask, true) as [String]).first
@@ -56,21 +54,40 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         updateIcon()
         statusItem.menu = menu
         updateAvailableContent(buildMenu: true)
+
     }
 
     @objc func updateAvailableContent(buildMenu: Bool) {
         SCShareableContent.getExcludingDesktopWindows(true, onScreenWindowsOnly: true) { content, error in
-            if error != nil {
-                print("[err] failed to fetch available content, permission error?:", error!.localizedDescription)
+            if let error = error {
+                switch error {
+                    case SCStreamError.userDeclined: self.requestPermissions()
+                    default: print("[err] failed to fetch available content:", error.localizedDescription)
+                }
                 return
             }
             self.availableContent = content
-            assert((self.availableContent?.displays.count)! > 0, "There needs to be at least one display connected")
+            assert(self.availableContent?.displays.isEmpty != nil, "There needs to be at least one display connected")
             if buildMenu {
                 self.createMenu()
                 return
             }
             Task { await self.refreshWindows() } // ask to just refresh the windows list instead of rebuilding it all
+        }
+    }
+
+    func requestPermissions() {
+        DispatchQueue.main.async {
+            let alert = NSAlert()
+            alert.messageText = "Azayaka needs permissions!"
+            alert.informativeText = "Azayaka needs screen recording permissions, even if you only intend on recording audio."
+            alert.addButton(withTitle: "Open Settings")
+            alert.addButton(withTitle: "No thanks, quit")
+            alert.alertStyle = .informational
+            if alert.runModal() == .alertFirstButtonReturn {
+                NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!)
+            }
+            NSApp.terminate(self)
         }
     }
 
@@ -83,14 +100,4 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
         return true
     }
-}
-
-extension AppDelegate: NSMenuDelegate {
-    func menuWillOpen(_ menu: NSMenu) {
-        if !isRecording {
-            updateAvailableContent(buildMenu: false)
-        }
-    }
-
-    func menuDidClose(_ menu: NSMenu) {}
 }

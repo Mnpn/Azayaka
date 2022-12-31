@@ -5,11 +5,9 @@
 //  Created by Martin Persson on 2022-12-26.
 //
 
-import Foundation
-import AppKit
 import ScreenCaptureKit
 
-extension AppDelegate {
+extension AppDelegate: NSMenuDelegate {
     func createMenu() {
         menu.removeAllItems()
         menu.delegate = self
@@ -71,26 +69,26 @@ extension AppDelegate {
         if screen == nil && window == nil {
             duration = Double(audioFile?.length ?? 0) / (audioFile?.fileFormat.sampleRate ?? 1) // やばい
         }
-        info.attributedTitle = NSAttributedString(string: "Duration: \(getRecordingLength())\nFile size: 0MB")
+        info.attributedTitle = NSAttributedString(string: "Duration: \(getRecordingLength())\nFile size: \(getRecordingSize())")
     }
 
     func refreshWindows() async {
         noneAvailable.isHidden = true
-        let validWindows = availableContent!.windows.filter { !excludedWindows.contains($0.owningApplication!.bundleIdentifier) && !$0.title!.contains("Item-0") && $0.title! != "" }
+        let validWindows = availableContent!.windows.filter { !excludedWindows.contains($0.owningApplication!.bundleIdentifier) && !$0.title!.contains("Item-0") && !$0.title!.isEmpty }
 
         let programIDs = validWindows.compactMap { $0.windowID.description }
         for window in menu.items.filter({ !programIDs.contains($0.title) && $0.identifier?.rawValue == "window" }) {
             menu.removeItem(window)
         }
         usleep(10000) // -sigh- sometimes the menu can add/remove so fast that the text doesn't update until a hover. somehow this fixes that.
-        if validWindows.count == 0 {
+        if validWindows.isEmpty {
             noneAvailable.isHidden = false
             sleep(2) // WTF?
             return // nothing to add if no windows exist, so why bother
         }
 
         // add valid windows which are not yet in the list
-        let addedItems = menu.items.compactMap { $0.identifier?.rawValue == "window" ? $0.title : "" }
+        let addedItems = menu.items.compactMap { $0.identifier?.rawValue == "window" ? $0.title : "" } // todo: sort
         for window in validWindows.filter({ !addedItems.contains($0.windowID.description) }) {
             newWindow(window: window)
         }
@@ -109,6 +107,12 @@ extension AppDelegate {
             DispatchQueue.main.async {
                 button.image = NSImage(systemSymbolName: self.isRecording ? "record.circle.fill" : "record.circle", accessibilityDescription: "Azayaka")
             }
+        }
+    }
+
+    func menuWillOpen(_ menu: NSMenu) {
+        if !isRecording {
+            updateAvailableContent(buildMenu: false)
         }
     }
 }

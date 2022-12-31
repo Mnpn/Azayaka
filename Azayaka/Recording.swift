@@ -5,8 +5,6 @@
 //  Created by Martin Persson on 2022-12-26.
 //
 
-import Foundation
-import AppKit
 import ScreenCaptureKit
 import AVFAudio
 
@@ -30,7 +28,7 @@ extension AppDelegate {
         if audioOnly {
             prepareAudioRecording()
         }
-        Task { await record(audioOnly: audioOnly) }
+        Task { await record(audioOnly: audioOnly, filter: filter ?? SCContentFilter()) }
 
         // while recording, keep a timer which updates the menu's stats
         updateTimer?.invalidate()
@@ -40,7 +38,7 @@ extension AppDelegate {
         RunLoop.current.add(updateTimer!, forMode: .common) // required to have the menu update while open
     }
 
-    func record(audioOnly: Bool) async {
+    func record(audioOnly: Bool, filter: SCContentFilter) async {
         let conf = SCStreamConfiguration()
         conf.width = 2
         conf.height = 2
@@ -58,14 +56,14 @@ extension AppDelegate {
         conf.sampleRate = audioSettings["AVSampleRateKey"] as! Int
         conf.channelCount = audioSettings["AVNumberOfChannelsKey"] as! Int
 
-        stream = SCStream(filter: filter!, configuration: conf, delegate: self)
+        stream = SCStream(filter: filter, configuration: conf, delegate: self)
         do {
-            try! stream?.addStreamOutput(self, type: .screen, sampleHandlerQueue: .global())
-            try! stream?.addStreamOutput(self, type: .audio, sampleHandlerQueue: .global())
+            try! stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: .global())
+            try! stream.addStreamOutput(self, type: .audio, sampleHandlerQueue: .global())
             if !audioOnly {
                 initVideo(conf: conf)
             }
-            try await stream?.startCapture()
+            try await stream.startCapture()
         } catch {
             assertionFailure("capture failed")
             return
@@ -79,9 +77,9 @@ extension AppDelegate {
         if screen != nil || window != nil {
             closeVideo()
         } else {
-            audioFile = nil // nilling the file closes it
+            audioFile = nil // close file
         }
-        stream?.stopCapture()
+        stream.stopCapture()
         isRecording = false
         window = nil
         screen = nil
@@ -118,14 +116,14 @@ extension AppDelegate {
             case AudioFormat.opus.rawValue: fileEnding = "ogg"
             default: assertionFailure("loaded unknown audio format: " + fileEnding)
         }
-        audioFile = try! AVAudioFile(forWriting: URL(fileURLWithPath: ud.string(forKey: "saveDirectory")! + "/\(getFileName()).\(fileEnding)"), settings: audioSettings, commonFormat: .pcmFormatFloat32, interleaved: false)
-        // todo: should this really be .pcmFormatFloat32?
+        filePath = "\(getFilePath()).\(fileEnding)"
+        audioFile = try! AVAudioFile(forWriting: URL(fileURLWithPath: filePath), settings: audioSettings, commonFormat: .pcmFormatFloat32, interleaved: false)
     }
 
-    func getFileName() -> String {
+    func getFilePath() -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "y-MM-dd HH.mm.ss"
-        return "Recording at " + dateFormatter.string(from: Date())
+        return ud.string(forKey: "saveDirectory")! + "/Recording at " + dateFormatter.string(from: Date())
     }
 
     func getRecordingLength() -> String {
@@ -134,6 +132,19 @@ extension AppDelegate {
         formatter.zeroFormattingBehavior = .pad
         formatter.unitsStyle = .positional
         return formatter.string(from: TimeInterval(duration))!
+    }
+
+    func getRecordingSize() -> String {
+        do {
+            let fileAttr = try FileManager.default.attributesOfItem(atPath: filePath)
+            let byteFormat = ByteCountFormatter()
+            byteFormat.allowedUnits = [.useMB]
+            byteFormat.countStyle = .file
+            return byteFormat.string(fromByteCount: fileAttr[FileAttributeKey.size] as! Int64)
+        } catch {
+            print("failed to fetch file for size indicator: \(error.localizedDescription)")
+        }
+        return "Unknown"
     }
 }
 

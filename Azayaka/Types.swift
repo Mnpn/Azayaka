@@ -5,8 +5,6 @@
 //  Created by Martin Persson on 2022-12-27.
 //
 
-import Foundation
-
 enum AudioQuality: Int {
     case normal = 128, good = 192, high = 256, extreme = 320
 }
