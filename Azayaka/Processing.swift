@@ -35,13 +35,15 @@ extension AppDelegate {
 
         filePath = "\(getFilePath()).\(fileEnding)"
         vW = try? AVAssetWriter.init(outputURL: URL(fileURLWithPath: filePath), fileType: fileType!)
+        let fpsMultiplier: Double = Double(ud.integer(forKey: "frameRate"))/8
+        let encoderMultiplier: Double = ud.string(forKey: "encoder") == Encoder.h265.rawValue ? 0.5 : 0.9
         let videoSettings: [String: Any] = [
             AVVideoCodecKey: ud.string(forKey: "encoder") == Encoder.h264.rawValue ? AVVideoCodecType.h264 : AVVideoCodecType.hevc,
             // yes, not ideal if we want more than these encoders in the future, but it's ok for now
             AVVideoWidthKey: conf.width,
             AVVideoHeightKey: conf.height,
             AVVideoCompressionPropertiesKey: [
-                AVVideoAverageBitRateKey: (Double(conf.width) * Double(conf.height) * 10.1),
+                AVVideoAverageBitRateKey: (Double(conf.width) * Double(conf.height) * fpsMultiplier * encoderMultiplier),
                 AVVideoExpectedSourceFrameRateKey: ud.integer(forKey: "frameRate")
             ]
         ]

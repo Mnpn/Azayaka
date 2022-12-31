@@ -109,7 +109,7 @@ extension AppDelegate {
 
     func prepareAudioRecording() {
         var fileEnding = ud.string(forKey: "audioFormat") ?? ""
-        switch fileEnding { // todo: consider structs which contain relevant file format data
+        switch fileEnding { // todo: I'd like to store format info differently
             case AudioFormat.aac.rawValue: fallthrough
             case AudioFormat.alac.rawValue: fileEnding = "m4a"
             case AudioFormat.flac.rawValue: fileEnding = "flac"
