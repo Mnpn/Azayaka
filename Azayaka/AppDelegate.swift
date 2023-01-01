@@ -10,7 +10,6 @@ import AVFAudio
 import Cocoa
 import ScreenCaptureKit
 
-@main
 class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOutput {
     var vW: AVAssetWriter!
     var vwInput, awInput: AVAssetWriterInput!

@@ -7,10 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		172CDA632962011500A2C55D /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 172CDA622962011500A2C55D /* main.swift */; };
 		17322D4B2958D07E00185BB6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D4A2958D07E00185BB6 /* AppDelegate.swift */; };
-		17322D4D2958D07E00185BB6 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D4C2958D07E00185BB6 /* ViewController.swift */; };
 		17322D4F2958D08000185BB6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 17322D4E2958D08000185BB6 /* Assets.xcassets */; };
-		17322D522958D08000185BB6 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 17322D502958D08000185BB6 /* Main.storyboard */; };
 		17322D5A2959286100185BB6 /* Processing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D592959286100185BB6 /* Processing.swift */; };
 		17322D5C295928BE00185BB6 /* Recording.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D5B295928BE00185BB6 /* Recording.swift */; };
 		17322D5E295929A000185BB6 /* Menu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D5D295929A000185BB6 /* Menu.swift */; };
@@ -19,11 +18,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		172CDA622962011500A2C55D /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		17322D472958D07E00185BB6 /* Azayaka.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Azayaka.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		17322D4A2958D07E00185BB6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		17322D4C2958D07E00185BB6 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		17322D4E2958D08000185BB6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		17322D512958D08000185BB6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		17322D532958D08000185BB6 /* Azayaka.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Azayaka.entitlements; sourceTree = "<group>"; };
 		17322D592959286100185BB6 /* Processing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Processing.swift; sourceTree = "<group>"; };
 		17322D5B295928BE00185BB6 /* Recording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recording.swift; sourceTree = "<group>"; };
@@ -68,9 +66,8 @@
 				17DBD7C4295B0973005C0690 /* Preferences.swift */,
 				17322D5B295928BE00185BB6 /* Recording.swift */,
 				17322D592959286100185BB6 /* Processing.swift */,
-				17322D4C2958D07E00185BB6 /* ViewController.swift */,
+				172CDA622962011500A2C55D /* main.swift */,
 				17322D4E2958D08000185BB6 /* Assets.xcassets */,
-				17322D502958D08000185BB6 /* Main.storyboard */,
 				17322D532958D08000185BB6 /* Azayaka.entitlements */,
 			);
 			path = Azayaka;
@@ -135,7 +132,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				17322D4F2958D08000185BB6 /* Assets.xcassets in Resources */,
-				17322D522958D08000185BB6 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -146,8 +142,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				17322D4D2958D07E00185BB6 /* ViewController.swift in Sources */,
 				17322D5A2959286100185BB6 /* Processing.swift in Sources */,
+				172CDA632962011500A2C55D /* main.swift in Sources */,
 				17DBD7C5295B0973005C0690 /* Preferences.swift in Sources */,
 				17BCDC80295BAC9400448A97 /* Types.swift in Sources */,
 				17322D4B2958D07E00185BB6 /* AppDelegate.swift in Sources */,
@@ -157,17 +153,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXVariantGroup section */
-		17322D502958D08000185BB6 /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				17322D512958D08000185BB6 /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		17322D542958D08000185BB6 /* Debug */ = {
@@ -292,7 +277,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 35BSP6SUG9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -300,7 +285,6 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -324,7 +308,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 35BSP6SUG9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -332,7 +316,6 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
