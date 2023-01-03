@@ -54,7 +54,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         updateIcon()
         statusItem.menu = menu
         updateAvailableContent(buildMenu: true)
-
     }
 
     @objc func updateAvailableContent(buildMenu: Bool) {
@@ -72,7 +71,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                 self.createMenu()
                 return
             }
-            Task { await self.refreshWindows() } // ask to just refresh the windows list instead of rebuilding it all
+            self.refreshWindows() // ask to just refresh the windows list instead of rebuilding it all
         }
     }
 

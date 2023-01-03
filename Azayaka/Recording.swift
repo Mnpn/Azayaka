@@ -10,6 +10,7 @@ import AVFAudio
 
 extension AppDelegate {
     @objc func prepRecord(_ sender: NSMenuItem) {
+        statusItem.menu = nil
         updateAudioSettings()
         // file preparation
         screen = availableContent!.displays.first(where: { sender.title == $0.displayID.description })
@@ -34,6 +35,7 @@ extension AppDelegate {
             self.updateMenu()
         }
         RunLoop.current.add(updateTimer!, forMode: .common) // required to have the menu update while open
+        updateTimer?.fire()
     }
 
     func record(audioOnly: Bool, filter: SCContentFilter) async {
@@ -72,6 +74,7 @@ extension AppDelegate {
     }
 
     @objc func stopRecording() {
+        statusItem.menu = nil
         if screen != nil || window != nil {
             closeVideo()
         } else {
@@ -83,6 +86,7 @@ extension AppDelegate {
         screen = nil
         updateIcon()
         updateTimer?.invalidate()
+        duration = 0
         createMenu()
     }
 
@@ -134,11 +138,13 @@ extension AppDelegate {
 
     func getRecordingSize() -> String {
         do {
-            let fileAttr = try FileManager.default.attributesOfItem(atPath: filePath)
-            let byteFormat = ByteCountFormatter()
-            byteFormat.allowedUnits = [.useMB]
-            byteFormat.countStyle = .file
-            return byteFormat.string(fromByteCount: fileAttr[FileAttributeKey.size] as! Int64)
+            if let filePath = filePath {
+                let fileAttr = try FileManager.default.attributesOfItem(atPath: filePath)
+                let byteFormat = ByteCountFormatter()
+                byteFormat.allowedUnits = [.useMB]
+                byteFormat.countStyle = .file
+                return byteFormat.string(fromByteCount: fileAttr[FileAttributeKey.size] as! Int64)
+            }
         } catch {
             print("failed to fetch file for size indicator: \(error.localizedDescription)")
         }
