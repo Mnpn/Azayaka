@@ -18,9 +18,7 @@ extension AppDelegate {
             filter = SCContentFilter(desktopIndependentWindow: window!)
         } else {
             let excluded = self.availableContent?.applications.filter { app in
-                //self.excludedWindows.contains(app.bundleIdentifier)
-                //Bundle.main.bundleIdentifier == app.bundleIdentifier
-                false
+                Bundle.main.bundleIdentifier == app.bundleIdentifier && ud.bool(forKey: "hideSelf")
             }
             filter = SCContentFilter(display: screen ?? availableContent!.displays.first!, excludingApplications: excluded ?? [], exceptingWindows: [])
         }

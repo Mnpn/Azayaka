@@ -23,7 +23,7 @@ func createPCMBuffer(for sampleBuffer: CMSampleBuffer) -> AVAudioPCMBuffer? {
 
 extension AppDelegate {
     func initVideo(conf: SCStreamConfiguration) {
-        sessionBeginAtSourceTime = nil
+        startTime = nil
 
         let fileEnding = ud.string(forKey: "videoFormat") ?? ""
         var fileType: AVFileType?
@@ -69,7 +69,7 @@ extension AppDelegate {
         vwInput.markAsFinished()
         awInput.markAsFinished()
         vW.finishWriting {
-            self.sessionBeginAtSourceTime = nil
+            self.startTime = nil
             dispatchGroup.leave()
         }
         dispatchGroup.wait()
@@ -81,16 +81,16 @@ extension AppDelegate {
         switch outputType {
             case .screen:
                 if screen == nil && window == nil { break }
-                duration = CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sampleBuffer)) - (sessionBeginAtSourceTime?.seconds ?? 0) // todo: this probably runs a bit too much, can this be moved?
+                duration = CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sampleBuffer)) - (startTime?.seconds ?? 0) // todo: this probably runs a bit too much, can this be moved?
                 guard let attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false) as? [[SCStreamFrameInfo: Any]],
                       let attachments = attachmentsArray.first else { return }
                 guard let statusRawValue = attachments[SCStreamFrameInfo.status] as? Int,
                       let status = SCFrameStatus(rawValue: statusRawValue),
                       status == .complete else { return }
 
-                if vW != nil && vW?.status == .writing, sessionBeginAtSourceTime == nil {
-                    sessionBeginAtSourceTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
-                    vW.startSession(atSourceTime: sessionBeginAtSourceTime!)
+                if vW != nil && vW?.status == .writing, startTime == nil {
+                    startTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+                    vW.startSession(atSourceTime: startTime)
                 }
                 if vwInput.isReadyForMoreMediaData {
                     vwInput.append(sampleBuffer)
@@ -115,8 +115,8 @@ extension AppDelegate {
 
     func stream(_ stream: SCStream, didStopWithError error: Error) { // stream error
         DispatchQueue.main.async {
-            print("Closing stream with error:", error)
-            print("This might be due to the window closing")
+            print("closing stream with error:", error)
+            print("this might be due to the window closing")
             self.stopRecording()
         }
     }

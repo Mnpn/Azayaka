@@ -14,6 +14,7 @@ struct Preferences: View {
     @AppStorage("videoFormat") private var videoFormat: VideoFormat = .mp4
     @AppStorage("encoder") private var encoder: Encoder = .h264
     @AppStorage("saveDirectory") private var saveDirectory: String?
+    @AppStorage("hideSelf") private var hideSelf: Bool = false
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -34,7 +35,10 @@ struct Preferences: View {
                         Text("h264").tag(Encoder.h264)
                         Text("h265").tag(Encoder.h265)
                     }.scaledToFit()
-                }.frame(maxWidth: .infinity).padding(10)
+                }.frame(maxWidth: .infinity).padding(.top, 10)
+                Toggle(isOn: $hideSelf) {
+                    Text("Exclude Azayaka itself")
+                }.toggleStyle(CheckboxToggleStyle()).padding(.bottom, 10)
             }
             GroupBox(label: Text("Audio Output".uppercased()).fontWeight(.bold)) {
                 Form() {
@@ -63,12 +67,12 @@ struct Preferences: View {
                 Button("Select output directory", action: updateOutputDirectory)
                 Text("Currently set to \"\(URL(fileURLWithPath: saveDirectory!).lastPathComponent)\"").font(.footnote).foregroundColor(Color.gray)
             }.frame(maxWidth: .infinity)
-        }.frame(width: 260).padding(.leading, 10).padding(.trailing, 10).padding(.top, 10) // pls.
+        }.frame(width: 260).padding([.leading, .trailing, .top], 10)
         HStack {
             Text("Azayaka \(getVersion()) (\(getBuild()))")
             Spacer()
             Text("https://mnpn.dev")
-        }.padding(10).background(VisualEffectView()).frame(height: 40)
+        }.padding(12).background(VisualEffectView()).frame(height: 42)
     }
 
     func updateOutputDirectory() { // todo: re-sandbox

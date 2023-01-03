@@ -13,7 +13,7 @@ import ScreenCaptureKit
 class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOutput {
     var vW: AVAssetWriter!
     var vwInput, awInput: AVAssetWriterInput!
-    var sessionBeginAtSourceTime: CMTime!
+    var startTime: CMTime!
     var stream: SCStream!
     var filePath: String!
     var audioFile: AVAudioFile?
@@ -45,7 +45,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                 "frameRate": 60,
                 "videoFormat": VideoFormat.mp4.rawValue,
                 "encoder": Encoder.h264.rawValue,
-                "saveDirectory": userDesktop!
+                "saveDirectory": userDesktop!,
+                "hideSelf": false
             ]
         )
         // create a menu bar item
