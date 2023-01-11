@@ -69,7 +69,7 @@ struct Preferences: View {
             }.frame(maxWidth: .infinity)
         }.frame(width: 260).padding([.leading, .trailing, .top], 10)
         HStack {
-            Text("Azayaka \(getVersion()) (\(getBuild()))")
+            Text("Azayaka \(getVersion()) (\(getBuild()))").foregroundColor(Color.secondary)
             Spacer()
             Text("https://mnpn.dev")
         }.padding(12).background(VisualEffectView()).frame(height: 42)
