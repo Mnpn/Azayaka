@@ -12,13 +12,8 @@ That's right, record your screen or an app, with its playing audio, regardless o
 - Simple, unobtrusive menu bar application
 - Choose between .mp4 or .mov files
 - Audio options ranging from Opus & AAC to lossless ALAC & FLAC
-<div>
 <img width="213" alt="Azayaka Recording IINA (Menu UI)" src="https://user-images.githubusercontent.com/17569187/211806807-ea3efacd-d38c-4ed4-a9f7-ca3bcc6e4150.png">
-<img width="280" alt="Screenshot 2023-01-11 at 17 20 43" src="https://user-images.githubusercontent.com/17569187/211859716-f8acb26c-61d1-4fbb-a275-fc661ea28d76.png">
-</div>
 
-<br>
-<br>
 <br>
 <br>
 
