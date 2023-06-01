@@ -27,7 +27,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     var screen: SCDisplay?
     var window: SCWindow?
 
-    let excludedWindows = ["", "com.apple.dock", "com.apple.controlcenter", "com.apple.notificationcenterui", "com.apple.WindowManager", "dev.mnpn.Azayaka", "com.gaosun.eul"]
+    let excludedWindows = ["", "com.apple.dock", "com.apple.controlcenter", "com.apple.notificationcenterui", "com.apple.systemuiserver", "com.apple.WindowManager", "dev.mnpn.Azayaka", "com.gaosun.eul", "com.pointum.hazeover"]
 
     var statusItem: NSStatusItem!
     var menu = NSMenu()
