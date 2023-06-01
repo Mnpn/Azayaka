@@ -35,17 +35,19 @@ extension AppDelegate {
 
         filePath = "\(getFilePath()).\(fileEnding)"
         vW = try? AVAssetWriter.init(outputURL: URL(fileURLWithPath: filePath), fileType: fileType!)
+        let encoderIsH265 = ud.string(forKey: "encoder") == Encoder.h265.rawValue
         let fpsMultiplier: Double = Double(ud.integer(forKey: "frameRate"))/8
-        let encoderMultiplier: Double = ud.string(forKey: "encoder") == Encoder.h265.rawValue ? 0.5 : 0.9
+        let encoderMultiplier: Double = encoderIsH265 ? 0.5 : 0.9
+        let targetBitrate = (Double(conf.width) * Double(conf.height) * fpsMultiplier * encoderMultiplier)
         let videoSettings: [String: Any] = [
-            AVVideoCodecKey: ud.string(forKey: "encoder") == Encoder.h264.rawValue ? AVVideoCodecType.h264 : AVVideoCodecType.hevc,
+            AVVideoCodecKey: encoderIsH265 ? AVVideoCodecType.hevc : AVVideoCodecType.h264,
             // yes, not ideal if we want more than these encoders in the future, but it's ok for now
             AVVideoWidthKey: conf.width,
             AVVideoHeightKey: conf.height,
             AVVideoCompressionPropertiesKey: [
-                AVVideoAverageBitRateKey: (Double(conf.width) * Double(conf.height) * fpsMultiplier * encoderMultiplier),
+                AVVideoAverageBitRateKey: targetBitrate,
                 AVVideoExpectedSourceFrameRateKey: ud.integer(forKey: "frameRate")
-            ]
+            ] as [String : Any]
         ]
         vwInput = AVAssetWriterInput(mediaType: AVMediaType.video, outputSettings: videoSettings)
         awInput = AVAssetWriterInput(mediaType: AVMediaType.audio, outputSettings: audioSettings)

@@ -95,7 +95,7 @@ extension AppDelegate {
         switch ud.string(forKey: "audioFormat") {
         case AudioFormat.aac.rawValue:
             audioSettings[AVFormatIDKey] = kAudioFormatMPEG4AAC
-            audioSettings[AVEncoderBitRateKey] = ud.integer(forKey: "audioQuality")*1000
+            audioSettings[AVEncoderBitRateKey] = ud.integer(forKey: "audioQuality") * 1000
         case AudioFormat.alac.rawValue:
             audioSettings[AVFormatIDKey] = kAudioFormatAppleLossless
             audioSettings[AVEncoderBitDepthHintKey] = 16
@@ -103,7 +103,7 @@ extension AppDelegate {
             audioSettings[AVFormatIDKey] = kAudioFormatFLAC
         case AudioFormat.opus.rawValue:
             audioSettings[AVFormatIDKey] = ud.string(forKey: "videoFormat") != VideoFormat.mp4.rawValue ? kAudioFormatOpus : kAudioFormatMPEG4AAC
-            audioSettings[AVEncoderBitRateKey] =  ud.integer(forKey: "audioQuality")*1000
+            audioSettings[AVEncoderBitRateKey] =  ud.integer(forKey: "audioQuality") * 1000
         default:
             assertionFailure("unknown audio format while setting audio settings: " + (ud.string(forKey: "audioFormat") ?? "[no defaults]"))
         }
