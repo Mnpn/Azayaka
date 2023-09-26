@@ -89,7 +89,9 @@ extension AppDelegate: NSMenuDelegate {
 
         // add valid windows which are not yet in the list
         let addedItems = menu.items.compactMap { $0.identifier?.rawValue == "window" ? $0.title : "" }
-        for window in validWindows.filter({ !addedItems.contains($0.windowID.description) }) {
+        // in sonoma, there is a new new purple thing overlaying the traffic lights, I don't really want this to show up.
+        // its title is simply "Window", but its bundle id is the same as the parent, so this seems like a strange bodge..
+        for window in validWindows.filter({ !addedItems.contains($0.windowID.description) && $0.title != "Window" }) {
             newWindow(window: window)
         }
     }
@@ -111,7 +113,7 @@ extension AppDelegate: NSMenuDelegate {
                                                    .foregroundColor: NSColor.secondaryLabelColor]))
         return str
     }
-    
+
     func header(_ title: String, size: CGFloat = 10) -> NSMenuItem {
         let headerItem: NSMenuItem
         if #available(macOS 14.0, *) {
