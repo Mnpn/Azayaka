@@ -88,10 +88,9 @@ extension AppDelegate: NSMenuDelegate {
         for window in menu.items.filter({ !programIDs.contains($0.title) && $0.identifier?.rawValue == "window" }) {
             menu.removeItem(window)
         }
-        usleep(10000) // -sigh- sometimes the menu can add/remove so fast that the text doesn't update until a hover. somehow this fixes that.
+
         if validWindows.isEmpty {
             noneAvailable.isHidden = false
-            sleep(2) // WTF?
             return // nothing to add if no windows exist, so why bother
         }
 
@@ -107,7 +106,9 @@ extension AppDelegate: NSMenuDelegate {
         win.attributedTitle = getFancyWindowString(window: window)
         win.title = String(window.windowID)
         win.identifier = NSUserInterfaceItemIdentifier("window")
-        menu.insertItem(win, at: menu.numberOfItems - 3)
+        DispatchQueue.main.async { [self] in
+            menu.insertItem(win, at: menu.numberOfItems - 3)
+        }
     }
 
     func getFancyWindowString(window: SCWindow) -> NSAttributedString {
