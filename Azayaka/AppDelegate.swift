@@ -53,6 +53,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         updateIcon()
         statusItem.menu = menu
+        menu.minimumWidth = 250
         updateAvailableContent(buildMenu: true)
     }
 

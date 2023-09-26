@@ -11,34 +11,28 @@ extension AppDelegate: NSMenuDelegate {
     func createMenu() {
         menu.removeAllItems()
         menu.delegate = self
-        let centreText = NSMutableParagraphStyle()
-        centreText.alignment = .center
 
-        let title = NSMenuItem(title: "Title", action: nil, keyEquivalent: "")
         if isRecording {
             var typeText = ""
             if screen != nil {
-                typeText = "DISPLAY " + String((availableContent?.displays.firstIndex(where: { $0.displayID == screen?.displayID }))!+1)
+                typeText = "Display " + String((availableContent?.displays.firstIndex(where: { $0.displayID == screen?.displayID }))!+1)
             } else if window != nil {
-                typeText = window?.owningApplication?.applicationName.uppercased() ?? "A WINDOW"
+                typeText = window?.owningApplication?.applicationName.uppercased() ?? "A window"
             } else {
-                typeText = "SYSTEM AUDIO"
+                typeText = "System Audio"
             }
-            title.attributedTitle = NSMutableAttributedString(string: "RECORDING " + typeText, attributes: [.font: NSFont.systemFont(ofSize: 12, weight: .heavy), .paragraphStyle: centreText])
-            menu.addItem(title)
+            menu.addItem(header("Recording " + typeText, size: 12))
+
             menu.addItem(NSMenuItem(title: "Stop Recording", action: #selector(stopRecording), keyEquivalent: ""))
             menu.addItem(info)
         } else {
-            title.attributedTitle = NSAttributedString(string: "SELECT CONTENT TO RECORD", attributes: [.font: NSFont.systemFont(ofSize: 12, weight: .heavy), .paragraphStyle: centreText])
-            menu.addItem(title)
+            menu.addItem(header("Audio-only"))
 
             let audio = NSMenuItem(title: "System Audio", action: #selector(prepRecord), keyEquivalent: "")
             audio.identifier = NSUserInterfaceItemIdentifier(rawValue: "audio")
             menu.addItem(audio)
 
-            let displays = NSMenuItem(title: "Displays", action: nil, keyEquivalent: "")
-            displays.attributedTitle = NSAttributedString(string: "DISPLAYS", attributes: [.font: NSFont.systemFont(ofSize: 10, weight: .heavy)])
-            menu.addItem(displays)
+            menu.addItem(header("Displays"))
 
             for (i, display) in availableContent!.displays.enumerated() {
                 let displayItem = NSMenuItem(title: "Mondai", action: #selector(prepRecord), keyEquivalent: "")
@@ -48,9 +42,8 @@ extension AppDelegate: NSMenuDelegate {
                 menu.addItem(displayItem)
             }
 
-            let windows = NSMenuItem(title: "Windows", action: nil, keyEquivalent: "")
-            windows.attributedTitle = NSAttributedString(string: "WINDOWS", attributes: [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 10, weight: .heavy)])
-            menu.addItem(windows)
+            menu.addItem(header("Windows"))
+
             noneAvailable.isHidden = true
             menu.addItem(noneAvailable)
         }
@@ -117,6 +110,17 @@ extension AppDelegate: NSMenuDelegate {
                                       attributes: [.font: NSFont.systemFont(ofSize: 12, weight: .regular),
                                                    .foregroundColor: NSColor.secondaryLabelColor]))
         return str
+    }
+    
+    func header(_ title: String, size: CGFloat = 10) -> NSMenuItem {
+        let headerItem: NSMenuItem
+        if #available(macOS 14.0, *) {
+            headerItem = NSMenuItem.sectionHeader(title: title.uppercased())
+        } else {
+            headerItem = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+            headerItem.attributedTitle = NSAttributedString(string: title.uppercased(), attributes: [.font: NSFont.systemFont(ofSize: size, weight: .heavy)])
+        }
+        return headerItem
     }
 
     func menuWillOpen(_ menu: NSMenu) {
