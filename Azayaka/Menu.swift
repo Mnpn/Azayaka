@@ -128,11 +128,7 @@ extension AppDelegate: NSMenuDelegate {
     func menuWillOpen(_ menu: NSMenu) {
         if !isRecording {
             updateAvailableContent(buildMenu: false)
-            updateTimer?.invalidate()
-            updateTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false) { _ in
-                self.updateMenu()
-            }
-            RunLoop.current.add(updateTimer!, forMode: .common)
+            self.updateMenu()
         }
     }
 
