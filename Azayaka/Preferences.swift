@@ -8,13 +8,13 @@
 import SwiftUI
 
 struct Preferences: View {
-    @AppStorage("audioFormat") private var audioFormat: AudioFormat = .aac
-    @AppStorage("audioQuality") private var audioQuality: AudioQuality = .high
-    @AppStorage("frameRate") private var frameRate: Int = 60
-    @AppStorage("videoFormat") private var videoFormat: VideoFormat = .mp4
-    @AppStorage("encoder") private var encoder: Encoder = .h264
+    @AppStorage("audioFormat")   private var audioFormat: AudioFormat = .aac
+    @AppStorage("audioQuality")  private var audioQuality: AudioQuality = .high
+    @AppStorage("frameRate")     private var frameRate: Int = 60
+    @AppStorage("videoFormat")   private var videoFormat: VideoFormat = .mp4
+    @AppStorage("encoder")       private var encoder: Encoder = .h264
     @AppStorage("saveDirectory") private var saveDirectory: String?
-    @AppStorage("hideSelf") private var hideSelf: Bool = false
+    @AppStorage("hideSelf")      private var hideSelf: Bool = false
 
     var body: some View {
         VStack(alignment: .leading) {

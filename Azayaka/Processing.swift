@@ -10,7 +10,7 @@ import AVFAudio
 import ScreenCaptureKit
 
 // https://developer.apple.com/documentation/screencapturekit/capturing_screen_content_in_macos
-// For Sonoma changed to https://developer.apple.com/forums/thread/727709 - todo: make sure it works on Ventura
+// For Sonoma updated to https://developer.apple.com/forums/thread/727709
 func createPCMBuffer(for sampleBuffer: CMSampleBuffer) -> AVAudioPCMBuffer? {
     try? sampleBuffer.withAudioBufferList { audioBufferList, _ -> AVAudioPCMBuffer? in
         guard let absd = sampleBuffer.formatDescription?.audioStreamBasicDescription else { return nil }
