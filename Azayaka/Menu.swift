@@ -74,8 +74,10 @@ extension AppDelegate: NSMenuDelegate {
     }
 
     func refreshWindows() {
-        noneAvailable.isHidden = true
-        let validWindows = availableContent!.windows.filter { !excludedWindows.contains($0.owningApplication!.bundleIdentifier) && !$0.title!.contains("Item-0") && !$0.title!.isEmpty }
+        DispatchQueue.main.async { self.noneAvailable.isHidden = true }
+        // in sonoma, there is a new new purple thing overlaying the traffic lights, I don't really want this to show up.
+        // its title is simply "Window", but its bundle id is the same as the parent, so this seems like a strange bodge..
+        let validWindows = availableContent!.windows.filter { !excludedWindows.contains($0.owningApplication!.bundleIdentifier) && !$0.title!.contains("Item-0") && !$0.title!.isEmpty && $0.title != "Window" }
 
         let programIDs = validWindows.compactMap { $0.windowID.description }
         for window in menu.items.filter({ !programIDs.contains($0.title) && $0.identifier?.rawValue == "window" }) {
@@ -83,15 +85,13 @@ extension AppDelegate: NSMenuDelegate {
         }
 
         if validWindows.isEmpty {
-            noneAvailable.isHidden = false
+            DispatchQueue.main.async { self.noneAvailable.isHidden = false }
             return // nothing to add if no windows exist, so why bother
         }
 
         // add valid windows which are not yet in the list
         let addedItems = menu.items.compactMap { $0.identifier?.rawValue == "window" ? $0.title : "" }
-        // in sonoma, there is a new new purple thing overlaying the traffic lights, I don't really want this to show up.
-        // its title is simply "Window", but its bundle id is the same as the parent, so this seems like a strange bodge..
-        for window in validWindows.filter({ !addedItems.contains($0.windowID.description) && $0.title != "Window" }) {
+        for window in validWindows.filter({ !addedItems.contains($0.windowID.description) }) {
             newWindow(window: window)
         }
     }
