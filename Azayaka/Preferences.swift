@@ -15,6 +15,7 @@ struct Preferences: View {
     @AppStorage("encoder")       private var encoder: Encoder = .h264
     @AppStorage("saveDirectory") private var saveDirectory: String?
     @AppStorage("hideSelf")      private var hideSelf: Bool = false
+    @AppStorage("showMouse")     private var showMouse: Bool = true
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -38,6 +39,9 @@ struct Preferences: View {
                 }.frame(maxWidth: .infinity).padding(.top, 10)
                 Toggle(isOn: $hideSelf) {
                     Text("Exclude Azayaka itself")
+                }.toggleStyle(CheckboxToggleStyle())
+                Toggle(isOn: $showMouse) {
+                    Text("Show mouse cursor")
                 }.toggleStyle(CheckboxToggleStyle()).padding(.bottom, 10)
             }
             GroupBox(label: Text("Audio Output".uppercased()).fontWeight(.bold)) {

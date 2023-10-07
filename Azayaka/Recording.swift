@@ -51,7 +51,7 @@ extension AppDelegate {
         }
 
         conf.minimumFrameInterval = CMTime(value: 1, timescale: audioOnly ? 1 : CMTimeScale(ud.integer(forKey: "frameRate")))
-        conf.showsCursor = true
+        conf.showsCursor = ud.bool(forKey: "showMouse")
         conf.capturesAudio = true
         conf.sampleRate = audioSettings["AVSampleRateKey"] as! Int
         conf.channelCount = audioSettings["AVNumberOfChannelsKey"] as! Int

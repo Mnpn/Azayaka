@@ -50,7 +50,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                 "videoFormat": VideoFormat.mp4.rawValue,
                 "encoder": Encoder.h264.rawValue,
                 "saveDirectory": saveDirectory,
-                "hideSelf": false
+                "hideSelf": false,
+                "showMouse": true
             ]
         )
         // create a menu bar item
