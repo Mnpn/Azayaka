@@ -75,9 +75,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
             DispatchQueue.main.async {
                 if buildMenu {
                     self.createMenu()
-                } else {
-                    self.refreshWindows() // ask to just refresh the windows list instead of rebuilding it all
                 }
+                self.refreshWindows() // ask to just refresh the windows list instead of rebuilding it all
             }
         }
     }
