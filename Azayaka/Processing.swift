@@ -81,7 +81,6 @@ extension AppDelegate {
         switch outputType {
             case .screen:
                 if screen == nil && window == nil { break }
-                duration = CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sampleBuffer)) - (startTime?.seconds ?? 0) // todo: this probably runs a bit too much, can this be moved?
                 guard let attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false) as? [[SCStreamFrameInfo: Any]],
                       let attachments = attachmentsArray.first else { return }
                 guard let statusRawValue = attachments[SCStreamFrameInfo.status] as? Int,
@@ -89,15 +88,15 @@ extension AppDelegate {
                       status == .complete else { return }
 
                 if vW != nil && vW?.status == .writing, startTime == nil {
-                    startTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
-                    vW.startSession(atSourceTime: startTime)
+                    startTime = Date.now
+                    vW.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
                 }
                 if vwInput.isReadyForMoreMediaData {
                     vwInput.append(sampleBuffer)
                 }
                 break
             case .audio:
-                if screen == nil && window == nil { // write directly to file if not video recording
+                if streamType == .systemaudio { // write directly to file if not video recording
                     guard let samples = createPCMBuffer(for: sampleBuffer) else { return }
                     do {
                         try audioFile?.write(from: samples)
@@ -114,9 +113,10 @@ extension AppDelegate {
     }
 
     func stream(_ stream: SCStream, didStopWithError error: Error) { // stream error
+        print("closing stream with error:\n", error,
+              "\nthis might be due to the window closing or the user stopping from the sonoma ui")
         DispatchQueue.main.async {
-            print("closing stream with error:", error)
-            print("this might be due to the window closing")
+            self.stream = nil
             self.stopRecording()
         }
     }

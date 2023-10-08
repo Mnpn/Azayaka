@@ -10,12 +10,18 @@ import AVFAudio
 
 extension AppDelegate {
     @objc func prepRecord(_ sender: NSMenuItem) {
+        switch (sender.identifier?.rawValue) {
+            case "window":  streamType = .window
+            case "display": streamType = .screen
+            case "audio":   streamType = .systemaudio
+            default: return // if we don't even know what to record I don't think we should even try
+        }
         statusItem.menu = nil
         updateAudioSettings()
         // file preparation
         screen = availableContent!.displays.first(where: { sender.title == $0.displayID.description })
         window = availableContent!.windows.first(where: { sender.title == $0.windowID.description })
-        if window != nil {
+        if streamType == .window {
             filter = SCContentFilter(desktopIndependentWindow: window!)
         } else {
             let excluded = self.availableContent?.applications.filter { app in
@@ -23,11 +29,10 @@ extension AppDelegate {
             }
             filter = SCContentFilter(display: screen ?? availableContent!.displays.first!, excludingApplications: excluded ?? [], exceptingWindows: [])
         }
-        let audioOnly = screen == nil && window == nil
-        if audioOnly {
+        if streamType == .systemaudio {
             prepareAudioRecording()
         }
-        Task { await record(audioOnly: audioOnly, filter: filter ?? SCContentFilter()) }
+        Task { await record(audioOnly: streamType == .systemaudio, filter: filter!) }
 
         // while recording, keep a timer which updates the menu's stats
         updateTimer?.invalidate()
@@ -46,11 +51,11 @@ extension AppDelegate {
         if !audioOnly {
             let scale: Int = Int((screen != nil ? NSScreen.screens.first(where: { $0.displayID == screen?.displayID })!.backingScaleFactor : NSScreen.main?.backingScaleFactor) ?? 1)
             // todo: find relevant scaling factor. it seems windows are available on all displays though, and there's no way to get a window's display, so this is tricky
-            conf.width = window == nil ? availableContent!.displays[0].width*scale : Int((window?.frame.width)!*CGFloat(scale))
-            conf.height = window == nil ? availableContent!.displays[0].height*scale : Int((window?.frame.height)!*CGFloat(scale))
+            conf.width = streamType == .screen ? availableContent!.displays[0].width*scale : Int((window?.frame.width)!*CGFloat(scale))
+            conf.height = streamType == .screen ? availableContent!.displays[0].height*scale : Int((window?.frame.height)!*CGFloat(scale))
         }
 
-        conf.minimumFrameInterval = CMTime(value: 1, timescale: audioOnly ? 1 : CMTimeScale(ud.integer(forKey: "frameRate")))
+        conf.minimumFrameInterval = CMTime(value: 1, timescale: audioOnly ? CMTimeScale.max : CMTimeScale(ud.integer(forKey: "frameRate")))
         conf.showsCursor = ud.bool(forKey: "showMouse")
         conf.capturesAudio = true
         conf.sampleRate = audioSettings["AVSampleRateKey"] as! Int
@@ -62,32 +67,41 @@ extension AppDelegate {
             try! stream.addStreamOutput(self, type: .audio, sampleHandlerQueue: .global())
             if !audioOnly {
                 initVideo(conf: conf)
+            } else {
+                startTime = Date.now
             }
             try await stream.startCapture()
         } catch {
             assertionFailure("capture failed")
             return
         }
-        isRecording = true
-        updateIcon()
-        createMenu()
+
+        DispatchQueue.main.async { [self] in
+            updateIcon()
+            createMenu()
+        }
     }
 
     @objc func stopRecording() {
         statusItem.menu = nil
-        if screen != nil || window != nil {
-            closeVideo()
-        } else {
-            audioFile = nil // close file
+
+        if stream != nil {
+            stream.stopCapture()
         }
-        stream.stopCapture()
-        isRecording = false
+        stream = nil
+        if streamType != .systemaudio {
+            closeVideo()
+        }
+        streamType = nil
+        audioFile = nil // close audio file
         window = nil
         screen = nil
-        updateIcon()
         updateTimer?.invalidate()
-        duration = 0
-        createMenu()
+
+        DispatchQueue.main.async { [self] in
+            updateIcon()
+            createMenu()
+        }
     }
 
     func updateAudioSettings() {
@@ -110,7 +124,7 @@ extension AppDelegate {
     }
 
     func prepareAudioRecording() {
-        var fileEnding = ud.string(forKey: "audioFormat") ?? ""
+        var fileEnding = ud.string(forKey: "audioFormat") ?? "wat"
         switch fileEnding { // todo: I'd like to store format info differently
             case AudioFormat.aac.rawValue: fallthrough
             case AudioFormat.alac.rawValue: fileEnding = "m4a"
@@ -133,7 +147,7 @@ extension AppDelegate {
         formatter.allowedUnits = [.minute, .second]
         formatter.zeroFormattingBehavior = .pad
         formatter.unitsStyle = .positional
-        return formatter.string(from: TimeInterval(duration))!
+        return formatter.string(from: Date.now.timeIntervalSince(startTime ?? Date.now)) ?? "Unknown"
     }
 
     func getRecordingSize() -> String {

@@ -13,19 +13,18 @@ import ScreenCaptureKit
 class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOutput {
     var vW: AVAssetWriter!
     var vwInput, awInput: AVAssetWriterInput!
-    var startTime: CMTime!
+    var startTime: Date?
     var stream: SCStream!
     var filePath: String!
     var audioFile: AVAudioFile?
     var audioSettings: [String : Any]!
     var availableContent: SCShareableContent?
     var filter: SCContentFilter?
-    var duration: Double = 0.0
     var updateTimer: Timer?
 
-    var isRecording = false
     var screen: SCDisplay?
     var window: SCWindow?
+    var streamType: StreamType?
 
     let excludedWindows = ["", "com.apple.dock", "com.apple.controlcenter", "com.apple.notificationcenterui", "com.apple.systemuiserver", "com.apple.WindowManager", "dev.mnpn.Azayaka", "com.gaosun.eul", "com.pointum.hazeover", "net.matthewpalmer.Vanilla", "com.dwarvesv.minimalbar"]
 
@@ -62,7 +61,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         updateAvailableContent(buildMenu: true)
     }
 
-    @objc func updateAvailableContent(buildMenu: Bool) {
+    func updateAvailableContent(buildMenu: Bool) {
         SCShareableContent.getExcludingDesktopWindows(true, onScreenWindowsOnly: true) { content, error in
             if let error = error {
                 switch error {
@@ -73,11 +72,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
             }
             self.availableContent = content
             assert(self.availableContent?.displays.isEmpty != nil, "There needs to be at least one display connected")
-            if buildMenu {
-                self.createMenu()
-                return
+            DispatchQueue.main.async {
+                if buildMenu {
+                    self.createMenu()
+                } else {
+                    self.refreshWindows() // ask to just refresh the windows list instead of rebuilding it all
+                }
             }
-            self.refreshWindows() // ask to just refresh the windows list instead of rebuilding it all
         }
     }
 
@@ -97,7 +98,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
-        if isRecording {
+        if stream != nil {
             stopRecording()
         }
     }

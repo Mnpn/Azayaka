@@ -20,3 +20,7 @@ enum VideoFormat: String {
 enum Encoder: String {
     case h264, h265
 }
+
+enum StreamType: Int {
+    case screen, window, systemaudio
+}
