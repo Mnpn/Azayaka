@@ -49,10 +49,8 @@ extension AppDelegate {
         conf.height = 2
 
         if !audioOnly {
-            let scale: Int = Int((screen != nil ? NSScreen.screens.first(where: { $0.displayID == screen?.displayID })!.backingScaleFactor : NSScreen.main?.backingScaleFactor) ?? 1)
-            // todo: find relevant scaling factor. it seems windows are available on all displays though, and there's no way to get a window's display, so this is tricky
-            conf.width = streamType == .screen ? availableContent!.displays[0].width*scale : Int((window?.frame.width)!*CGFloat(scale))
-            conf.height = streamType == .screen ? availableContent!.displays[0].height*scale : Int((window?.frame.height)!*CGFloat(scale))
+            conf.width = Int(filter.contentRect.width) * Int(filter.pointPixelScale)
+            conf.height = Int(filter.contentRect.height) * Int(filter.pointPixelScale)
         }
 
         conf.minimumFrameInterval = CMTime(value: 1, timescale: audioOnly ? CMTimeScale.max : CMTimeScale(ud.integer(forKey: "frameRate")))
