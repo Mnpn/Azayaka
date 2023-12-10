@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AVFAudio
 
 struct Preferences: View {
     @AppStorage("audioFormat")   private var audioFormat: AudioFormat = .aac
@@ -16,6 +17,7 @@ struct Preferences: View {
     @AppStorage("saveDirectory") private var saveDirectory: String?
     @AppStorage("hideSelf")      private var hideSelf: Bool = false
     @AppStorage("showMouse")     private var showMouse: Bool = true
+    @AppStorage("recordMic")     private var recordMic: Bool = false
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -63,6 +65,21 @@ struct Preferences: View {
                     }.scaledToFit().disabled(audioFormat == .alac || audioFormat == .flac)
                 }.frame(maxWidth: .infinity).padding(.top, 10)
                 Text("These settings are also used when recording video. If set to Opus, MP4 will fall back to AAC.")
+                .font(.footnote).foregroundColor(Color.gray).padding(.leading, 2).padding(.trailing, 2).padding(.bottom, 4).fixedSize(horizontal: false, vertical: true)
+                if #available(macOS 14, *) { // apparently they changed onChange in Sonoma
+                    Toggle(isOn: $recordMic) {
+                        Text("Record microphone input")
+                    }.toggleStyle(CheckboxToggleStyle()).onChange(of: recordMic) {
+                        Task { await performMicCheck() }
+                    }
+                } else {
+                    Toggle(isOn: $recordMic) {
+                        Text("Record microphone input")
+                    }.toggleStyle(CheckboxToggleStyle()).onChange(of: recordMic) { _ in
+                        Task { await performMicCheck() }
+                    }
+                }
+                Text("The currently set input device will be used, and will be written as a separate audio track.")
                 .font(.footnote).foregroundColor(Color.gray).padding(.leading, 2).padding(.trailing, 2).padding(.bottom, 8).fixedSize(horizontal: false, vertical: true)
             }
             Divider()
@@ -77,6 +94,29 @@ struct Preferences: View {
             Spacer()
             Text("https://mnpn.dev")
         }.padding(12).background(VisualEffectView()).frame(height: 42)
+    }
+
+    func performMicCheck() async {
+        guard recordMic == true else { return }
+        if #available(macOS 14.0, *) {
+            if await AVAudioApplication.requestRecordPermission() {
+                return // we have perms!
+            }
+        } else {
+            // to-do: fallback for ventura
+        }
+        recordMic = false
+        DispatchQueue.main.async {
+            let alert = NSAlert()
+            alert.messageText = "Azayaka needs permissions!"
+            alert.informativeText = "Azayaka has to be able to record the microphone for this to work."
+            alert.addButton(withTitle: "Open Settings")
+            alert.addButton(withTitle: "No thanks")
+            alert.alertStyle = .warning
+            if alert.runModal() == .alertFirstButtonReturn {
+                NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone")!)
+            }
+        }
     }
 
     func updateOutputDirectory() { // todo: re-sandbox
