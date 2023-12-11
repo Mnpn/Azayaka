@@ -29,9 +29,6 @@ extension AppDelegate {
             }
             filter = SCContentFilter(display: screen ?? availableContent!.displays.first!, excludingApplications: excluded ?? [], exceptingWindows: [])
         }
-        if streamType == .systemaudio {
-            prepareAudioRecording()
-        }
         Task { await record(audioOnly: streamType == .systemaudio, filter: filter!) }
 
         // while recording, keep a timer which updates the menu's stats
@@ -63,11 +60,7 @@ extension AppDelegate {
         do {
             try stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: .global())
             try stream.addStreamOutput(self, type: .audio, sampleHandlerQueue: .global())
-            if !audioOnly {
-                initVideo(conf: conf)
-            } else {
-                startTime = Date.now
-            }
+            initMedia(conf: conf, audioOnly: audioOnly)
             try await stream.startCapture()
         } catch {
             assertionFailure("capture failed")
@@ -87,9 +80,7 @@ extension AppDelegate {
             stream.stopCapture()
         }
         stream = nil
-        if streamType != .systemaudio {
-            closeVideo()
-        }
+        closeMedia()
         streamType = nil
         audioFile = nil // close audio file
         window = nil
@@ -119,19 +110,6 @@ extension AppDelegate {
         default:
             assertionFailure("unknown audio format while setting audio settings: " + (ud.string(forKey: "audioFormat") ?? "[no defaults]"))
         }
-    }
-
-    func prepareAudioRecording() {
-        var fileEnding = ud.string(forKey: "audioFormat") ?? "wat"
-        switch fileEnding { // todo: I'd like to store format info differently
-            case AudioFormat.aac.rawValue: fallthrough
-            case AudioFormat.alac.rawValue: fileEnding = "m4a"
-            case AudioFormat.flac.rawValue: fileEnding = "flac"
-            case AudioFormat.opus.rawValue: fileEnding = "ogg"
-            default: assertionFailure("loaded unknown audio format: " + fileEnding)
-        }
-        filePath = "\(getFilePath()).\(fileEnding)"
-        audioFile = try! AVAudioFile(forWriting: URL(fileURLWithPath: filePath), settings: audioSettings, commonFormat: .pcmFormatFloat32, interleaved: false)
     }
 
     func getFilePath() -> String {
