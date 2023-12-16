@@ -36,7 +36,9 @@ extension AppDelegate: NSMenuDelegate {
 
             for (i, display) in availableContent!.displays.enumerated() {
                 let displayItem = NSMenuItem(title: "Unknown Display", action: #selector(prepRecord), keyEquivalent: "")
-                displayItem.attributedTitle = NSAttributedString(string: "Display \(i+1)" + (display.displayID == CGMainDisplayID() ? " (Main)" : ""))
+                let displayName = "Display \(i+1)" + (display.displayID == CGMainDisplayID() ? " (Main)" : "")
+                displayItem.attributedTitle = NSAttributedString(string: displayName)
+                displayItem.setAccessibilityLabel(displayName)
                 displayItem.title = display.displayID.description
                 displayItem.identifier = NSUserInterfaceItemIdentifier(rawValue: "display")
                 menu.addItem(displayItem)
@@ -98,6 +100,7 @@ extension AppDelegate: NSMenuDelegate {
         win.attributedTitle = getFancyWindowString(window: window)
         win.title = String(window.windowID)
         win.identifier = NSUserInterfaceItemIdentifier("window")
+        win.setAccessibilityLabel("App name: " + (window.owningApplication?.applicationName ?? "Unknown App") + ", window title: " + (window.title ?? "No title")) // VoiceOver will otherwise read the window ID (the item's non-attributed title)
         menu.insertItem(win, at: menu.numberOfItems - 3)
     }
 
