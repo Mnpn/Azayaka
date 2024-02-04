@@ -36,8 +36,8 @@ struct Preferences: View {
                         Text("MP4").tag(VideoFormat.mp4)
                     }.scaledToFit()
                     Picker("Encoder", selection: $encoder) {
-                        Text("h264").tag(Encoder.h264)
-                        Text("h265").tag(Encoder.h265)
+                        Text("H.264").tag(Encoder.h264)
+                        Text("H.265").tag(Encoder.h265)
                     }.scaledToFit()
                 }.frame(maxWidth: .infinity).padding(.top, 10)
                 Toggle(isOn: $hideSelf) {
@@ -80,7 +80,7 @@ struct Preferences: View {
                         Task { await performMicCheck() }
                     }
                 }
-                Text("The currently set input device will be used, and will be written as a separate audio track. Only applies to video recordings.")
+                Text("Doesn't apply to system audio-only recordings. The currently set input device will be used, and will be written as a separate audio track.")
                 .font(.footnote).foregroundColor(Color.gray).padding(.leading, 2).padding(.trailing, 2).padding(.bottom, 8).fixedSize(horizontal: false, vertical: true)
             }.onAppear {
                 recordMic = recordMic && AVCaptureDevice.authorizationStatus(for: .audio) == .authorized // untick box if no perms
