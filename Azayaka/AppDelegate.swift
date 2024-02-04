@@ -12,7 +12,8 @@ import ScreenCaptureKit
 
 class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOutput {
     var vW: AVAssetWriter!
-    var vwInput, awInput: AVAssetWriterInput!
+    var vwInput, awInput, micInput: AVAssetWriterInput!
+    let audioEngine = AVAudioEngine()
     var startTime: Date?
     var stream: SCStream!
     var filePath: String!
@@ -21,6 +22,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     var availableContent: SCShareableContent?
     var filter: SCContentFilter?
     var updateTimer: Timer?
+    var recordMic = false
 
     var screen: SCDisplay?
     var window: SCWindow?
@@ -50,7 +52,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                 "encoder": Encoder.h264.rawValue,
                 "saveDirectory": saveDirectory,
                 "hideSelf": false,
-                "showMouse": true
+                "showMouse": true,
+                "recordMic": false
             ]
         )
         // create a menu bar item

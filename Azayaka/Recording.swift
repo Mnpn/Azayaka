@@ -24,7 +24,7 @@ extension AppDelegate {
         if streamType == .window {
             filter = SCContentFilter(desktopIndependentWindow: window!)
         } else {
-            let excluded = self.availableContent?.applications.filter { app in
+            let excluded = availableContent?.applications.filter { app in
                 Bundle.main.bundleIdentifier == app.bundleIdentifier && ud.bool(forKey: "hideSelf")
             }
             filter = SCContentFilter(display: screen ?? availableContent!.displays.first!, excludingApplications: excluded ?? [], exceptingWindows: [])
@@ -61,8 +61,8 @@ extension AppDelegate {
 
         stream = SCStream(filter: filter, configuration: conf, delegate: self)
         do {
-            try! stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: .global())
-            try! stream.addStreamOutput(self, type: .audio, sampleHandlerQueue: .global())
+            try stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: .global())
+            try stream.addStreamOutput(self, type: .audio, sampleHandlerQueue: .global())
             if !audioOnly {
                 initVideo(conf: conf)
             } else {
