@@ -60,7 +60,7 @@ extension AppDelegate {
 
             let input = audioEngine.inputNode
             input.installTap(onBus: 0, bufferSize: 1024, format: input.inputFormat(forBus: 0)) { [self] (buffer, time) in
-                if micInput.isReadyForMoreMediaData {
+                if micInput.isReadyForMoreMediaData && startTime != nil {
                     micInput.append(buffer.asSampleBuffer!)
                 }
             }
