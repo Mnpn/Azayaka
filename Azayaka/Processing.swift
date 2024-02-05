@@ -10,19 +10,13 @@ import AVFAudio
 import ScreenCaptureKit
 
 extension AppDelegate {
-    func initVideo(conf: SCStreamConfiguration) {
+    func initMedia(conf: SCStreamConfiguration, audioOnly: Bool = false) {
         startTime = nil
+        
+        let filePathAndAssetWriter = getFilePathAndAssetWriter(audioOnly: audioOnly)
 
-        let fileEnding = ud.string(forKey: "videoFormat") ?? ""
-        var fileType: AVFileType?
-        switch fileEnding {
-            case VideoFormat.mov.rawValue: fileType = AVFileType.mov
-            case VideoFormat.mp4.rawValue: fileType = AVFileType.mp4
-            default: assertionFailure("loaded unknown video format")
-        }
-
-        filePath = "\(getFilePath()).\(fileEnding)"
-        vW = try? AVAssetWriter.init(outputURL: URL(fileURLWithPath: filePath), fileType: fileType!)
+        filePath = filePathAndAssetWriter.0
+        vW = filePathAndAssetWriter.1
         let encoderIsH265 = ud.string(forKey: "encoder") == Encoder.h265.rawValue
         let fpsMultiplier: Double = Double(ud.integer(forKey: "frameRate"))/8
         let encoderMultiplier: Double = encoderIsH265 ? 0.5 : 0.9
@@ -38,14 +32,14 @@ extension AppDelegate {
             ] as [String : Any]
         ]
         recordMic = ud.bool(forKey: "recordMic")
-        vwInput = AVAssetWriterInput(mediaType: AVMediaType.video, outputSettings: videoSettings)
+        vwInput = audioOnly ? nil : AVAssetWriterInput(mediaType: AVMediaType.video, outputSettings: videoSettings)
         awInput = AVAssetWriterInput(mediaType: AVMediaType.audio, outputSettings: audioSettings)
         micInput = AVAssetWriterInput(mediaType: AVMediaType.audio, outputSettings: audioSettings)
-        vwInput.expectsMediaDataInRealTime = true
+        vwInput?.expectsMediaDataInRealTime = true
         awInput.expectsMediaDataInRealTime = true
         micInput.expectsMediaDataInRealTime = true
 
-        if vW.canAdd(vwInput) {
+        if !audioOnly, vW.canAdd(vwInput) {
             vW.add(vwInput)
         }
 
@@ -69,10 +63,10 @@ extension AppDelegate {
         vW.startWriting()
     }
 
-    func closeVideo() {
+    func closeMedia() {
         let dispatchGroup = DispatchGroup()
         dispatchGroup.enter()
-        vwInput.markAsFinished()
+        vwInput?.markAsFinished()
         awInput.markAsFinished()
         if recordMic {
             micInput.markAsFinished()
@@ -89,6 +83,11 @@ extension AppDelegate {
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of outputType: SCStreamOutputType) {
         guard sampleBuffer.isValid else { return }
 
+        if vW != nil && vW?.status == .writing, startTime == nil {
+            startTime = Date.now
+            vW.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+        }
+        
         switch outputType {
             case .screen:
                 if screen == nil && window == nil { break }
@@ -97,26 +96,14 @@ extension AppDelegate {
                 guard let statusRawValue = attachments[SCStreamFrameInfo.status] as? Int,
                       let status = SCFrameStatus(rawValue: statusRawValue),
                       status == .complete else { return }
-
-                if vW != nil && vW?.status == .writing, startTime == nil {
-                    startTime = Date.now
-                    vW.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
-                }
+               
                 if vwInput.isReadyForMoreMediaData {
                     vwInput.append(sampleBuffer)
                 }
                 break
             case .audio:
-                if streamType == .systemaudio { // write directly to file if not video recording
-                    guard let samples = sampleBuffer.asPCMBuffer else { return }
-                    do {
-                        try audioFile?.write(from: samples)
-                    }
-                    catch { assertionFailure("audio file writing issue") }
-                } else { // otherwise send the audio data to AVAssetWriter
-                    if awInput.isReadyForMoreMediaData {
-                        awInput.append(sampleBuffer)
-                    }
+                if awInput.isReadyForMoreMediaData {
+                    awInput.append(sampleBuffer)
                 }
             @unknown default:
                 assertionFailure("unknown stream type")
@@ -130,6 +117,40 @@ extension AppDelegate {
             self.stream = nil
             self.stopRecording()
         }
+    }
+    
+    /**
+    Get the filepath of where the asset writer is writing to and asset writer itself
+     */
+    private func getFilePathAndAssetWriter(audioOnly: Bool)-> (String, AVAssetWriter?){
+        var assetWriter: AVAssetWriter? = nil
+        
+        var fileEnding: String!
+        var fileType: AVFileType!
+        
+        if audioOnly{
+            fileEnding = ud.string(forKey: "audioFormat") ?? "wat"
+            fileType = .m4a // it looks like file type m4a works for all tyle extensions. but maybe need to revise this
+            switch fileEnding { // todo: I'd like to store format info differently
+                case AudioFormat.aac.rawValue: fallthrough
+                case AudioFormat.alac.rawValue: fileEnding = "m4a"
+                case AudioFormat.flac.rawValue: fileEnding = "flac"
+                case AudioFormat.opus.rawValue: fileEnding = "ogg"
+                default: assertionFailure("loaded unknown audio format: " + fileEnding)
+            }
+        }else{
+            fileEnding = ud.string(forKey: "videoFormat") ?? ""
+            switch fileEnding {
+                case VideoFormat.mov.rawValue: fileType = AVFileType.mov
+                case VideoFormat.mp4.rawValue: fileType = AVFileType.mp4
+                default: assertionFailure("loaded unknown video format")
+            }
+        }
+        
+        filePath = "\(getFilePath()).\(fileEnding!)"
+        assetWriter = try? AVAssetWriter(outputURL: URL(fileURLWithPath: filePath), fileType: fileType)
+        
+        return (filePath, assetWriter)
     }
 }
 
