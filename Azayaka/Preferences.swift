@@ -10,12 +10,14 @@ import AVFAudio
 import AVFoundation
 
 struct Preferences: View {
+    static let frontAppKey = "frontAppOnly"
     @AppStorage("audioFormat")   private var audioFormat: AudioFormat = .aac
     @AppStorage("audioQuality")  private var audioQuality: AudioQuality = .high
     @AppStorage("frameRate")     private var frameRate: Int = 60
     @AppStorage("videoFormat")   private var videoFormat: VideoFormat = .mp4
     @AppStorage("encoder")       private var encoder: Encoder = .h264
     @AppStorage("saveDirectory") private var saveDirectory: String?
+    @AppStorage(Self.frontAppKey) private var frontApp: Bool = false
     @AppStorage("hideSelf")      private var hideSelf: Bool = false
     @AppStorage("showMouse")     private var showMouse: Bool = true
     @AppStorage("recordMic")     private var recordMic: Bool = false
@@ -42,6 +44,9 @@ struct Preferences: View {
                 }.frame(maxWidth: .infinity).padding(.top, 10)
                 Toggle(isOn: $hideSelf) {
                     Text("Exclude Azayaka itself")
+                }.toggleStyle(CheckboxToggleStyle())
+                Toggle(isOn: $frontApp) {
+                    Text("Include only front app")
                 }.toggleStyle(CheckboxToggleStyle())
                 Toggle(isOn: $showMouse) {
                     Text("Show mouse cursor")
