@@ -72,11 +72,23 @@ extension AppDelegate: NSMenuDelegate {
         }
     }
 
-    func refreshWindows() {
+    func refreshWindows(frontOnly: Bool) {
         noneAvailable.isHidden = true
         // in sonoma, there is a new new purple thing overlaying the traffic lights, I don't really want this to show up.
         // its title is simply "Window", but its bundle id is the same as the parent, so this seems like a strange bodge..
-        let validWindows = availableContent!.windows.filter { !excludedWindows.contains($0.owningApplication!.bundleIdentifier) && !$0.title!.contains("Item-0") && !$0.title!.isEmpty && $0.title != "Window" }
+        let frontAppId = !frontOnly ? nil : NSWorkspace.shared.frontmostApplication?.processIdentifier 
+        let validWindows = availableContent!.windows.filter { 
+            guard let app =  $0.owningApplication,
+                let title = $0.title, !title.isEmpty else {
+                return false
+            }
+            return !excludedWindows.contains(app.bundleIdentifier)
+                && !title.contains("Item-0")
+                && title != "Window"
+                && (!frontOnly
+                    || nil == frontAppId // include all if none is frontmost
+                    || (frontAppId! == app.processID))
+            }
 
         let programIDs = validWindows.compactMap { $0.windowID.description }
         for window in menu.items.filter({ !programIDs.contains($0.title) && $0.identifier?.rawValue == "window" }) {

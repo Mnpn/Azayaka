@@ -52,6 +52,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                 "encoder": Encoder.h264.rawValue,
                 "saveDirectory": saveDirectory,
                 "hideSelf": false,
+                Preferences.frontAppKey: false,
                 "showMouse": true,
                 "recordMic": false
             ]
@@ -75,11 +76,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
             }
             self.availableContent = content
             assert(self.availableContent?.displays.isEmpty != nil, "There needs to be at least one display connected")
+            let frontOnly = UserDefaults.standard.bool(forKey: Preferences.frontAppKey)
             DispatchQueue.main.async {
                 if buildMenu {
                     self.createMenu()
                 }
-                self.refreshWindows() // ask to just refresh the windows list instead of rebuilding it all
+                self.refreshWindows(frontOnly: frontOnly) 
+                // ask to just refresh the windows list instead of rebuilding it all
             }
         }
     }
