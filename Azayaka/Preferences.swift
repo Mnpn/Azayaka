@@ -46,7 +46,7 @@ struct Preferences: View {
                     Text("Exclude Azayaka itself")
                 }.toggleStyle(CheckboxToggleStyle())
                 Toggle(isOn: $frontApp) {
-                    Text("Include only front app")
+                    Text("Only list focused app's windows")
                 }.toggleStyle(CheckboxToggleStyle())
                 Toggle(isOn: $showMouse) {
                     Text("Show mouse cursor")
