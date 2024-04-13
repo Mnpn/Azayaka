@@ -58,15 +58,30 @@ extension AppDelegate {
                 vW.add(micInput)
             }
 
-            let input = audioEngine.inputNode
-            input.installTap(onBus: 0, bufferSize: 1024, format: input.inputFormat(forBus: 0)) { [self] (buffer, time) in
-                if micInput.isReadyForMoreMediaData && startTime != nil {
-                    micInput.append(buffer.asSampleBuffer!)
-                }
-            }
-            try! audioEngine.start()
+            startAudioEngine()
+
+            // listen for changes to the audioengine configuration so that we can follow the selected input device,
+            // otherwise we'll end up without input data since it appears the audio engine stops
+            // https://developer.apple.com/documentation/foundation/nsnotification/name/1389078-avaudioengineconfigurationchange
+            // https://github.com/AudioKit/AudioKit/issues/2384#issuecomment-789080862
+            NotificationCenter.default.addObserver(self, selector: #selector(restartAudioEngine(_:)), name: .AVAudioEngineConfigurationChange, object: nil)
         }
         vW.startWriting()
+    }
+
+    func startAudioEngine() {
+        let input = audioEngine.inputNode
+        input.installTap(onBus: 0, bufferSize: 1024, format: input.inputFormat(forBus: 0)) { [self] (buffer, time) in
+            if micInput.isReadyForMoreMediaData && startTime != nil {
+                micInput.append(buffer.asSampleBuffer!)
+            }
+        }
+        try! audioEngine.start()
+    }
+
+    @objc func restartAudioEngine(_ notification: Notification) {
+        audioEngine.inputNode.removeTap(onBus: 0)
+        startAudioEngine()
     }
 
     func closeVideo() {
@@ -76,6 +91,7 @@ extension AppDelegate {
         awInput.markAsFinished()
         if recordMic {
             micInput.markAsFinished()
+            NotificationCenter.default.removeObserver(self, name: .AVAudioEngineConfigurationChange, object: nil)
             audioEngine.inputNode.removeTap(onBus: 0)
             audioEngine.stop()
         }
