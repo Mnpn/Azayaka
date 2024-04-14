@@ -9,6 +9,7 @@ import AVFoundation
 import AVFAudio
 import Cocoa
 import ScreenCaptureKit
+import UserNotifications
 import SwiftUI
 
 @main
@@ -18,6 +19,7 @@ struct AzayakaApp: App {
     var body: some Scene {
         Settings {
             Preferences()
+                .fixedSize()
         }
     }
 }
@@ -60,13 +62,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                 "audioFormat": AudioFormat.aac.rawValue,
                 "audioQuality": AudioQuality.high.rawValue,
                 "frameRate": 60,
+                "videoQuality": 1.0,
                 "videoFormat": VideoFormat.mp4.rawValue,
                 "encoder": Encoder.h264.rawValue,
                 "saveDirectory": saveDirectory,
                 "hideSelf": false,
                 Preferences.frontAppKey: false,
                 "showMouse": true,
-                "recordMic": false
+                "recordMic": false,
+                "highRes": true
             ]
         )
         // create a menu bar item
@@ -75,6 +79,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         statusItem.menu = menu
         menu.minimumWidth = 250
         updateAvailableContent(buildMenu: true)
+        
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if let error = error { print("Notification authorization denied: \(error.localizedDescription)") }
+        }
     }
 
     func updateAvailableContent(buildMenu: Bool) {

@@ -25,7 +25,7 @@ struct MenuBar: View {
                     Text(recordingLength)
                         .offset(y: -0.5)
                 } else {
-                    Image(systemName: "record.circle")
+                    Image("menuBarIcon")
                 }
             }
         }

@@ -26,14 +26,14 @@ extension AppDelegate {
         let encoderIsH265 = ud.string(forKey: "encoder") == Encoder.h265.rawValue
         let fpsMultiplier: Double = Double(ud.integer(forKey: "frameRate"))/8
         let encoderMultiplier: Double = encoderIsH265 ? 0.5 : 0.9
-        let targetBitrate = (Double(conf.width) * Double(conf.height) * fpsMultiplier * encoderMultiplier)
+        let targetBitrate = (Double(conf.width) * Double(conf.height) * fpsMultiplier * encoderMultiplier * ud.double(forKey: "videoQuality"))
         let videoSettings: [String: Any] = [
             AVVideoCodecKey: encoderIsH265 ? AVVideoCodecType.hevc : AVVideoCodecType.h264,
             // yes, not ideal if we want more than these encoders in the future, but it's ok for now
             AVVideoWidthKey: conf.width,
             AVVideoHeightKey: conf.height,
             AVVideoCompressionPropertiesKey: [
-                AVVideoAverageBitRateKey: targetBitrate,
+                AVVideoAverageBitRateKey: Int(targetBitrate),
                 AVVideoExpectedSourceFrameRateKey: ud.integer(forKey: "frameRate")
             ] as [String : Any]
         ]

@@ -20,6 +20,7 @@
 "Displays" = "显示器";
 "Unknown Display" = "未知显示器";
 " (Main)" = " (主显示器)";
+"current screen" = "当前显示器";
 "Windows" = "应用窗口";
 "Preferences…" = "设置…";
 "Quit Azayaka" = "退出Azayaka";
@@ -27,19 +28,26 @@
 "Unknown" = "未知";
 "App name: " = "应用名称: ";
 "Unknown App" = "未知应用";
-", window title: " = ", 窗口标题: ";
+"Window title: " = ", 窗口标题: ";
+"window icon" = "窗口图标";
 "No title" = "无标题";
 "Video Output" = "视频设置";
 "FPS" = "帧速率";
 "Format" = "输出格式";
 "Encoder" = "编码方式";
+"Resolution" = "分辨率";
+"Auto" = "自动";
+"Low (1x)" = "低(1x)";
+"Low" = "较低";
+"Medium" = "中等";
+"High" = "高品质";
 "Exclude Azayaka itself" = "从画面中排除 Azayaka 本身";
 "Only list focused app's windows" = "只列出当前聚焦的应用的窗口";
 "Show mouse cursor" = "录制鼠标光标";
 "Audio Output" = "音频设置";
 "ALAC (Lossless)" = "ALAC (无损)";
 "FLAC (Lossless)" = "FLAC (无损)";
-"Quality" = "质量";
+"Quality" = "输出质量";
 "Normal - 128Kbps" = "普通 - 128Kbps";
 "Good - 192Kbps" = "优质 - 192Kbps";
 "High - 256Kbps" = "高清 - 256Kbps";
@@ -51,6 +59,10 @@
 "Azayaka needs permission to record your microphone to do this." = "Azayaka 需要使用麦克风权限来录制麦克风声音.";
 "Currently set to \"%@\"" = "当前保存位置为\"%@\"";
 "/Recording at " = "/录制于 ";
+"Recording Completed" = "录制结束";
+"File saved to: %@" = "文件已保存至: %@";
+"File saved to folder: %@" = "文件已保存到: %@ 目录中";
+"Launch at login" = "登录时启动";
 
 // Warning text
 /*

@@ -5,6 +5,7 @@
 //  Created by Martin Persson on 2022-12-26.
 //
 
+import UserNotifications
 import ScreenCaptureKit
 import AVFAudio
 
@@ -49,8 +50,8 @@ extension AppDelegate {
         conf.height = 2
 
         if !audioOnly {
-            conf.width = Int(filter.contentRect.width) * Int(filter.pointPixelScale)
-            conf.height = Int(filter.contentRect.height) * Int(filter.pointPixelScale)
+            conf.width = Int(filter.contentRect.width) * (ud.bool(forKey: "highRes") ? Int(filter.pointPixelScale) : 1)
+            conf.height = Int(filter.contentRect.height) * (ud.bool(forKey: "highRes") ? Int(filter.pointPixelScale) : 1)
         }
 
         conf.minimumFrameInterval = CMTime(value: 1, timescale: audioOnly ? CMTimeScale.max : CMTimeScale(ud.integer(forKey: "frameRate")))
@@ -94,11 +95,26 @@ extension AppDelegate {
         audioFile = nil // close audio file
         window = nil
         screen = nil
+        startTime = nil
         updateTimer?.invalidate()
 
         DispatchQueue.main.async { [self] in
             updateIcon()
             createMenu()
+        }
+        
+        let content = UNMutableNotificationContent()
+        content.title = "Recording Completed".local
+        if let filePath = filePath {
+            content.body = String(format: "File saved to: %@".local, filePath)
+        } else {
+            content.body = String(format: "File saved to folder: %@".local, ud.string(forKey: "saveDirectory")!)
+        }
+        content.sound = UNNotificationSound.default
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(identifier: "azayaka.completed.\(Date.now)", content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error { print("Notification failed to send：\(error.localizedDescription)") }
         }
     }
 
@@ -145,7 +161,7 @@ extension AppDelegate {
         formatter.allowedUnits = [.minute, .second]
         formatter.zeroFormattingBehavior = .pad
         formatter.unitsStyle = .positional
-        if self.streamType == nil { self.startTime = nil }
+        //if self.streamType == nil { self.startTime = nil }
         return formatter.string(from: Date.now.timeIntervalSince(startTime ?? Date.now)) ?? "Unknown".local
     }
 

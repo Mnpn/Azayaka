@@ -6,6 +6,7 @@
 //
 import SwiftUI
 import ScreenCaptureKit
+import ServiceManagement
 
 extension AppDelegate: NSMenuDelegate {
     func createMenu() {
@@ -38,8 +39,17 @@ extension AppDelegate: NSMenuDelegate {
             for (i, display) in availableContent!.displays.enumerated() {
                 let screenName = NSScreen.screens.first(where: { $0.displayID == display.displayID })?.localizedName ?? "Display ".local + "\(i+1)"
                 let displayItem = NSMenuItem(title: "Unknown Display".local, action: #selector(prepRecord), keyEquivalent: "")
-                let displayName = screenName + (display.displayID == CGMainDisplayID() ? " (Main)".local : "")
-                displayItem.attributedTitle = NSAttributedString(string: displayName)
+                let displayName = screenName + (display.displayID == CGMainDisplayID() ? " (Main)".local : "") + " "
+                let displayNameStr = NSMutableAttributedString(string: displayName)
+                if let currentDisplayID = getScreenWithMouse()?.displayID {
+                    if display.displayID == currentDisplayID {
+                        let imageAttachment = NSTextAttachment()
+                        imageAttachment.image = NSImage(systemSymbolName: "cursorarrow", accessibilityDescription: "current screen".local)
+                        let imageString = NSAttributedString(attachment: imageAttachment)
+                        displayNameStr.append(imageString)
+                    }
+                }
+                displayItem.attributedTitle = displayNameStr
                 displayItem.setAccessibilityLabel(displayName)
                 displayItem.title = display.displayID.description
                 displayItem.identifier = NSUserInterfaceItemIdentifier(rawValue: "display")
@@ -62,7 +72,7 @@ extension AppDelegate: NSMenuDelegate {
         if streamType != nil { // recording?
             updateIcon()
             info.attributedTitle = NSAttributedString(string: String(format: "Duration: %@\nFile size: %@".local, arguments: [getRecordingLength(), getRecordingSize()]))
-        } else {
+        }/* else {
             for window in menu.items.filter({ $0.identifier?.rawValue == "window" }) {
                 let matchingWindow = availableContent!.windows.first(where: { window.title == $0.windowID.description })
                 guard let matchingWindow else { return }
@@ -72,7 +82,7 @@ extension AppDelegate: NSMenuDelegate {
                     window.title = matchingWindow.windowID.description
                 }
             }
-        }
+        }*/
     }
 
     func refreshWindows(frontOnly: Bool) {
@@ -117,33 +127,69 @@ extension AppDelegate: NSMenuDelegate {
         }
         return nil
     }
-
-    func newWindow(window: SCWindow) {
-        let win = NSMenuItem(title: "Unknown".local, action: #selector(prepRecord), keyEquivalent: "")
-        win.attributedTitle = getFancyWindowString(window: window)
-        win.title = String(window.windowID)
-        win.identifier = NSUserInterfaceItemIdentifier("window")
-        win.setAccessibilityLabel("App name: ".local + (window.owningApplication?.applicationName ?? "Unknown App".local) + ", window title: ".local + (window.title ?? "No title".local)) // VoiceOver will otherwise read the window ID (the item's non-attributed title)
-        menu.insertItem(win, at: menu.numberOfItems - 3)
-        
+    
+    func getScreenWithMouse() -> NSScreen? {
+        let mouseLocation = NSEvent.mouseLocation
+        let screens = NSScreen.screens
+        let screenWithMouse = (screens.first { NSMouseInRect(mouseLocation, $0.frame, false) })
+        return screenWithMouse
     }
 
-    func getFancyWindowString(window: SCWindow) -> NSAttributedString {
+    func newWindow(window: SCWindow) {
+        let appName = window.owningApplication?.applicationName ?? "Unknown App".local
+        if let item = menu.items.first(where: { $0.attributedTitle?.string.split(separator: "\n").first ?? "" == "￼ " + appName && $0.identifier?.rawValue ?? "" == "application" }) {
+            let subMenuItem = NSMenuItem(title: "Unknown".local, action: #selector(prepRecord), keyEquivalent: "")
+            subMenuItem.attributedTitle = getFancyWindowString(window: window)
+            subMenuItem.title = String(window.windowID)
+            subMenuItem.identifier = NSUserInterfaceItemIdentifier("window")
+            subMenuItem.setAccessibilityLabel("Window title: ".local + (window.title ?? "No title".local)) // VoiceOver will otherwise read the window ID (the item's non-attributed title)
+            item.submenu?.addItem(NSMenuItem.separator())
+            item.submenu?.addItem(subMenuItem)
+        } else {
+            let app = NSMenuItem(title: "Unknown".local, action: nil, keyEquivalent: "")
+            app.attributedTitle = getAppNameAttachment(window: window)
+            app.identifier = NSUserInterfaceItemIdentifier("application")
+            app.setAccessibilityLabel("App name: ".local + appName) // VoiceOver will otherwise read the window ID (the item's non-attributed title)
+            let subMenu = NSMenu()
+            let subMenuItem = NSMenuItem(title: "Unknown".local, action: #selector(prepRecord), keyEquivalent: "")
+            subMenuItem.attributedTitle = getFancyWindowString(window: window)
+            subMenuItem.title = String(window.windowID)
+            subMenuItem.identifier = NSUserInterfaceItemIdentifier("window")
+            subMenuItem.setAccessibilityLabel("Window title: ".local + (window.title ?? "No title".local)) // VoiceOver will otherwise read the window ID (the item's non-attributed title)
+            subMenu.addItem(subMenuItem)
+            app.submenu = subMenu
+            menu.insertItem(app, at: menu.numberOfItems - 4)
+        }
+        
+    }
+    
+    func getAppNameAttachment(window: SCWindow) -> NSAttributedString {
         let appID = window.owningApplication?.bundleIdentifier ?? "Unknown App".local
+        
         let imageAttachment = NSTextAttachment()
         imageAttachment.image = getAppIcon(forBundleIdentifier: appID)
         imageAttachment.bounds = CGRectMake(0, -3, 16, 16)
         let imageString = NSAttributedString(attachment: imageAttachment)
         
-        let str = NSMutableAttributedString(string: " " + (window.owningApplication?.applicationName ?? "Unknown App".local) + "\n")
-        str.append(NSAttributedString(string: window.title ?? "No title".local,
-                                      attributes: [.font: NSFont.systemFont(ofSize: 12, weight: .regular),
-                                                   .foregroundColor: NSColor.secondaryLabelColor]))
-       
+        let str = NSMutableAttributedString(string: " " + (window.owningApplication?.applicationName ?? "Unknown App".local))
         let output = NSMutableAttributedString(string: "")
+        
         output.append(imageString)
         output.append(str)
+        return output
+    }
+
+    func getFancyWindowString(window: SCWindow) -> NSAttributedString {
+        let imageAttachment = NSTextAttachment()
+        imageAttachment.image = NSImage(systemSymbolName: "macwindow", accessibilityDescription: "window icon".local)
+        let imageString = NSAttributedString(attachment: imageAttachment)
         
+        let str = NSAttributedString(string: " " + (window.title ?? "No title".local))//, attributes: [.font: NSFont.systemFont(ofSize: 12, weight: .regular), .foregroundColor: NSColor.secondaryLabelColor])
+        
+        let output = NSMutableAttributedString(string: "")
+        
+        output.append(imageString)
+        output.append(str)
         return output
     }
 
@@ -160,15 +206,16 @@ extension AppDelegate: NSMenuDelegate {
 
     func menuWillOpen(_ menu: NSMenu) {
         if streamType == nil { // not recording
-            updateAvailableContent(buildMenu: true)
-            updateMenu()
+            updateAvailableContent(buildMenu: false)
+            createMenu()
+            //updateMenu()
         }
     }
 
     func updateIcon() {
         if let button = statusItem.button {
             let iconView = NSHostingView(rootView: MenuBar(recordingStatus: self.streamType != nil, recordingLength: getRecordingLength()))
-            iconView.frame = NSRect(x: 0, y: 1, width: self.streamType != nil ? 72 : 32, height: 20)
+            iconView.frame = NSRect(x: 0, y: 1, width: self.streamType != nil ? 72 : 33, height: 20)
             button.subviews = [iconView]
             button.frame = iconView.frame
             button.setAccessibilityLabel("Azayaka")
