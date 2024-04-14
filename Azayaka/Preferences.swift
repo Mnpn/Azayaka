@@ -24,7 +24,7 @@ struct Preferences: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            GroupBox(label: Text("Video Output".uppercased()).fontWeight(.bold)) {
+            GroupBox(label: Text("Video Output".local.uppercased()).fontWeight(.bold)) {
                 Form() {
                     Picker("FPS", selection: $frameRate) {
                         Text("60").tag(60)
@@ -52,7 +52,7 @@ struct Preferences: View {
                     Text("Show mouse cursor")
                 }.toggleStyle(CheckboxToggleStyle()).padding(.bottom, 10)
             }
-            GroupBox(label: Text("Audio Output".uppercased()).fontWeight(.bold)) {
+            GroupBox(label: Text("Audio Output".local.uppercased()).fontWeight(.bold)) {
                 Form() {
                     Picker("Format", selection: $audioFormat) {
                         Text("AAC").tag(AudioFormat.aac)
@@ -94,7 +94,7 @@ struct Preferences: View {
             Spacer()
             VStack(spacing: 2) {
                 Button("Select output directory", action: updateOutputDirectory)
-                Text("Currently set to \"\(URL(fileURLWithPath: saveDirectory!).lastPathComponent)\"").font(.footnote).foregroundColor(Color.gray)
+                Text(String(format: "Currently set to \"%@\"".local, URL(fileURLWithPath: saveDirectory!).lastPathComponent)).font(.footnote).foregroundColor(Color.gray)
             }.frame(maxWidth: .infinity)
         }.frame(width: 260).padding([.leading, .trailing, .top], 10)
         HStack {
@@ -111,10 +111,10 @@ struct Preferences: View {
         recordMic = false
         DispatchQueue.main.async {
             let alert = NSAlert()
-            alert.messageText = "Azayaka needs permissions!"
-            alert.informativeText = "Azayaka needs permission to record your microphone to do this."
-            alert.addButton(withTitle: "Open Settings")
-            alert.addButton(withTitle: "No thanks")
+            alert.messageText = "Azayaka needs permissions!".local
+            alert.informativeText = "Azayaka needs permission to record your microphone to do this.".local
+            alert.addButton(withTitle: "Open Settings".local)
+            alert.addButton(withTitle: "No thanks".local)
             alert.alertStyle = .warning
             if alert.runModal() == .alertFirstButtonReturn {
                 NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone")!)
@@ -134,11 +134,11 @@ struct Preferences: View {
     }
 
     func getVersion() -> String {
-        return Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown"
+        return Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown".local
     }
 
     func getBuild() -> String {
-        return Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "Unknown"
+        return Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "Unknown".local
     }
 
     struct VisualEffectView: NSViewRepresentable {
@@ -147,21 +147,34 @@ struct Preferences: View {
     }
 }
 
-struct Preferences_Previews: PreviewProvider {
-    static var previews: some View {
-        Preferences()
-    }
+#Preview {
+    Preferences()
 }
 
 extension AppDelegate {
     @objc func openPreferences() {
-        preferences.isReleasedWhenClosed = false // otherwise we crash when opening the window again, WTF?
-        preferences.title = "Azayaka"
-        //preferences.subtitle = "Preferences"
-        preferences.contentView = NSHostingView(rootView: Preferences()) // is this how you SwiftUI help I'm scared
-        preferences.styleMask = [.titled, .closable]
-        preferences.center()
         NSApp.activate(ignoringOtherApps: true)
-        preferences.makeKeyAndOrderFront(nil)
+        if #available(macOS 14, *) {
+            NSApp.mainMenu?.items.first?.submenu?.item(at: 2)?.performAction()
+        }else if #available(macOS 13, *) {
+            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        } else {
+            NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+        }
+        for w in NSApplication.shared.windows {
+            if w.level.rawValue == 0 || w.level.rawValue == 3 {
+                w.level = .floating
+                w.styleMask.remove(.resizable)
+            }
+        }
+    }
+}
+
+extension NSMenuItem {
+    func performAction() {
+        guard let menu else {
+            return
+        }
+        menu.performActionForItem(at: menu.index(of: self))
     }
 }

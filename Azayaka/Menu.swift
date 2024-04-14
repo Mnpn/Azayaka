@@ -4,7 +4,7 @@
 //
 //  Created by Martin Persson on 2022-12-26.
 //
-
+import SwiftUI
 import ScreenCaptureKit
 
 extension AppDelegate: NSMenuDelegate {
@@ -15,50 +15,52 @@ extension AppDelegate: NSMenuDelegate {
         if streamType != nil { // recording?
             var typeText = ""
             if screen != nil {
-                typeText = "Display " + String((availableContent?.displays.firstIndex(where: { $0.displayID == screen?.displayID }))!+1)
+                typeText = "Display ".local + String((availableContent?.displays.firstIndex(where: { $0.displayID == screen?.displayID }))!+1)
             } else if window != nil {
-                typeText = window?.owningApplication?.applicationName.uppercased() ?? "A window"
+                typeText = window?.owningApplication?.applicationName.uppercased() ?? "A window".local
             } else {
-                typeText = "System Audio"
+                typeText = "System Audio".local
             }
-            menu.addItem(header("Recording " + typeText, size: 12))
+            menu.addItem(header("Recording ".local + typeText, size: 12))
 
-            menu.addItem(NSMenuItem(title: "Stop Recording", action: #selector(stopRecording), keyEquivalent: ""))
+            menu.addItem(NSMenuItem(title: "Stop Recording".local, action: #selector(stopRecording), keyEquivalent: ""))
+            menu.addItem(NSMenuItem.separator())
             menu.addItem(info)
         } else {
-            menu.addItem(header("Audio-only"))
+            menu.addItem(header("Audio-only".local))
 
-            let audio = NSMenuItem(title: "System Audio", action: #selector(prepRecord), keyEquivalent: "")
+            let audio = NSMenuItem(title: "System Audio".local, action: #selector(prepRecord), keyEquivalent: "")
             audio.identifier = NSUserInterfaceItemIdentifier(rawValue: "audio")
             menu.addItem(audio)
-
-            menu.addItem(header("Displays"))
+            menu.addItem(NSMenuItem.separator())
+            menu.addItem(header("Displays".local))
 
             for (i, display) in availableContent!.displays.enumerated() {
-                let displayItem = NSMenuItem(title: "Unknown Display", action: #selector(prepRecord), keyEquivalent: "")
-                let displayName = "Display \(i+1)" + (display.displayID == CGMainDisplayID() ? " (Main)" : "")
+                let displayItem = NSMenuItem(title: "Unknown Display".local, action: #selector(prepRecord), keyEquivalent: "")
+                let displayName = "Display ".local + "\(i+1)" + (display.displayID == CGMainDisplayID() ? " (Main)".local : "")
                 displayItem.attributedTitle = NSAttributedString(string: displayName)
                 displayItem.setAccessibilityLabel(displayName)
                 displayItem.title = display.displayID.description
                 displayItem.identifier = NSUserInterfaceItemIdentifier(rawValue: "display")
                 menu.addItem(displayItem)
             }
-
-            menu.addItem(header("Windows"))
+            menu.addItem(NSMenuItem.separator())
+            menu.addItem(header("Windows".local))
 
             noneAvailable.isHidden = true
             menu.addItem(noneAvailable)
         }
 
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Preferences…", action: #selector(openPreferences), keyEquivalent: ","))
-        menu.addItem(NSMenuItem(title: "Quit Azayaka", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Preferences…".local, action: #selector(openPreferences), keyEquivalent: ","))
+        menu.addItem(NSMenuItem(title: "Quit Azayaka".local, action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         statusItem.menu = menu
     }
 
     func updateMenu() {
         if streamType != nil { // recording?
-            info.attributedTitle = NSAttributedString(string: "Duration: \(getRecordingLength())\nFile size: \(getRecordingSize())")
+            updateIcon()
+            info.attributedTitle = NSAttributedString(string: String(format: "Duration: %@\nFile size: %@".local, arguments: [getRecordingLength(), getRecordingSize()]))
         } else {
             for window in menu.items.filter({ $0.identifier?.rawValue == "window" }) {
                 let matchingWindow = availableContent!.windows.first(where: { window.title == $0.windowID.description })
@@ -106,22 +108,42 @@ extension AppDelegate: NSMenuDelegate {
             newWindow(window: window)
         }
     }
+    
+    func getAppIcon(forBundleIdentifier bundleIdentifier: String) -> NSImage? {
+        if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier) {
+            let icon = NSWorkspace.shared.icon(forFile: appURL.path)
+            return icon
+        }
+        return nil
+    }
 
     func newWindow(window: SCWindow) {
-        let win = NSMenuItem(title: "Unknown", action: #selector(prepRecord), keyEquivalent: "")
+        let win = NSMenuItem(title: "Unknown".local, action: #selector(prepRecord), keyEquivalent: "")
         win.attributedTitle = getFancyWindowString(window: window)
         win.title = String(window.windowID)
         win.identifier = NSUserInterfaceItemIdentifier("window")
-        win.setAccessibilityLabel("App name: " + (window.owningApplication?.applicationName ?? "Unknown App") + ", window title: " + (window.title ?? "No title")) // VoiceOver will otherwise read the window ID (the item's non-attributed title)
+        win.setAccessibilityLabel("App name: ".local + (window.owningApplication?.applicationName ?? "Unknown App".local) + ", window title: ".local + (window.title ?? "No title".local)) // VoiceOver will otherwise read the window ID (the item's non-attributed title)
         menu.insertItem(win, at: menu.numberOfItems - 3)
+        
     }
 
     func getFancyWindowString(window: SCWindow) -> NSAttributedString {
-        let str = NSMutableAttributedString(string: (window.owningApplication?.applicationName ?? "Unknown App") + "\n")
-        str.append(NSAttributedString(string: window.title ?? "No title",
+        let appID = window.owningApplication?.bundleIdentifier ?? "Unknown App".local
+        let imageAttachment = NSTextAttachment()
+        imageAttachment.image = getAppIcon(forBundleIdentifier: appID)
+        imageAttachment.bounds = CGRectMake(0, -3, 16, 16)
+        let imageString = NSAttributedString(attachment: imageAttachment)
+        
+        let str = NSMutableAttributedString(string: " " + (window.owningApplication?.applicationName ?? "Unknown App".local) + "\n")
+        str.append(NSAttributedString(string: window.title ?? "No title".local,
                                       attributes: [.font: NSFont.systemFont(ofSize: 12, weight: .regular),
                                                    .foregroundColor: NSColor.secondaryLabelColor]))
-        return str
+       
+        let output = NSMutableAttributedString(string: "")
+        output.append(imageString)
+        output.append(str)
+        
+        return output
     }
 
     func header(_ title: String, size: CGFloat = 10) -> NSMenuItem {
@@ -144,7 +166,10 @@ extension AppDelegate: NSMenuDelegate {
 
     func updateIcon() {
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: self.streamType != nil ? "record.circle.fill" : "record.circle", accessibilityDescription: "Azayaka")
+            let iconView = NSHostingView(rootView: MenuBar(recordingStatus: self.streamType != nil, recordingLength: getRecordingLength()))
+            iconView.frame = NSRect(x: 0, y: 1, width: self.streamType != nil ? 72 : 32, height: 20)
+            button.subviews = [iconView]
+            button.frame = iconView.frame
         }
     }
 }

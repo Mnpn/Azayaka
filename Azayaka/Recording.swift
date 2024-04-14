@@ -70,7 +70,7 @@ extension AppDelegate {
             }
             try await stream.startCapture()
         } catch {
-            assertionFailure("capture failed")
+            assertionFailure("capture failed".local)
             return
         }
 
@@ -117,7 +117,7 @@ extension AppDelegate {
             audioSettings[AVFormatIDKey] = ud.string(forKey: "videoFormat") != VideoFormat.mp4.rawValue ? kAudioFormatOpus : kAudioFormatMPEG4AAC
             audioSettings[AVEncoderBitRateKey] =  ud.integer(forKey: "audioQuality") * 1000
         default:
-            assertionFailure("unknown audio format while setting audio settings: " + (ud.string(forKey: "audioFormat") ?? "[no defaults]"))
+            assertionFailure("unknown audio format while setting audio settings: ".local + (ud.string(forKey: "audioFormat") ?? "[no defaults]".local))
         }
     }
 
@@ -128,7 +128,7 @@ extension AppDelegate {
             case AudioFormat.alac.rawValue: fileEnding = "m4a"
             case AudioFormat.flac.rawValue: fileEnding = "flac"
             case AudioFormat.opus.rawValue: fileEnding = "ogg"
-            default: assertionFailure("loaded unknown audio format: " + fileEnding)
+        default: assertionFailure("loaded unknown audio format: ".local + fileEnding)
         }
         filePath = "\(getFilePath()).\(fileEnding)"
         audioFile = try! AVAudioFile(forWriting: URL(fileURLWithPath: filePath), settings: audioSettings, commonFormat: .pcmFormatFloat32, interleaved: false)
@@ -137,7 +137,7 @@ extension AppDelegate {
     func getFilePath() -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "y-MM-dd HH.mm.ss"
-        return ud.string(forKey: "saveDirectory")! + "/Recording at " + dateFormatter.string(from: Date())
+        return ud.string(forKey: "saveDirectory")! + "/Recording at ".local + dateFormatter.string(from: Date())
     }
 
     func getRecordingLength() -> String {
@@ -145,7 +145,8 @@ extension AppDelegate {
         formatter.allowedUnits = [.minute, .second]
         formatter.zeroFormattingBehavior = .pad
         formatter.unitsStyle = .positional
-        return formatter.string(from: Date.now.timeIntervalSince(startTime ?? Date.now)) ?? "Unknown"
+        if self.streamType == nil { self.startTime = nil }
+        return formatter.string(from: Date.now.timeIntervalSince(startTime ?? Date.now)) ?? "Unknown".local
     }
 
     func getRecordingSize() -> String {
@@ -158,9 +159,9 @@ extension AppDelegate {
                 return byteFormat.string(fromByteCount: fileAttr[FileAttributeKey.size] as! Int64)
             }
         } catch {
-            print("failed to fetch file for size indicator: \(error.localizedDescription)")
+            print(String(format: "failed to fetch file for size indicator: %@".local, error.localizedDescription))
         }
-        return "Unknown"
+        return "Unknown".local
     }
 }
 
