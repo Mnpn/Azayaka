@@ -159,7 +159,7 @@ extension AppDelegate: NSMenuDelegate {
 
     func menuWillOpen(_ menu: NSMenu) {
         if streamType == nil { // not recording
-            updateAvailableContent(buildMenu: false)
+            updateAvailableContent(buildMenu: true)
             updateMenu()
         }
     }
