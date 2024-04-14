@@ -36,8 +36,9 @@ extension AppDelegate: NSMenuDelegate {
             menu.addItem(header("Displays".local))
 
             for (i, display) in availableContent!.displays.enumerated() {
+                let screenName = NSScreen.screens.first(where: { $0.displayID == display.displayID })?.localizedName ?? "Display ".local + "\(i+1)"
                 let displayItem = NSMenuItem(title: "Unknown Display".local, action: #selector(prepRecord), keyEquivalent: "")
-                let displayName = "Display ".local + "\(i+1)" + (display.displayID == CGMainDisplayID() ? " (Main)".local : "")
+                let displayName = screenName + (display.displayID == CGMainDisplayID() ? " (Main)".local : "")
                 displayItem.attributedTitle = NSAttributedString(string: displayName)
                 displayItem.setAccessibilityLabel(displayName)
                 displayItem.title = display.displayID.description
@@ -170,6 +171,7 @@ extension AppDelegate: NSMenuDelegate {
             iconView.frame = NSRect(x: 0, y: 1, width: self.streamType != nil ? 72 : 32, height: 20)
             button.subviews = [iconView]
             button.frame = iconView.frame
+            button.setAccessibilityLabel("Azayaka")
         }
     }
 }
