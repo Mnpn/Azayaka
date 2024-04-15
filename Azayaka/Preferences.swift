@@ -192,21 +192,11 @@ struct Preferences: View {
 }
 
 extension AppDelegate {
-    @objc func setLoginItem(_ sender: NSMenuItem) {
-        sender.state = sender.state == .on ? .off : .on
-        do {
-            if sender.state == .on { try SMAppService.mainApp.register() }
-            if sender.state == .off { try SMAppService.mainApp.unregister() }
-        }catch{
-            print("Failed to \(sender.state == .on ? "enable" : "disable") launch at login: \(error.localizedDescription)")
-        }
-    }
-    
     @objc func openPreferences() {
         NSApp.activate(ignoringOtherApps: true)
         if #available(macOS 14, *) {
             NSApp.mainMenu?.items.first?.submenu?.item(at: 2)?.performAction()
-        }else if #available(macOS 13, *) {
+        } else if #available(macOS 13, *) {
             NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
         } else {
             NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)

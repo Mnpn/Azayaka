@@ -75,17 +75,7 @@ extension AppDelegate: NSMenuDelegate {
         if streamType != nil { // recording?
             updateIcon()
             info.attributedTitle = NSAttributedString(string: String(format: "Duration: %@\nFile size: %@".local, arguments: [getRecordingLength(), getRecordingSize()]))
-        }/* else {
-            for window in menu.items.filter({ $0.identifier?.rawValue == "window" }) {
-                let matchingWindow = availableContent!.windows.first(where: { window.title == $0.windowID.description })
-                guard let matchingWindow else { return }
-                let visibleText = getFancyWindowString(window: matchingWindow)
-                if window.attributedTitle != visibleText {
-                    window.attributedTitle = visibleText
-                    window.title = matchingWindow.windowID.description
-                }
-            }
-        }*/
+        }
     }
 
     func refreshWindows(frontOnly: Bool) {
@@ -140,45 +130,40 @@ extension AppDelegate: NSMenuDelegate {
 
     func newWindow(window: SCWindow) {
         let appName = window.owningApplication?.applicationName ?? "Unknown App".local
-        if let item = menu.items.first(where: { $0.attributedTitle?.string.split(separator: "\n").first ?? "" == "￼ " + appName && $0.identifier?.rawValue ?? "" == "application" }) {
-            let subMenuItem = NSMenuItem(title: "Unknown".local, action: #selector(prepRecord), keyEquivalent: "")
-            subMenuItem.attributedTitle = getFancyWindowString(window: window)
-            subMenuItem.title = String(window.windowID)
-            subMenuItem.identifier = NSUserInterfaceItemIdentifier("window")
-            subMenuItem.setAccessibilityLabel("Window title: ".local + (window.title ?? "No title".local)) // VoiceOver will otherwise read the window ID (the item's non-attributed title)
-            item.submenu?.addItem(NSMenuItem.separator())
+        let appBundleIdentifier = window.owningApplication?.bundleIdentifier ?? "Unknown App".local
+        let subMenuItem = NSMenuItem(title: "Unknown".local, action: #selector(prepRecord), keyEquivalent: "")
+        subMenuItem.attributedTitle = getFancyWindowString(window: window)
+        subMenuItem.title = String(window.windowID)
+        subMenuItem.identifier = NSUserInterfaceItemIdentifier("window")
+        subMenuItem.setAccessibilityLabel("Window title: ".local + (window.title ?? "No title".local)) // VoiceOver will otherwise read the window ID (the item's non-attributed title)
+
+        if let item = menu.items.first(where: { ($0.title == appBundleIdentifier) && $0.identifier?.rawValue ?? "" == "application" }) {
             item.submenu?.addItem(subMenuItem)
         } else {
-            let app = NSMenuItem(title: "Unknown".local, action: nil, keyEquivalent: "")
-            app.attributedTitle = getAppNameAttachment(window: window)
-            app.identifier = NSUserInterfaceItemIdentifier("application")
-            app.setAccessibilityLabel("App name: ".local + appName) // VoiceOver will otherwise read the window ID (the item's non-attributed title)
-            let subMenu = NSMenu()
-            let subMenuItem = NSMenuItem(title: "Unknown".local, action: #selector(prepRecord), keyEquivalent: "")
-            subMenuItem.attributedTitle = getFancyWindowString(window: window)
-            subMenuItem.title = String(window.windowID)
-            subMenuItem.identifier = NSUserInterfaceItemIdentifier("window")
-            subMenuItem.setAccessibilityLabel("Window title: ".local + (window.title ?? "No title".local)) // VoiceOver will otherwise read the window ID (the item's non-attributed title)
-            subMenu.addItem(subMenuItem)
-            app.submenu = subMenu
-            menu.insertItem(app, at: menu.numberOfItems - 4)
+            if !ud.bool(forKey: Preferences.frontAppKey) {
+                let app = NSMenuItem(title: "Unknown".local, action: nil, keyEquivalent: "")
+                app.attributedTitle = getAppNameAttachment(window: window)
+                app.title = appBundleIdentifier // if the title isn't placed after, getting the title will return the attributedTitle
+                app.identifier = NSUserInterfaceItemIdentifier("application")
+                app.setAccessibilityLabel("App name: ".local + appName) // VoiceOver will otherwise read the app bundle identifier (the item's non-attributed title)
+                let subMenu = NSMenu()
+                subMenu.addItem(subMenuItem)
+                app.submenu = subMenu
+                menu.insertItem(app, at: menu.numberOfItems - 4)
+            } else {
+                menu.insertItem(subMenuItem, at: menu.numberOfItems - 4)
+            }
         }
-        
     }
-    
+
     func getAppNameAttachment(window: SCWindow) -> NSAttributedString {
         let appID = window.owningApplication?.bundleIdentifier ?? "Unknown App".local
-        
         let imageAttachment = NSTextAttachment()
         imageAttachment.image = getAppIcon(forBundleIdentifier: appID)
         imageAttachment.bounds = CGRectMake(0, -3, 16, 16)
-        let imageString = NSAttributedString(attachment: imageAttachment)
-        
-        let str = NSMutableAttributedString(string: " " + (window.owningApplication?.applicationName ?? "Unknown App".local))
-        let output = NSMutableAttributedString(string: "")
-        
-        output.append(imageString)
-        output.append(str)
+        let output = NSMutableAttributedString()
+        output.append(NSAttributedString(attachment: imageAttachment))
+        output.append(NSMutableAttributedString(string: " " + (window.owningApplication?.applicationName ?? "Unknown App".local)))
         return output
     }
 
@@ -189,8 +174,7 @@ extension AppDelegate: NSMenuDelegate {
         
         let str = NSAttributedString(string: " " + (window.title ?? "No title".local))//, attributes: [.font: NSFont.systemFont(ofSize: 12, weight: .regular), .foregroundColor: NSColor.secondaryLabelColor])
         
-        let output = NSMutableAttributedString(string: "")
-        
+        let output = NSMutableAttributedString()
         output.append(imageString)
         output.append(str)
         return output
@@ -211,7 +195,6 @@ extension AppDelegate: NSMenuDelegate {
         if streamType == nil { // not recording
             updateAvailableContent(buildMenu: false)
             createMenu()
-            //updateMenu()
         }
     }
 
