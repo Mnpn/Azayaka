@@ -24,3 +24,7 @@ enum Encoder: String {
 enum StreamType: Int {
     case screen, window, systemaudio
 }
+
+struct GHRelease: Decodable {
+    let tag_name: String
+}

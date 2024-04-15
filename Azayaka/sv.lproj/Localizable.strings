@@ -63,6 +63,8 @@
 "File saved to: %@" = "Fil sparad till: %@";
 "File saved to folder: %@" = "Fil sparad till mapp: %@";
 "Launch at login" = "Starta vid inloggning";
+"Update to %@…" = "Uppdatera till %@…";
+"Check for updates" = "Sök efter uppdateringar";
 
 // Warning text
 /*

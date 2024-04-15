@@ -63,6 +63,9 @@
 "File saved to: %@" = "文件已保存至: %@";
 "File saved to folder: %@" = "文件已保存到: %@ 目录中";
 "Launch at login" = "登录时启动";
+"Update to %@…" = "更新至 %@…";
+"Check for updates" = "检查更新";
+
 
 // Warning text
 /*

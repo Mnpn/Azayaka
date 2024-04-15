@@ -63,6 +63,9 @@ extension AppDelegate: NSMenuDelegate {
         }
 
         menu.addItem(NSMenuItem.separator())
+        if let updateNotice = UpdateHandler.createUpdateNotice() {
+            menu.addItem(updateNotice)
+        }
         menu.addItem(NSMenuItem(title: "Preferences…".local, action: #selector(openPreferences), keyEquivalent: ","))
         menu.addItem(NSMenuItem(title: "Quit Azayaka".local, action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         statusItem.menu = menu
@@ -220,5 +223,9 @@ extension AppDelegate: NSMenuDelegate {
             button.frame = iconView.frame
             button.setAccessibilityLabel("Azayaka")
         }
+    }
+
+    @objc func openUpdatePage() {
+        NSWorkspace.shared.open(URL(string: UpdateHandler.updateURL)!)
     }
 }

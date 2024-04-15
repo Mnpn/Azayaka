@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		170297D62BCD586A0035EB26 /* Updates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 170297D52BCD586A0035EB26 /* Updates.swift */; };
 		17322D4B2958D07E00185BB6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D4A2958D07E00185BB6 /* AppDelegate.swift */; };
 		17322D4F2958D08000185BB6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 17322D4E2958D08000185BB6 /* Assets.xcassets */; };
 		17322D5A2959286100185BB6 /* Processing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D592959286100185BB6 /* Processing.swift */; };
@@ -20,6 +21,7 @@
 
 /* Begin PBXFileReference section */
 		170297D22BCD525F0035EB26 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/Localizable.strings; sourceTree = "<group>"; };
+		170297D52BCD586A0035EB26 /* Updates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updates.swift; sourceTree = "<group>"; };
 		17322D472958D07E00185BB6 /* Azayaka.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Azayaka.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		17322D4A2958D07E00185BB6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		17322D4E2958D08000185BB6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -71,6 +73,7 @@
 				17322D5B295928BE00185BB6 /* Recording.swift */,
 				18B09ABB2BCBA40B005CDC4E /* MenuBar.swift */,
 				17322D592959286100185BB6 /* Processing.swift */,
+				170297D52BCD586A0035EB26 /* Updates.swift */,
 				18B09AB92BCB6D74005CDC4E /* Localizable.strings */,
 				17322D4E2958D08000185BB6 /* Assets.xcassets */,
 				17322D532958D08000185BB6 /* Azayaka.entitlements */,
@@ -156,6 +159,7 @@
 				17322D4B2958D07E00185BB6 /* AppDelegate.swift in Sources */,
 				17322D5C295928BE00185BB6 /* Recording.swift in Sources */,
 				18B09ABC2BCBA40B005CDC4E /* MenuBar.swift in Sources */,
+				170297D62BCD586A0035EB26 /* Updates.swift in Sources */,
 				17322D5E295929A000185BB6 /* Menu.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

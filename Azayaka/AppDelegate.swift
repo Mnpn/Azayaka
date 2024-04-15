@@ -50,6 +50,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     let noneAvailable = NSMenuItem(title: "None available".local, action: nil, keyEquivalent: "")
     let preferences = NSWindow()
     let ud = UserDefaults.standard
+    let UpdateHandler = Updates()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         lazy var userDesktop = (NSSearchPathForDirectoriesInDomains(.desktopDirectory, .userDomainMask, true) as [String]).first!
@@ -70,7 +71,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                 Preferences.frontAppKey: false,
                 "showMouse": true,
                 "recordMic": false,
-                "highRes": true
+                "highRes": true,
+                Preferences.updateCheck: true
             ]
         )
         // create a menu bar item
@@ -91,6 +93,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         ) { [self] notification -> Void in
             updateAvailableContent(buildMenu: true)
         }
+
+        #if RELEASE // no point in checking for updates if we're not on a release
+        if ud.bool(forKey: Preferences.updateCheck) {
+            UpdateHandler.checkForUpdates()
+        }
+        #endif
     }
 
     func updateAvailableContent(buildMenu: Bool) {
@@ -144,4 +152,3 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
 extension String {
     var local: String { return NSLocalizedString(self, comment: "") }
 }
-

@@ -102,7 +102,7 @@ extension AppDelegate {
             updateIcon()
             createMenu()
         }
-        
+
         let content = UNMutableNotificationContent()
         content.title = "Recording Completed".local
         if let filePath = filePath {
@@ -114,7 +114,7 @@ extension AppDelegate {
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
         let request = UNNotificationRequest(identifier: "azayaka.completed.\(Date.now)", content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request) { error in
-            if let error = error { print("Notification failed to send：\(error.localizedDescription)") }
+            if let error = error { print("Notification failed to send: \(error.localizedDescription)") }
         }
     }
 

@@ -12,124 +12,131 @@ import ServiceManagement
 
 struct Preferences: View {
     static let frontAppKey = "frontAppOnly"
-    @AppStorage("audioFormat")   private var audioFormat: AudioFormat = .aac
-    @AppStorage("audioQuality")  private var audioQuality: AudioQuality = .high
-    @AppStorage("frameRate")     private var frameRate: Int = 60
-    @AppStorage("videoQuality")     private var videoQuality: Double = 1.0
-    @AppStorage("videoFormat")   private var videoFormat: VideoFormat = .mp4
-    @AppStorage("encoder")       private var encoder: Encoder = .h264
-    @AppStorage("saveDirectory") private var saveDirectory: String?
+    static let updateCheck = "updateCheck"
+    @AppStorage("audioFormat")    private var audioFormat: AudioFormat = .aac
+    @AppStorage("audioQuality")   private var audioQuality: AudioQuality = .high
+    @AppStorage("frameRate")      private var frameRate: Int = 60
+    @AppStorage("videoQuality")   private var videoQuality: Double = 1.0
+    @AppStorage("videoFormat")    private var videoFormat: VideoFormat = .mp4
+    @AppStorage("encoder")        private var encoder: Encoder = .h264
+    @AppStorage("saveDirectory")  private var saveDirectory: String?
     @AppStorage(Self.frontAppKey) private var frontApp: Bool = false
-    @AppStorage("hideSelf")      private var hideSelf: Bool = false
-    @AppStorage("showMouse")     private var showMouse: Bool = true
-    @AppStorage("recordMic")     private var recordMic: Bool = false
-    @AppStorage("highRes")     private var highRes: Bool = true
+    @AppStorage("hideSelf")       private var hideSelf: Bool = false
+    @AppStorage("showMouse")      private var showMouse: Bool = true
+    @AppStorage("recordMic")      private var recordMic: Bool = false
+    @AppStorage("highRes")        private var highRes: Bool = true
+    @AppStorage(Self.updateCheck) private var updateCheck: Bool = true
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     
     var body: some View {
         VStack(alignment: .leading) {
-            GroupBox(label: Text("Video Output".local.uppercased()).fontWeight(.bold)) {
-                Form() {
-                    Picker("FPS", selection: $frameRate) {
-                        Text("60").tag(60)
-                        Text("30").tag(30)
-                        Text("25").tag(25)
-                        Text("24").tag(24)
-                        Text("15").tag(15)
-                    }.padding([.leading, .trailing], 10)
-                    Picker("Resolution", selection: $highRes) {
-                        Text("Auto").tag(true)
-                        Text("Low (1x)").tag(false)
-                    }.padding([.leading, .trailing], 10)
-                    Picker("Quality", selection: $videoQuality) {
-                        Text("Low").tag(0.3)
-                        Text("Medium").tag(0.7)
-                        Text("High").tag(1.0)
-                    }.padding([.leading, .trailing], 10)
-                    Picker("Format", selection: $videoFormat) {
-                        Text("MOV").tag(VideoFormat.mov)
-                        Text("MP4").tag(VideoFormat.mp4)
-                    }.padding([.leading, .trailing], 10)
-                    Picker("Encoder", selection: $encoder) {
-                        Text("H.264").tag(Encoder.h264)
-                        Text("H.265").tag(Encoder.h265)
-                    }.padding([.leading, .trailing], 10)
-                }.frame(maxWidth: .infinity).padding(.top, 10)
-                Toggle(isOn: $hideSelf) {
-                    Text("Exclude Azayaka itself")
-                }.toggleStyle(CheckboxToggleStyle())
-                Toggle(isOn: $frontApp) {
-                    Text("Only list focused app's windows")
-                }.toggleStyle(CheckboxToggleStyle())
-                Toggle(isOn: $showMouse) {
-                    Text("Show mouse cursor")
-                }.toggleStyle(CheckboxToggleStyle()).padding(.bottom, 10)
-            }
-            GroupBox(label: Text("Audio Output".local.uppercased()).fontWeight(.bold)) {
-                Form() {
-                    Picker("Format", selection: $audioFormat) {
-                        Text("AAC").tag(AudioFormat.aac)
-                        Text("ALAC (Lossless)").tag(AudioFormat.alac)
-                        Text("FLAC (Lossless)").tag(AudioFormat.flac)
-                        Text("Opus").tag(AudioFormat.opus)
-                    }.padding([.leading, .trailing], 10)
-                    Picker("Quality", selection: $audioQuality) {
-                        if audioFormat == .alac || audioFormat == .flac {
-                            Text("Lossless").tag(audioQuality)
-                        }
-                        Text("Normal - 128Kbps").tag(AudioQuality.normal)
-                        Text("Good - 192Kbps").tag(AudioQuality.good)
-                        Text("High - 256Kbps").tag(AudioQuality.high)
-                        Text("Extreme - 320Kbps").tag(AudioQuality.extreme)
-                    }.padding([.leading, .trailing], 10).disabled(audioFormat == .alac || audioFormat == .flac)
-                }.frame(maxWidth: .infinity).padding(.top, 10)
-                Text("These settings are also used when recording video. If set to Opus, MP4 will fall back to AAC.")
-                .font(.footnote).foregroundColor(Color.gray).padding(.leading, 4).padding(.trailing, 4).padding(.bottom, 4).fixedSize(horizontal: false, vertical: true)
-                if #available(macOS 14, *) { // apparently they changed onChange in Sonoma
-                    Toggle(isOn: $recordMic) {
-                        Text("Record microphone")
-                    }.toggleStyle(CheckboxToggleStyle()).onChange(of: recordMic) {
-                        Task { await performMicCheck() }
-                    }
-                } else {
-                    Toggle(isOn: $recordMic) {
-                        Text("Record microphone")
-                    }.toggleStyle(CheckboxToggleStyle()).onChange(of: recordMic) { _ in
-                        Task { await performMicCheck() }
-                    }
+            HStack {
+                GroupBox(label: Text("Video Output".local.uppercased()).fontWeight(.bold)) {
+                    Form() {
+                        Picker("FPS", selection: $frameRate) {
+                            Text("60").tag(60)
+                            Text("30").tag(30)
+                            Text("25").tag(25)
+                            Text("24").tag(24)
+                            Text("15").tag(15)
+                        }.padding([.leading, .trailing], 10)
+                        Picker("Resolution", selection: $highRes) {
+                            Text("Auto").tag(true)
+                            Text("Low (1x)").tag(false)
+                        }.padding([.leading, .trailing], 10)
+                        Picker("Quality", selection: $videoQuality) {
+                            Text("Low").tag(0.3)
+                            Text("Medium").tag(0.7)
+                            Text("High").tag(1.0)
+                        }.padding([.leading, .trailing], 10)
+                        Picker("Format", selection: $videoFormat) {
+                            Text("MOV").tag(VideoFormat.mov)
+                            Text("MP4").tag(VideoFormat.mp4)
+                        }.padding([.leading, .trailing], 10)
+                        Picker("Encoder", selection: $encoder) {
+                            Text("H.264").tag(Encoder.h264)
+                            Text("H.265").tag(Encoder.h265)
+                        }.padding([.leading, .trailing], 10)
+                    }.frame(maxWidth: .infinity).padding(.top, 10)
+                    Toggle(isOn: $hideSelf) {
+                        Text("Exclude Azayaka itself")
+                    }.toggleStyle(CheckboxToggleStyle())
+                    Toggle(isOn: $frontApp) {
+                        Text("Only list focused app's windows")
+                    }.toggleStyle(CheckboxToggleStyle())
+                    Toggle(isOn: $showMouse) {
+                        Text("Show mouse cursor")
+                    }.toggleStyle(CheckboxToggleStyle()).padding(.bottom, 10)
+                    Spacer()
                 }
-                Text("Doesn't apply to system audio-only recordings. The currently set input device will be used, and will be written as a separate audio track.")
-                .font(.footnote).foregroundColor(Color.gray).padding(.leading, 4).padding(.trailing, 4).padding(.bottom, 8).fixedSize(horizontal: false, vertical: true)
-            }.onAppear {
-                recordMic = recordMic && AVCaptureDevice.authorizationStatus(for: .audio) == .authorized // untick box if no perms
-            }
-            Spacer()
-            VStack {
-                HStack(spacing: 15){
-                    Toggle(isOn: $launchAtLogin) {}
-                        .offset(x: 10)
-                        .toggleStyle(.switch)
-                        .onChange(of: launchAtLogin) { newValue in
-                            do {
-                                if newValue {
-                                    try SMAppService.mainApp.register()
-                                } else {
-                                    try SMAppService.mainApp.unregister()
+                VStack {
+                    GroupBox(label: Text("Audio Output".local.uppercased()).fontWeight(.bold)) {
+                        Form() {
+                            Picker("Format", selection: $audioFormat) {
+                                Text("AAC").tag(AudioFormat.aac)
+                                Text("ALAC (Lossless)").tag(AudioFormat.alac)
+                                Text("FLAC (Lossless)").tag(AudioFormat.flac)
+                                Text("Opus").tag(AudioFormat.opus)
+                            }.padding([.leading, .trailing], 10)
+                            Picker("Quality", selection: $audioQuality) {
+                                if audioFormat == .alac || audioFormat == .flac {
+                                    Text("Lossless").tag(audioQuality)
                                 }
-                            }catch{
-                                print("Failed to \(newValue ? "enable" : "disable") launch at login: \(error.localizedDescription)")
+                                Text("Normal - 128Kbps").tag(AudioQuality.normal)
+                                Text("Good - 192Kbps").tag(AudioQuality.good)
+                                Text("High - 256Kbps").tag(AudioQuality.high)
+                                Text("Extreme - 320Kbps").tag(AudioQuality.extreme)
+                            }.padding([.leading, .trailing], 10).disabled(audioFormat == .alac || audioFormat == .flac)
+                        }.frame(maxWidth: .infinity).padding(.top, 10)
+                        Text("These settings are also used when recording video. If set to Opus, MP4 will fall back to AAC.")
+                            .font(.footnote).foregroundColor(Color.gray).padding(.leading, 4).padding(.trailing, 4).padding(.bottom, 4).fixedSize(horizontal: false, vertical: true)
+                        if #available(macOS 14, *) { // apparently they changed onChange in Sonoma
+                            Toggle(isOn: $recordMic) {
+                                Text("Record microphone")
+                            }.toggleStyle(CheckboxToggleStyle()).onChange(of: recordMic) {
+                                Task { await performMicCheck() }
+                            }
+                        } else {
+                            Toggle(isOn: $recordMic) {
+                                Text("Record microphone")
+                            }.toggleStyle(CheckboxToggleStyle()).onChange(of: recordMic) { _ in
+                                Task { await performMicCheck() }
                             }
                         }
-                    Text("Launch at login")
+                        Text("Doesn't apply to system audio-only recordings. The currently set input device will be used, and will be written as a separate audio track.")
+                            .font(.footnote).foregroundColor(Color.gray).padding(.leading, 4).padding(.trailing, 4).padding(.bottom, 8).fixedSize(horizontal: false, vertical: true)
+                    }.onAppear {
+                        recordMic = recordMic && AVCaptureDevice.authorizationStatus(for: .audio) == .authorized // untick box if no perms
+                    }
+                    GroupBox(label: Text("Other".local.uppercased()).fontWeight(.bold)) {
+                        VStack() {
+                            Toggle(isOn: $launchAtLogin) {
+                                Text("Launch at login")
+                            }.onChange(of: launchAtLogin) { newValue in
+                                do {
+                                    if newValue {
+                                        try SMAppService.mainApp.register()
+                                    } else {
+                                        try SMAppService.mainApp.unregister()
+                                    }
+                                } catch {
+                                    print("Failed to \(newValue ? "enable" : "disable") launch at login: \(error.localizedDescription)")
+                                }
+                            }
+                            Toggle(isOn: $updateCheck) {
+                                Text("Check for updates")
+                            }
+                        }.frame(maxWidth: .infinity)
+                    }
                 }
-            }.frame(maxWidth: .infinity)
+            }
+
             Divider()
-            Spacer()
             VStack(spacing: 2) {
                 Button("Select output directory", action: updateOutputDirectory)
                 Text(String(format: "Currently set to \"%@\"".local, URL(fileURLWithPath: saveDirectory!).lastPathComponent)).font(.footnote).foregroundColor(Color.gray)
             }.frame(maxWidth: .infinity)
-        }.frame(width: 275).padding([.leading, .trailing], 15).padding(.top, 10)
+        }.frame(width: 550).padding([.leading, .trailing], 15).padding(.top, 10)
         HStack {
             Text("Azayaka \(getVersion()) (\(getBuild()))").foregroundColor(Color.secondary)
             Spacer()
