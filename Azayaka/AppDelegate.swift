@@ -83,6 +83,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if let error = error { print("Notification authorization denied: \(error.localizedDescription)") }
         }
+
+        NotificationCenter.default.addObserver( // update the content & menu when a display device has changed
+            forName: NSApplication.didChangeScreenParametersNotification,
+            object: NSApplication.shared,
+            queue: OperationQueue.main
+        ) { [self] notification -> Void in
+            updateAvailableContent(buildMenu: true)
+        }
     }
 
     func updateAvailableContent(buildMenu: Bool) {
