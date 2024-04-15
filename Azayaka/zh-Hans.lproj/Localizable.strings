@@ -1,0 +1,81 @@
+/* 
+  Localizable.strings
+  Azayaka
+
+  Created by apple on 2024/4/14.
+  
+*/
+"One moment, waiting on update" = "正在更新, 请稍等";
+"None available" = "不可用";
+"Azayaka needs permissions!" = "请为 Azayaka 授权";
+"Azayaka needs screen recording permissions, even if you only intend on recording audio." = "Azayaka 需要使用录屏权限\n(即使只是用来录制音频)";
+"Open Settings" = "打开系统设置";
+"No thanks, quit" = "不了谢谢, 再见";
+"Display " = "显示器 ";
+"System Audio" = "系统声音";
+"Recording " = "正在录制: ";
+"A window" = "某个窗口";
+"Stop Recording" = "停止录制";
+"Audio-only" = "仅录音";
+"Displays" = "显示器";
+"Unknown Display" = "未知显示器";
+" (Main)" = " (主显示器)";
+"current screen" = "当前显示器";
+"Windows" = "应用窗口";
+"Preferences…" = "设置…";
+"Quit Azayaka" = "退出Azayaka";
+"Duration: %@\nFile size: %@" = "录像时长: %@\n文件大小: %@";
+"Unknown" = "未知";
+"App name: " = "应用名称: ";
+"Unknown App" = "未知应用";
+"Window title: " = ", 窗口标题: ";
+"window icon" = "窗口图标";
+"No title" = "无标题";
+"Video Output" = "视频设置";
+"FPS" = "帧速率";
+"Format" = "输出格式";
+"Encoder" = "编码方式";
+"Resolution" = "分辨率";
+"Auto" = "自动";
+"Low (1x)" = "低(1x)";
+"Low" = "较低";
+"Medium" = "中等";
+"High" = "高品质";
+"Exclude Azayaka itself" = "从画面中排除 Azayaka 本身";
+"Only list focused app's windows" = "只列出当前聚焦的应用的窗口";
+"Show mouse cursor" = "录制鼠标光标";
+"Audio Output" = "音频设置";
+"ALAC (Lossless)" = "ALAC (无损)";
+"FLAC (Lossless)" = "FLAC (无损)";
+"Quality" = "输出质量";
+"Normal - 128Kbps" = "普通 - 128Kbps";
+"Good - 192Kbps" = "优质 - 192Kbps";
+"High - 256Kbps" = "高清 - 256Kbps";
+"Extreme - 320Kbps" = "极致 - 320Kbps";
+"These settings are also used when recording video. If set to Opus, MP4 will fall back to AAC." = "录制视频时也会遵从这些设置, 但如果音频编码被设为 Opus ,则录制 MP4 时会回退至 AAC 编码.";
+"Record microphone" = "录制麦克风声音";
+"Doesn't apply to system audio-only recordings. The currently set input device will be used, and will be written as a separate audio track." = "录制视频时, 来自系统默认音频输入设备的声音将被写入单独的音轨 (此功能不适用于\"仅录音\")";
+"Select output directory" = "选择保存位置";
+"Azayaka needs permission to record your microphone to do this." = "Azayaka 需要使用麦克风权限来录制麦克风声音.";
+"Currently set to \"%@\"" = "当前保存位置为\"%@\"";
+"/Recording at " = "/录制于 ";
+"Recording Completed" = "录制结束";
+"File saved to: %@" = "文件已保存至: %@";
+"File saved to folder: %@" = "文件已保存到: %@ 目录中";
+"Launch at login" = "登录时启动";
+
+// Warning text
+/*
+ "failed to fetch file for size indicator: %@" = "获取文件大小失败: ";
+"[err] failed to fetch available content:" = "[错误] 无法获取可用的上下文:";
+"There needs to be at least one display connected" = "至少需要连接一台显示器";
+"capture failed" = "捕获失败";
+"unknown audio format while setting audio settings: " = "更改音频设置时设置了未知的音频格式";
+"[no defaults]" = "[无默认设置]";
+"loaded unknown audio format: " = "加载了未知的音频格式: ";
+"loaded unknown video format" = "加载了未知的视频格式";
+"unknown stream type" = "未知的流类型";
+"audio file writing issue" = "音频文件写入出错";
+"closing stream with error:\n" = "关闭流时发生错误:\n";
+"\nthis might be due to the window closing or the user stopping from the sonoma ui" = "\n这可能是有由于用户关闭了正在录制中的窗口, 或使用窗口上的附加按钮停止了录制.";
+*/

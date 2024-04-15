@@ -9,6 +9,20 @@ import AVFoundation
 import AVFAudio
 import Cocoa
 import ScreenCaptureKit
+import UserNotifications
+import SwiftUI
+
+@main
+struct AzayakaApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
+    var body: some Scene {
+        Settings {
+            Preferences()
+                .fixedSize()
+        }
+    }
+}
 
 class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOutput {
     var vW: AVAssetWriter!
@@ -32,8 +46,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
 
     var statusItem: NSStatusItem!
     var menu = NSMenu()
-    let info = NSMenuItem(title: "One moment, waiting on update", action: nil, keyEquivalent: "")
-    let noneAvailable = NSMenuItem(title: "None available", action: nil, keyEquivalent: "")
+    let info = NSMenuItem(title: "One moment, waiting on update".local, action: nil, keyEquivalent: "")
+    let noneAvailable = NSMenuItem(title: "None available".local, action: nil, keyEquivalent: "")
     let preferences = NSWindow()
     let ud = UserDefaults.standard
 
@@ -48,13 +62,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                 "audioFormat": AudioFormat.aac.rawValue,
                 "audioQuality": AudioQuality.high.rawValue,
                 "frameRate": 60,
+                "videoQuality": 1.0,
                 "videoFormat": VideoFormat.mp4.rawValue,
                 "encoder": Encoder.h264.rawValue,
                 "saveDirectory": saveDirectory,
                 "hideSelf": false,
                 Preferences.frontAppKey: false,
                 "showMouse": true,
-                "recordMic": false
+                "recordMic": false,
+                "highRes": true
             ]
         )
         // create a menu bar item
@@ -63,6 +79,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         statusItem.menu = menu
         menu.minimumWidth = 250
         updateAvailableContent(buildMenu: true)
+        
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if let error = error { print("Notification authorization denied: \(error.localizedDescription)") }
+        }
     }
 
     func updateAvailableContent(buildMenu: Bool) {
@@ -70,12 +90,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
             if let error = error {
                 switch error {
                     case SCStreamError.userDeclined: self.requestPermissions()
-                    default: print("[err] failed to fetch available content:", error.localizedDescription)
+                default: print("[err] failed to fetch available content:".local, error.localizedDescription)
                 }
                 return
             }
             self.availableContent = content
-            assert(self.availableContent?.displays.isEmpty != nil, "There needs to be at least one display connected")
+            assert(self.availableContent?.displays.isEmpty != nil, "There needs to be at least one display connected".local)
             let frontOnly = UserDefaults.standard.bool(forKey: Preferences.frontAppKey)
             DispatchQueue.main.async {
                 if buildMenu {
@@ -90,10 +110,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     func requestPermissions() {
         DispatchQueue.main.async {
             let alert = NSAlert()
-            alert.messageText = "Azayaka needs permissions!"
-            alert.informativeText = "Azayaka needs screen recording permissions, even if you only intend on recording audio."
-            alert.addButton(withTitle: "Open Settings")
-            alert.addButton(withTitle: "No thanks, quit")
+            alert.messageText = "Azayaka needs permissions!".local
+            alert.informativeText = "Azayaka needs screen recording permissions, even if you only intend on recording audio.".local
+            alert.addButton(withTitle: "Open Settings".local)
+            alert.addButton(withTitle: "No thanks, quit".local)
             alert.alertStyle = .informational
             if alert.runModal() == .alertFirstButtonReturn {
                 NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!)
@@ -101,7 +121,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
             NSApp.terminate(self)
         }
     }
-
+    
     func applicationWillTerminate(_ aNotification: Notification) {
         if stream != nil {
             stopRecording()
@@ -112,3 +132,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         return true
     }
 }
+
+extension String {
+    var local: String { return NSLocalizedString(self, comment: "") }
+}
+

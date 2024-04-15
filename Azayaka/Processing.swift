@@ -18,7 +18,7 @@ extension AppDelegate {
         switch fileEnding {
             case VideoFormat.mov.rawValue: fileType = AVFileType.mov
             case VideoFormat.mp4.rawValue: fileType = AVFileType.mp4
-            default: assertionFailure("loaded unknown video format")
+        default: assertionFailure("loaded unknown video format".local)
         }
 
         filePath = "\(getFilePath()).\(fileEnding)"
@@ -26,14 +26,14 @@ extension AppDelegate {
         let encoderIsH265 = ud.string(forKey: "encoder") == Encoder.h265.rawValue
         let fpsMultiplier: Double = Double(ud.integer(forKey: "frameRate"))/8
         let encoderMultiplier: Double = encoderIsH265 ? 0.5 : 0.9
-        let targetBitrate = (Double(conf.width) * Double(conf.height) * fpsMultiplier * encoderMultiplier)
+        let targetBitrate = (Double(conf.width) * Double(conf.height) * fpsMultiplier * encoderMultiplier * ud.double(forKey: "videoQuality"))
         let videoSettings: [String: Any] = [
             AVVideoCodecKey: encoderIsH265 ? AVVideoCodecType.hevc : AVVideoCodecType.h264,
             // yes, not ideal if we want more than these encoders in the future, but it's ok for now
             AVVideoWidthKey: conf.width,
             AVVideoHeightKey: conf.height,
             AVVideoCompressionPropertiesKey: [
-                AVVideoAverageBitRateKey: targetBitrate,
+                AVVideoAverageBitRateKey: Int(targetBitrate),
                 AVVideoExpectedSourceFrameRateKey: ud.integer(forKey: "frameRate")
             ] as [String : Any]
         ]
@@ -112,20 +112,20 @@ extension AppDelegate {
                     do {
                         try audioFile?.write(from: samples)
                     }
-                    catch { assertionFailure("audio file writing issue") }
+                    catch { assertionFailure("audio file writing issue".local) }
                 } else { // otherwise send the audio data to AVAssetWriter
                     if awInput.isReadyForMoreMediaData {
                         awInput.append(sampleBuffer)
                     }
                 }
             @unknown default:
-                assertionFailure("unknown stream type")
+            assertionFailure("unknown stream type".local)
         }
     }
 
     func stream(_ stream: SCStream, didStopWithError error: Error) { // stream error
-        print("closing stream with error:\n", error,
-              "\nthis might be due to the window closing or the user stopping from the sonoma ui")
+        print("closing stream with error:\n".local, error,
+              "\nthis might be due to the window closing or the user stopping from the sonoma ui".local)
         DispatchQueue.main.async {
             self.stream = nil
             self.stopRecording()

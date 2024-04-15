@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		172CDA632962011500A2C55D /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 172CDA622962011500A2C55D /* main.swift */; };
 		17322D4B2958D07E00185BB6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D4A2958D07E00185BB6 /* AppDelegate.swift */; };
 		17322D4F2958D08000185BB6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 17322D4E2958D08000185BB6 /* Assets.xcassets */; };
 		17322D5A2959286100185BB6 /* Processing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D592959286100185BB6 /* Processing.swift */; };
@@ -15,10 +14,11 @@
 		17322D5E295929A000185BB6 /* Menu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D5D295929A000185BB6 /* Menu.swift */; };
 		17BCDC80295BAC9400448A97 /* Types.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17BCDC7F295BAC9300448A97 /* Types.swift */; };
 		17DBD7C5295B0973005C0690 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DBD7C4295B0973005C0690 /* Preferences.swift */; };
+		18B09AB72BCB6D74005CDC4E /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 18B09AB92BCB6D74005CDC4E /* Localizable.strings */; };
+		18B09ABC2BCBA40B005CDC4E /* MenuBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18B09ABB2BCBA40B005CDC4E /* MenuBar.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		172CDA622962011500A2C55D /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		17322D472958D07E00185BB6 /* Azayaka.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Azayaka.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		17322D4A2958D07E00185BB6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		17322D4E2958D08000185BB6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -28,6 +28,9 @@
 		17322D5D295929A000185BB6 /* Menu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Menu.swift; sourceTree = "<group>"; };
 		17BCDC7F295BAC9300448A97 /* Types.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
 		17DBD7C4295B0973005C0690 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
+		18B09AB82BCB6D74005CDC4E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		18B09ABA2BCB6D8D005CDC4E /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		18B09ABB2BCBA40B005CDC4E /* MenuBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBar.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,8 +68,9 @@
 				17322D5D295929A000185BB6 /* Menu.swift */,
 				17DBD7C4295B0973005C0690 /* Preferences.swift */,
 				17322D5B295928BE00185BB6 /* Recording.swift */,
+				18B09ABB2BCBA40B005CDC4E /* MenuBar.swift */,
 				17322D592959286100185BB6 /* Processing.swift */,
-				172CDA622962011500A2C55D /* main.swift */,
+				18B09AB92BCB6D74005CDC4E /* Localizable.strings */,
 				17322D4E2958D08000185BB6 /* Assets.xcassets */,
 				17322D532958D08000185BB6 /* Azayaka.entitlements */,
 			);
@@ -100,8 +104,8 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1410;
-				LastUpgradeCheck = 1500;
+				LastSwiftUpdateCheck = 1510;
+				LastUpgradeCheck = 1510;
 				TargetAttributes = {
 					17322D462958D07E00185BB6 = {
 						CreatedOnToolsVersion = 14.1;
@@ -115,6 +119,7 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = 17322D3E2958D07D00185BB6;
 			productRefGroup = 17322D482958D07E00185BB6 /* Products */;
@@ -132,6 +137,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				17322D4F2958D08000185BB6 /* Assets.xcassets in Resources */,
+				18B09AB72BCB6D74005CDC4E /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -143,16 +149,28 @@
 			buildActionMask = 2147483647;
 			files = (
 				17322D5A2959286100185BB6 /* Processing.swift in Sources */,
-				172CDA632962011500A2C55D /* main.swift in Sources */,
 				17DBD7C5295B0973005C0690 /* Preferences.swift in Sources */,
 				17BCDC80295BAC9400448A97 /* Types.swift in Sources */,
 				17322D4B2958D07E00185BB6 /* AppDelegate.swift in Sources */,
 				17322D5C295928BE00185BB6 /* Recording.swift in Sources */,
+				18B09ABC2BCBA40B005CDC4E /* MenuBar.swift in Sources */,
 				17322D5E295929A000185BB6 /* Menu.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		18B09AB92BCB6D74005CDC4E /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				18B09AB82BCB6D74005CDC4E /* en */,
+				18B09ABA2BCB6D8D005CDC4E /* zh-Hans */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		17322D542958D08000185BB6 /* Debug */ = {
@@ -160,6 +178,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -223,6 +242,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -285,7 +305,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 39;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 35BSP6SUG9;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Azayaka;
@@ -302,7 +322,6 @@
 				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.mnpn.Azayaka;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -319,7 +338,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 39;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 35BSP6SUG9;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Azayaka;
@@ -336,7 +355,6 @@
 				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.mnpn.Azayaka;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
