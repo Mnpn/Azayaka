@@ -129,7 +129,7 @@ struct Preferences: View {
                 Button("Select output directory", action: updateOutputDirectory)
                 Text(String(format: "Currently set to \"%@\"".local, URL(fileURLWithPath: saveDirectory!).lastPathComponent)).font(.footnote).foregroundColor(Color.gray)
             }.frame(maxWidth: .infinity)
-        }.frame(width: 260).padding([.leading, .trailing], 15).padding(.top, 10)
+        }.frame(width: 275).padding([.leading, .trailing], 15).padding(.top, 10)
         HStack {
             Text("Azayaka \(getVersion()) (\(getBuild()))").foregroundColor(Color.secondary)
             Spacer()

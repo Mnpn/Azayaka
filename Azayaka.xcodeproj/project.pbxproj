@@ -19,6 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		170297D22BCD525F0035EB26 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/Localizable.strings; sourceTree = "<group>"; };
 		17322D472958D07E00185BB6 /* Azayaka.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Azayaka.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		17322D4A2958D07E00185BB6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		17322D4E2958D08000185BB6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -120,6 +121,7 @@
 				en,
 				Base,
 				"zh-Hans",
+				sv,
 			);
 			mainGroup = 17322D3E2958D07D00185BB6;
 			productRefGroup = 17322D482958D07E00185BB6 /* Products */;
@@ -166,6 +168,7 @@
 			children = (
 				18B09AB82BCB6D74005CDC4E /* en */,
 				18B09ABA2BCB6D8D005CDC4E /* zh-Hans */,
+				170297D22BCD525F0035EB26 /* sv */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -322,6 +325,7 @@
 				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.mnpn.Azayaka;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -355,6 +359,7 @@
 				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.mnpn.Azayaka;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};

@@ -1,0 +1,81 @@
+//
+//  Localizable.strings
+//  Azayaka
+//
+//  Created by Martin Persson on 2024-04-15.
+//
+
+"One moment, waiting on update" = "Ett ögonblick, väntar på uppdatering";
+"None available" = "Inga tillgängliga";
+"Azayaka needs permissions!" = "Azayaka behöver åtkomst!";
+"Azayaka needs screen recording permissions, even if you only intend on recording audio." = "Azayaka kräver skärminspelningstillstånd, även om du bara tänker spela in ljud.";
+"Open Settings" = "Öppna Inställningar";
+"No thanks, quit" = "Nej tack, avsluta";
+"Display " = "Skärm ";
+"System Audio" = "Systemljud";
+"Recording " = "Spelar in ";
+"A window" = "Ett fönster";
+"Stop Recording" = "Stoppa inspelning";
+"Audio-only" = "Endast ljud";
+"Displays" = "Skärmar";
+"Unknown Display" = "Okänd skärm";
+" (Main)" = " (Primär)";
+"current screen" = "nuvarande skärm";
+"Windows" = "Fönster";
+"Preferences…" = "Inställningar…";
+"Quit Azayaka" = "Avsluta Azayaka";
+"Duration: %@\nFile size: %@" = "Längd: %@\nFilstorlek: %@";
+"Unknown" = "Okänt";
+"App name: " = "Appnamn: ";
+"Unknown App" = "Okänd app";
+"Window title: " = "Fönstertitel: ";
+"window icon" = "fönsterikon";
+"No title" = "Titel saknas";
+"Video Output" = "Video-output";
+"FPS" = "FPS";
+"Format" = "Format";
+"Encoder" = "Enkodare";
+"Resolution" = "Upplösning";
+"Auto" = "Auto";
+"Low (1x)" = "Låg (1x)";
+"Low" = "Låg";
+"Medium" = "Medium";
+"High" = "Hög";
+"Exclude Azayaka itself" = "Exkludera Azayaka";
+"Only list focused app's windows" = "Visa endast fönster från fokuserad app";
+"Show mouse cursor" = "Visa muspekaren";
+"Audio Output" = "Ljud-output";
+"ALAC (Lossless)" = "ALAC (förlustfritt)";
+"FLAC (Lossless)" = "FLAC (förlustfritt)";
+"Quality" = "Kvalitet";
+"Normal - 128Kbps" = "Normal - 128Kbps";
+"Good - 192Kbps" = "Bra - 192Kbps";
+"High - 256Kbps" = "Hög - 256Kbps";
+"Extreme - 320Kbps" = "Extrem - 320Kbps";
+"These settings are also used when recording video. If set to Opus, MP4 will fall back to AAC." = "Dessa inställningar används även vid videoinspelning. Om Opus används kommer MP4-formatet att använda AAC.";
+"Record microphone" = "Spela in mikrofon";
+"Doesn't apply to system audio-only recordings. The currently set input device will be used, and will be written as a separate audio track." = "Gäller inte för systemljudsinspelningar. Den nuvarande input-enheten kommer att användas, och kommer att skrivas till ett sekundärt ljudspår.";
+"Select output directory" = "Välj destinationsmapp";
+"Azayaka needs permission to record your microphone to do this." = "Azayaka behöver tillstånd för att spela in din mikrofon för att göra detta.";
+"Currently set to \"%@\"" = "Satt till \"%@\"";
+"/Recording at " = "/Inspelning vid ";
+"Recording Completed" = "Inspelning slutförd";
+"File saved to: %@" = "Fil sparad till: %@";
+"File saved to folder: %@" = "Fil sparad till mapp: %@";
+"Launch at login" = "Starta vid inloggning";
+
+// Warning text
+/*
+ "failed to fetch file for size indicator: %@" = "kunde hämta filen för filstorleksindikatorn: ";
+"[err] failed to fetch available content:" = "[fel] misslyckades med att hämta tillgängligt innehåll:";
+"There needs to be at least one display connected" = "Det måste finnas åtminstone en skärm ansluten";
+"capture failed" = "inspelning misslyckades";
+"unknown audio format while setting audio settings: " = "okänt ljudformat togs emot när ljudinställningarna skulle sättas";
+"[no defaults]" = "[inga standardinställningar]";
+"loaded unknown audio format: " = "laddade ett okänt ljudformat: ";
+"loaded unknown video format" = "laddade ett okänt videoformat: ";
+"unknown stream type" = "okänd strömtyp";
+"audio file writing issue" = "problem uppstod vid skrivning av ljudfil";
+"closing stream with error:\n" = "stänger strömmen med felmeddelandet: \n";
+"\nthis might be due to the window closing or the user stopping from the sonoma ui" = "\ndetta kan bero på fönstrets stängning eller att användaren stoppat från sonoma-ui:n.";
+*/
