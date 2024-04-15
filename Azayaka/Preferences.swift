@@ -130,7 +130,6 @@ struct Preferences: View {
                     }
                 }
             }
-
             Divider()
             VStack(spacing: 2) {
                 Button("Select output directory", action: updateOutputDirectory)

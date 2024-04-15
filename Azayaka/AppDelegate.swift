@@ -94,7 +94,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
             updateAvailableContent(buildMenu: true)
         }
 
-        #if RELEASE // no point in checking for updates if we're not on a release
+        #if !DEBUG // no point in checking for updates if we're not on a release
         if ud.bool(forKey: Preferences.updateCheck) {
             UpdateHandler.checkForUpdates()
         }

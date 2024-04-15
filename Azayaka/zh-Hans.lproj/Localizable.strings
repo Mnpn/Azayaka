@@ -65,6 +65,7 @@
 "Launch at login" = "登录时启动";
 "Update to %@…" = "更新至 %@…";
 "Check for updates" = "检查更新";
+"Other" = "其他";
 
 
 // Warning text
