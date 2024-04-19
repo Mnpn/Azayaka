@@ -5,6 +5,8 @@
 //  Created by Martin Persson on 2022-12-27.
 //
 
+import KeyboardShortcuts
+
 enum AudioQuality: Int {
     case normal = 128, good = 192, high = 256, extreme = 320
 }
@@ -27,4 +29,10 @@ enum StreamType: Int {
 
 struct GHRelease: Decodable {
     let tag_name: String
+}
+
+extension KeyboardShortcuts.Name {
+    static let recordSystemAudio = Self("recordSystemAudio")
+    static let recordCurrentWindow = Self("recordCurrentWindow")
+    static let recordCurrentDisplay = Self("recordCurrentDisplay")
 }

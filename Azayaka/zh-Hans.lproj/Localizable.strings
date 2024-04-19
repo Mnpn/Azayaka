@@ -31,7 +31,7 @@
 "Window title: " = ", 窗口标题: ";
 "window icon" = "窗口图标";
 "No title" = "无标题";
-"Video Output" = "视频设置";
+"Video" = "视频";
 "FPS" = "帧速率";
 "Format" = "输出格式";
 "Encoder" = "编码方式";
@@ -44,7 +44,7 @@
 "Exclude Azayaka itself" = "从画面中排除 Azayaka 本身";
 "Only list focused app's windows" = "只列出当前聚焦的应用的窗口";
 "Show mouse cursor" = "录制鼠标光标";
-"Audio Output" = "音频设置";
+"Audio" = "音频";
 "ALAC (Lossless)" = "ALAC (无损)";
 "FLAC (Lossless)" = "FLAC (无损)";
 "Quality" = "输出质量";
@@ -58,15 +58,23 @@
 "Select output directory" = "选择保存位置";
 "Azayaka needs permission to record your microphone to do this." = "Azayaka 需要使用麦克风权限来录制麦克风声音.";
 "Currently set to \"%@\"" = "当前保存位置为\"%@\"";
-"/Recording at " = "/录制于 ";
+"File saved to: %@" = "文件已保存至: %@";
+"Recording at " = "录制于 ";
 "Recording Completed" = "录制结束";
 "File saved to: %@" = "文件已保存至: %@";
 "File saved to folder: %@" = "文件已保存到: %@ 目录中";
-"Launch at login" = "登录时启动";
-"Update to %@…" = "更新至 %@…";
-"Check for updates" = "检查更新";
+"Destination" = "Destination";
+"\"%t\" will be replaced with the recording's start time." = "\"%t\" will be replaced with the recording's start time.";
+"Shortcuts" = "Shortcuts";
+"Record system audio" = "Record system audio";
+"Record current display" = "Record current display";
+"Record focused window" = "Record focused window";
+"Recordings can be stopped with the same shortcut." = "Recordings can be stopped with the same shortcut.";
 "Other" = "其他";
-
+"Launch at login" = "登录时启动";
+"Check for updates at launch" = "Check for updates at launch";
+"Azayaka will check [GitHub](https://github.com/Mnpn/Azayaka/releases) for new updates." = "Azayaka will check [GitHub](https://github.com/Mnpn/Azayaka/releases) for new updates.";
+"Update to %@…" = "更新至 %@…";
 
 // Warning text
 /*

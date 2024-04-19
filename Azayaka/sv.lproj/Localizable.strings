@@ -31,7 +31,7 @@
 "Window title: " = "Fönstertitel: ";
 "window icon" = "fönsterikon";
 "No title" = "Titel saknas";
-"Video Output" = "Video-output";
+"Video" = "Video";
 "FPS" = "FPS";
 "Format" = "Format";
 "Encoder" = "Enkodare";
@@ -44,7 +44,7 @@
 "Exclude Azayaka itself" = "Exkludera Azayaka";
 "Only list focused app's windows" = "Visa endast fönster från fokuserad app";
 "Show mouse cursor" = "Visa muspekaren";
-"Audio Output" = "Ljud-output";
+"Audio" = "Ljud";
 "ALAC (Lossless)" = "ALAC (förlustfritt)";
 "FLAC (Lossless)" = "FLAC (förlustfritt)";
 "Quality" = "Kvalitet";
@@ -58,14 +58,23 @@
 "Select output directory" = "Välj destinationsmapp";
 "Azayaka needs permission to record your microphone to do this." = "Azayaka behöver tillstånd för att spela in din mikrofon för att göra detta.";
 "Currently set to \"%@\"" = "Satt till \"%@\"";
-"/Recording at " = "/Inspelning vid ";
+"Recording at " = "Inspelning vid ";
 "Recording Completed" = "Inspelning slutförd";
 "File saved to: %@" = "Fil sparad till: %@";
 "File saved to folder: %@" = "Fil sparad till mapp: %@";
-"Launch at login" = "Starta vid inloggning";
-"Update to %@…" = "Uppdatera till %@…";
-"Check for updates" = "Sök efter uppdateringar";
+"Destination" = "Destination";
+"\"%t\" will be replaced with the recording's start time." = "\"%t\" kommer att bytas ut mot inspelningens starttid.";
+"Shortcuts" = "Genvägar";
+"Record system audio" = "Spela in systemljud";
+"Record current display" = "Spela in nuvarande skärm";
+"Record focused window" = "Spela in fokuserat fönster";
+"Recordings can be stopped with the same shortcut." = "Inspelningar kan avslutas med samma genväg.";
 "Other" = "Övrigt";
+"Launch at login" = "Starta vid inloggning";
+"Check for updates at launch" = "Sök efter uppdateringar vid start";
+"Azayaka will check [GitHub](https://github.com/Mnpn/Azayaka/releases) for new updates." = "Azayaka kommer att kolla [GitHub](https://github.com/Mnpn/Azayaka/releases) efter uppdateringar.";
+"Update to %@…" = "Uppdatera till %@…";
+
 
 // Warning text
 /*
