@@ -62,11 +62,12 @@
 "Azayaka needs permission to record your microphone to do this." = "Azayaka 需要使用麦克风权限来录制麦克风声音.";
 "Currently set to \"%@\"" = "当前保存位置为\"%@\"";
 "File saved to: %@" = "文件已保存至: %@";
-"Recording at " = "录制于 ";
+"Recording at %t" = "录制于 %t";
 "Recording Completed" = "录制结束";
 "File saved to: %@" = "文件已保存至: %@";
 "File saved to folder: %@" = "文件已保存到: %@ 目录中";
 "Destination" = "Destination";
+"File name" = "File name";
 "\"%t\" will be replaced with the recording's start time." = "\"%t\" will be replaced with the recording's start time.";
 "Shortcuts" = "Shortcuts";
 "Record system audio" = "Record system audio";

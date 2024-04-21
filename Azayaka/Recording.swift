@@ -158,7 +158,11 @@ extension AppDelegate {
     func getFilePath() -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "y-MM-dd HH.mm.ss"
-        return ud.string(forKey: "saveDirectory")! + "/Recording at ".local + dateFormatter.string(from: Date())
+        var fileName = ud.string(forKey: Preferences.fileName)
+        if fileName == nil || fileName!.isEmpty {
+            fileName = "Recording at %t".local
+        }
+        return ud.string(forKey: "saveDirectory")! + "/" + fileName!.replacingOccurrences(of: "%t", with: dateFormatter.string(from: Date()))
     }
 
     func getRecordingLength() -> String {

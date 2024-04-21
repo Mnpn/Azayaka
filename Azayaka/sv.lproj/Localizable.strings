@@ -61,11 +61,12 @@
 "Select output directory" = "Välj destinationsmapp";
 "Azayaka needs permission to record your microphone to do this." = "Azayaka behöver tillstånd för att spela in din mikrofon för att göra detta.";
 "Currently set to \"%@\"" = "Satt till \"%@\"";
-"Recording at " = "Inspelning vid ";
+"Recording at %t" = "Inspelning vid %t";
 "Recording Completed" = "Inspelning slutförd";
 "File saved to: %@" = "Fil sparad till: %@";
 "File saved to folder: %@" = "Fil sparad till mapp: %@";
 "Destination" = "Destination";
+"File name" = "Filnamn";
 "\"%t\" will be replaced with the recording's start time." = "\"%t\" kommer att bytas ut mot inspelningens starttid.";
 "Shortcuts" = "Genvägar";
 "Record system audio" = "Spela in systemljud";

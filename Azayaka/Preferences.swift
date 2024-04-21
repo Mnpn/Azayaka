@@ -215,10 +215,10 @@ struct Preferences: View {
                 GroupBox() {
                     Form() {
                         ForEach(thing, id: \.1) { shortcut in
-                            KeyboardShortcuts.Recorder(shortcut.0, name: shortcut.1).padding([.leading, .trailing], 10).padding([.top, .bottom], 2)
+                            KeyboardShortcuts.Recorder(shortcut.0, name: shortcut.1).padding([.leading, .trailing], 10).padding(.bottom, 4)
                         }
                     }.frame(alignment: .center).padding([.leading, .trailing], 2).padding(.top, 10)
-                    Text("Recordings can be stopped with the same shortcut.").font(.subheadline).foregroundColor(Color.gray).padding(.bottom, 10).padding(.top, 5)
+                    Text("Recordings can be stopped with the same shortcut.").font(.subheadline).foregroundColor(Color.gray).padding(.bottom, 10)
                 }.padding(10)
             }
         }
