@@ -17,7 +17,8 @@ extension AppDelegate: NSMenuDelegate {
         if streamType != nil { // recording?
             var typeText = ""
             if screen != nil {
-                typeText = "Display ".local + String((availableContent?.displays.firstIndex(where: { $0.displayID == screen?.displayID }))!+1)
+                let fallbackName = "Display ".local + String((availableContent?.displays.firstIndex(where: { $0.displayID == screen?.displayID }) ?? -1)+1)
+                typeText = NSScreen.screens.first(where: { $0.displayID == screen?.displayID })?.localizedName ?? fallbackName
             } else if window != nil {
                 typeText = window?.owningApplication?.applicationName.uppercased() ?? "A window".local
             } else {
