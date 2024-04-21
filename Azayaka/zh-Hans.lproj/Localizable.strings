@@ -9,7 +9,10 @@
 "None available" = "不可用";
 "Azayaka needs permissions!" = "请为 Azayaka 授权";
 "Azayaka needs screen recording permissions, even if you only intend on recording audio." = "Azayaka 需要使用录屏权限\n(即使只是用来录制音频)";
+"Azayaka requires screen recording permissions." = "Azayaka 需要使用录屏权限";
+"Failed to fetch available content: " = "无法获取可用的上下文: ";
 "Open Settings" = "打开系统设置";
+"Okay" = "Okay";
 "No thanks, quit" = "不了谢谢, 再见";
 "Display " = "显示器 ";
 "System Audio" = "系统声音";
@@ -79,7 +82,6 @@
 // Warning text
 /*
  "failed to fetch file for size indicator: %@" = "获取文件大小失败: ";
-"[err] failed to fetch available content:" = "[错误] 无法获取可用的上下文:";
 "There needs to be at least one display connected" = "至少需要连接一台显示器";
 "capture failed" = "捕获失败";
 "unknown audio format while setting audio settings: " = "更改音频设置时设置了未知的音频格式";

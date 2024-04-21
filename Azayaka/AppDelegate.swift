@@ -103,25 +103,37 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         #endif
     }
 
-    func updateAvailableContent(buildMenu: Bool) async {
-            do {
-                availableContent = try await SCShareableContent.excludingDesktopWindows(true, onScreenWindowsOnly: true)
-            } catch {
-                switch error {
-                    case SCStreamError.userDeclined: self.requestPermissions()
-                    default: print("[err] failed to fetch available content:".local, error.localizedDescription)
-                }
-                return
+    func updateAvailableContent(buildMenu: Bool) async -> Bool { // returns status of getting content from SCK
+        do {
+            availableContent = try await SCShareableContent.excludingDesktopWindows(true, onScreenWindowsOnly: true)
+        } catch {
+            let infoMenu = NSMenu()
+            let infoItem = NSMenuItem()
+            switch error {
+                case SCStreamError.userDeclined:
+                    infoItem.title = "Azayaka requires screen recording permissions.".local
+                    requestPermissions()
+                default:
+                    print("Failed to fetch available content: ".local, error.localizedDescription)
+                infoItem.attributedTitle = NSAttributedString(string: "Failed to fetch available content: ".local + "\n\(error.localizedDescription)")
             }
-            assert(self.availableContent?.displays.isEmpty != nil, "There needs to be at least one display connected".local)
-            let frontOnly = UserDefaults.standard.bool(forKey: Preferences.frontAppKey)
-            DispatchQueue.main.async {
-                if buildMenu {
-                    self.createMenu()
-                }
-                self.refreshWindows(frontOnly: frontOnly)
-                // ask to just refresh the windows list instead of rebuilding it all
+            infoMenu.addItem(infoItem)
+            infoMenu.addItem(NSMenuItem.separator())
+            infoMenu.addItem(NSMenuItem(title: "Preferences…".local, action: #selector(openPreferences), keyEquivalent: ","))
+            infoMenu.addItem(NSMenuItem(title: "Quit Azayaka".local, action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+            statusItem.menu = infoMenu
+            return false
+        }
+        assert(self.availableContent?.displays.isEmpty != nil, "There needs to be at least one display connected".local)
+        let frontOnly = UserDefaults.standard.bool(forKey: Preferences.frontAppKey)
+        DispatchQueue.main.async {
+            if buildMenu {
+                self.createMenu()
             }
+            self.refreshWindows(frontOnly: frontOnly)
+            // ask to just refresh the windows list instead of rebuilding it all
+        }
+        return true
     }
 
     func requestPermissions() {
@@ -130,12 +142,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
             alert.messageText = "Azayaka needs permissions!".local
             alert.informativeText = "Azayaka needs screen recording permissions, even if you only intend on recording audio.".local
             alert.addButton(withTitle: "Open Settings".local)
+            alert.addButton(withTitle: "Okay".local)
             alert.addButton(withTitle: "No thanks, quit".local)
             alert.alertStyle = .informational
-            if alert.runModal() == .alertFirstButtonReturn {
-                NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!)
+            switch(alert.runModal()) {
+                case .alertFirstButtonReturn:
+                    NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!)
+                case .alertThirdButtonReturn: NSApp.terminate(self)
+                default: return
             }
-            NSApp.terminate(self)
         }
     }
 
@@ -146,7 +161,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         guard frontAppPID != ProcessInfo.processInfo.processIdentifier else { return nil }
         guard let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: AnyObject]] else { return nil }
 
-        await updateAvailableContent(buildMenu: false) // to make sure we've got the latest content for getValidWindows
+        guard await updateAvailableContent(buildMenu: false) else { return nil } // to make sure we've got the latest content for getValidWindows
 
         for windowInfo in windowList {
             if let windowPID = windowInfo["kCGWindowOwnerPID"] as? pid_t,
