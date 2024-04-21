@@ -18,7 +18,7 @@ extension AppDelegate {
         switch fileEnding {
             case VideoFormat.mov.rawValue: fileType = AVFileType.mov
             case VideoFormat.mp4.rawValue: fileType = AVFileType.mp4
-        default: assertionFailure("loaded unknown video format".local)
+            default: assertionFailure("loaded unknown video format".local)
         }
 
         filePath = "\(getFilePath()).\(fileEnding)"
@@ -114,12 +114,12 @@ extension AppDelegate {
                     }
                     catch { assertionFailure("audio file writing issue".local) }
                 } else { // otherwise send the audio data to AVAssetWriter
-                    if awInput.isReadyForMoreMediaData {
+                    if (awInput != nil) && awInput.isReadyForMoreMediaData {
                         awInput.append(sampleBuffer)
                     }
                 }
             @unknown default:
-            assertionFailure("unknown stream type".local)
+                assertionFailure("unknown stream type".local)
         }
     }
 

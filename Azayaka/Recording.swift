@@ -8,6 +8,7 @@
 import UserNotifications
 import ScreenCaptureKit
 import AVFAudio
+import KeyboardShortcuts
 
 extension AppDelegate {
     @objc func prepRecord(_ sender: NSMenuItem) {
@@ -79,6 +80,8 @@ extension AppDelegate {
             updateIcon()
             createMenu()
         }
+
+        allowShortcuts(true)
     }
 
     @objc func stopRecording() {
@@ -102,6 +105,8 @@ extension AppDelegate {
             updateIcon()
             createMenu()
         }
+
+        allowShortcuts(true)
 
         let content = UNMutableNotificationContent()
         content.title = "Recording Completed".local

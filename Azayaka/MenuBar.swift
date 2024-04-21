@@ -11,6 +11,7 @@ import Foundation
 struct MenuBar: View {
     @State var recordingStatus: Bool!
     @State var recordingLength = "00:00"
+
     var body: some View {
         ZStack {
             if recordingStatus {

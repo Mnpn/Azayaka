@@ -8,12 +8,14 @@
 import AVFoundation
 import AVFAudio
 import Cocoa
+import KeyboardShortcuts
 import ScreenCaptureKit
 import UserNotifications
 import SwiftUI
 
 @main
-struct AzayakaApp: App {
+struct Azayaka: App {
+    @StateObject private var appState = AppState()
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     var body: some Scene {
@@ -80,7 +82,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         updateIcon()
         statusItem.menu = menu
         menu.minimumWidth = 250
-        updateAvailableContent(buildMenu: true)
+        Task { await updateAvailableContent(buildMenu: true) }
         
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if let error = error { print("Notification authorization denied: \(error.localizedDescription)") }
@@ -91,7 +93,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
             object: NSApplication.shared,
             queue: OperationQueue.main
         ) { [self] notification -> Void in
-            updateAvailableContent(buildMenu: true)
+            Task { await updateAvailableContent(buildMenu: true) }
         }
 
         #if !DEBUG // no point in checking for updates if we're not on a release
@@ -101,26 +103,25 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         #endif
     }
 
-    func updateAvailableContent(buildMenu: Bool) {
-        SCShareableContent.getExcludingDesktopWindows(true, onScreenWindowsOnly: true) { content, error in
-            if let error = error {
+    func updateAvailableContent(buildMenu: Bool) async {
+            do {
+                availableContent = try await SCShareableContent.excludingDesktopWindows(true, onScreenWindowsOnly: true)
+            } catch {
                 switch error {
                     case SCStreamError.userDeclined: self.requestPermissions()
-                default: print("[err] failed to fetch available content:".local, error.localizedDescription)
+                    default: print("[err] failed to fetch available content:".local, error.localizedDescription)
                 }
                 return
             }
-            self.availableContent = content
             assert(self.availableContent?.displays.isEmpty != nil, "There needs to be at least one display connected".local)
             let frontOnly = UserDefaults.standard.bool(forKey: Preferences.frontAppKey)
             DispatchQueue.main.async {
                 if buildMenu {
                     self.createMenu()
                 }
-                self.refreshWindows(frontOnly: frontOnly) 
+                self.refreshWindows(frontOnly: frontOnly)
                 // ask to just refresh the windows list instead of rebuilding it all
             }
-        }
     }
 
     func requestPermissions() {
@@ -137,7 +138,54 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
             NSApp.terminate(self)
         }
     }
-    
+
+    // a ScreenCaptureKit implementation does not work correctly, is it the order of the returned windows perhaps?
+    // optionOnScreenOnly mentions "Windows are returned in order from front to back", which might be the magic here.
+    func getFocusedWindowID() async -> CGWindowID? {
+        guard let frontAppPID = NSWorkspace.shared.frontmostApplication?.processIdentifier else { return nil }
+        guard frontAppPID != ProcessInfo.processInfo.processIdentifier else { return nil }
+        guard let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: AnyObject]] else { return nil }
+
+        await updateAvailableContent(buildMenu: false) // to make sure we've got the latest content for getValidWindows
+
+        for windowInfo in windowList {
+            if let windowPID = windowInfo["kCGWindowOwnerPID"] as? pid_t,
+               let windowID = windowInfo["kCGWindowNumber"] as? CGWindowID,
+               windowPID == frontAppPID,
+               getValidWindows(frontOnly: false).contains(where: { $0.windowID == windowID }) { // make sure this window is available
+                return windowID
+            }
+        }
+
+        return nil
+    }
+
+    func getValidWindows(frontOnly: Bool) -> [SCWindow] {
+        let frontAppId = frontOnly ? NSWorkspace.shared.frontmostApplication?.processIdentifier : nil
+        // in sonoma, there is a new new purple thing overlaying the traffic lights, I don't really want this to show up.
+        // its title is simply "Window", but its bundle id is the same as the parent, so this seems like a strange bodge..
+        return availableContent!.windows.filter {
+            guard let app = $0.owningApplication,
+                let title = $0.title, !title.isEmpty else {
+                return false
+            }
+            return !excludedWindows.contains(app.bundleIdentifier)
+                && !title.contains("Item-0")
+                && title != "Window"
+                && (!frontOnly
+                    || frontAppId == nil // include all if none is frontmost
+                    || (frontAppId == app.processID))
+        }
+    }
+
+    func allowShortcuts(_ allow: Bool) {
+        if allow {
+            KeyboardShortcuts.enable(.recordCurrentDisplay, .recordCurrentWindow, .recordSystemAudio)
+        } else {
+            KeyboardShortcuts.disable(.recordCurrentDisplay, .recordCurrentWindow, .recordSystemAudio)
+        }
+    }
+
     func applicationWillTerminate(_ aNotification: Notification) {
         if stream != nil {
             stopRecording()
@@ -146,6 +194,49 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
         return true
+    }
+}
+
+@MainActor
+final class AppState: ObservableObject {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
+    init() {
+        KeyboardShortcuts.onKeyDown(for: .recordSystemAudio) { [self] in
+            Task { await toggleRecording(type: "audio") }
+        }
+        KeyboardShortcuts.onKeyDown(for: .recordCurrentDisplay) { [self] in
+            Task { await toggleRecording(type: "display") }
+        }
+        KeyboardShortcuts.onKeyDown(for: .recordCurrentWindow) { [self] in
+            Task { await toggleRecording(type: "window") }
+        }
+    }
+
+    func toggleRecording(type: String) async {
+        appDelegate.allowShortcuts(false)
+        if appDelegate.stream == nil {
+            let menuItem = NSMenuItem() // this will be our sender, which includes details about which content it is we want to record
+            menuItem.identifier = NSUserInterfaceItemIdentifier(type)
+            if type == "display" {
+                if let currentDisplayID = appDelegate.getScreenWithMouse()?.displayID { // use display with mouse on it
+                    menuItem.title = currentDisplayID.description
+                } else { // fall back to first available display
+                    menuItem.title = (appDelegate.availableContent!.displays.first?.displayID.description)!
+                }
+            } else if type == "window" {
+                if let windowID = await appDelegate.getFocusedWindowID() {
+                    menuItem.title = windowID.description
+                } else {
+                    // todo: relay lack of windows to user
+                    appDelegate.allowShortcuts(true)
+                    return
+                }
+            }
+            appDelegate.prepRecord(menuItem)
+        } else {
+            appDelegate.stopRecording()
+        }
     }
 }
 

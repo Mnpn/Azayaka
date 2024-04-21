@@ -7,6 +7,7 @@
 import SwiftUI
 import ScreenCaptureKit
 import ServiceManagement
+import KeyboardShortcuts
 
 extension AppDelegate: NSMenuDelegate {
     func createMenu() {
@@ -80,21 +81,7 @@ extension AppDelegate: NSMenuDelegate {
 
     func refreshWindows(frontOnly: Bool) {
         noneAvailable.isHidden = true
-        // in sonoma, there is a new new purple thing overlaying the traffic lights, I don't really want this to show up.
-        // its title is simply "Window", but its bundle id is the same as the parent, so this seems like a strange bodge..
-        let frontAppId = !frontOnly ? nil : NSWorkspace.shared.frontmostApplication?.processIdentifier 
-        let validWindows = availableContent!.windows.filter { 
-            guard let app =  $0.owningApplication,
-                let title = $0.title, !title.isEmpty else {
-                return false
-            }
-            return !excludedWindows.contains(app.bundleIdentifier)
-                && !title.contains("Item-0")
-                && title != "Window"
-                && (!frontOnly
-                    || nil == frontAppId // include all if none is frontmost
-                    || (frontAppId! == app.processID))
-            }
+        let validWindows = getValidWindows(frontOnly: frontOnly)
 
         let programIDs = validWindows.compactMap { $0.windowID.description }
         for window in menu.items.filter({ !programIDs.contains($0.title) && $0.identifier?.rawValue == "window" }) {
@@ -192,10 +179,15 @@ extension AppDelegate: NSMenuDelegate {
     }
 
     func menuWillOpen(_ menu: NSMenu) {
+        allowShortcuts(false) // as per documentation - https://github.com/sindresorhus/KeyboardShortcuts/blob/main/Sources/KeyboardShortcuts/NSMenuItem%2B%2B.swift#L47
         if streamType == nil { // not recording
-            updateAvailableContent(buildMenu: false)
+            Task { await updateAvailableContent(buildMenu: false) }
             createMenu()
         }
+    }
+    
+    func menuDidClose(_ menu: NSMenu) {
+        allowShortcuts(true)
     }
 
     func updateIcon() {
