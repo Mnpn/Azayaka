@@ -169,12 +169,22 @@ struct Preferences: View {
     struct OutputSettings: View {
         @AppStorage("saveDirectory") private var saveDirectory: String?
         @AppStorage(fileName) private var _fileName: String = "Recording at %t"
+        @State private var fileNameLength = 0
+        private let dateFormatter = DateFormatter()
 
         var body: some View {
             VStack() {
                 GroupBox() {
                     VStack() {
                         TextField("File name", text: $_fileName).frame(maxWidth: 250)
+                            .onChange(of: _fileName) { newText in
+                                fileNameLength = getFileNameLength(newText)
+                            }
+                            .onAppear() {
+                                dateFormatter.dateFormat = "y-MM-dd HH.mm.ss"
+                                fileNameLength = getFileNameLength(_fileName)
+                            }
+                            .foregroundStyle(fileNameLength > NAME_MAX ? .red : .primary)
                         Text("\"%t\" will be replaced with the recording's start time.")
                             .font(.subheadline).foregroundColor(Color.gray)
                     }.padding(10).frame(maxWidth: .infinity)
@@ -191,7 +201,11 @@ struct Preferences: View {
                 }
             }
         }
-        
+
+        func getFileNameLength(_ fileName: String) -> Int {
+            return fileName.replacingOccurrences(of: "%t", with: dateFormatter.string(from: Date())).count
+        }
+
         func updateOutputDirectory() { // todo: re-sandbox?
             let openPanel = NSOpenPanel()
             openPanel.canChooseFiles = false

@@ -149,7 +149,7 @@ extension AppDelegate {
             case AudioFormat.alac.rawValue: fileEnding = "m4a"
             case AudioFormat.flac.rawValue: fileEnding = "flac"
             case AudioFormat.opus.rawValue: fileEnding = "ogg"
-        default: assertionFailure("loaded unknown audio format: ".local + fileEnding)
+            default: assertionFailure("loaded unknown audio format: ".local + fileEnding)
         }
         filePath = "\(getFilePath()).\(fileEnding)"
         audioFile = try! AVAudioFile(forWriting: URL(fileURLWithPath: filePath), settings: audioSettings, commonFormat: .pcmFormatFloat32, interleaved: false)
@@ -162,7 +162,9 @@ extension AppDelegate {
         if fileName == nil || fileName!.isEmpty {
             fileName = "Recording at %t".local
         }
-        return ud.string(forKey: "saveDirectory")! + "/" + fileName!.replacingOccurrences(of: "%t", with: dateFormatter.string(from: Date()))
+        // bit of a magic number but worst case ".flac" is 5 characters on top of this..
+        let fileNameWithDates = fileName!.replacingOccurrences(of: "%t", with: dateFormatter.string(from: Date())).prefix(Int(NAME_MAX) - 5)
+        return ud.string(forKey: "saveDirectory")! + "/" + fileNameWithDates
     }
 
     func getRecordingLength() -> String {
