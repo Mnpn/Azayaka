@@ -77,7 +77,9 @@
 "Other" = "其他";
 "Launch at login" = "登录时启动";
 "Check for updates at launch" = "启动时检查更新";
-"Azayaka will check [GitHub](https://github.com/Mnpn/Azayaka/releases) for new updates." = "Azayaka会从[GitHub](https://github.com/Mnpn/Azayaka/releases) 检查更新";
+"Countdown" = "倒计时";
+"Countdown to start recording, in seconds." = "开始录制倒计时，单位：秒";
+"Azayaka will check [GitHub](https://github.com/Mnpn/Azayaka/releases) for new updates." = "Azayaka会从 [GitHub](https://github.com/Mnpn/Azayaka/releases) 检查更新";
 "Update to %@…" = "更新至 %@…";
 
 // Warning text

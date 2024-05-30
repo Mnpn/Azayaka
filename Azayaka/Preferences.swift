@@ -176,17 +176,19 @@ struct Preferences: View {
             VStack() {
                 GroupBox() {
                     VStack() {
-                        TextField("File name", text: $_fileName).frame(maxWidth: 250)
-                            .onChange(of: _fileName) { newText in
-                                fileNameLength = getFileNameLength(newText)
-                            }
-                            .onAppear() {
-                                dateFormatter.dateFormat = "y-MM-dd HH.mm.ss"
-                                fileNameLength = getFileNameLength(_fileName)
-                            }
-                            .foregroundStyle(fileNameLength > NAME_MAX ? .red : .primary)
-                        Text("\"%t\" will be replaced with the recording's start time.")
-                            .font(.subheadline).foregroundColor(Color.gray)
+                        Form() {
+                            TextField("File name", text: $_fileName).frame(maxWidth: 250)
+                                .onChange(of: _fileName) { newText in
+                                    fileNameLength = getFileNameLength(newText)
+                                }
+                                .onAppear() {
+                                    dateFormatter.dateFormat = "y-MM-dd HH.mm.ss"
+                                    fileNameLength = getFileNameLength(_fileName)
+                                }
+                                .foregroundStyle(fileNameLength > NAME_MAX ? .red : .primary)
+                            Text("\"%t\" will be replaced with the recording's start time.")
+                                .font(.subheadline).foregroundColor(Color.gray)
+                        }
                     }.padding(10).frame(maxWidth: .infinity)
                 }.padding([.top, .leading, .trailing], 10)
                 GroupBox() {
@@ -240,8 +242,15 @@ struct Preferences: View {
     
     struct OtherSettings: View {
         @AppStorage(updateCheck) private var _updateCheck: Bool = true
+        @AppStorage("countDown") private var countDown: Int = 0
         @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
 
+        private var numberFormatter: NumberFormatter {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            return formatter
+        }
+        
         var body: some View {
             VStack {
                 GroupBox() {
@@ -266,6 +275,17 @@ struct Preferences: View {
                     Text("Azayaka will check [GitHub](https://github.com/Mnpn/Azayaka/releases) for new updates.")
                         .font(.footnote).foregroundColor(Color.gray).frame(maxWidth: .infinity).padding([.bottom, .leading, .trailing], 10)
                 }.padding([.top, .leading, .trailing], 10)
+                GroupBox() {
+                    VStack() {
+                        Form() {
+                            TextField("Countdown", value: $countDown, formatter: numberFormatter)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .padding([.leading, .trailing], 10)
+                            Text("Countdown to start recording, in seconds.")
+                                .font(.subheadline).foregroundColor(Color.gray)
+                        }.frame(maxWidth: 200).padding(10)
+                    }.padding(10).frame(maxWidth: .infinity)
+                }.padding([.bottom, .leading, .trailing], 10)
                 HStack {
                     Text("Azayaka \(getVersion()) (\(getBuild()))").foregroundColor(Color.secondary)
                     Spacer()
@@ -290,7 +310,7 @@ struct Preferences: View {
 }
 
 #Preview {
-    Preferences()
+   Preferences()
 }
 
 extension AppDelegate {
