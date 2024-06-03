@@ -248,6 +248,8 @@ struct Preferences: View {
         private var numberFormatter: NumberFormatter {
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
+            formatter.minimum = 0
+            formatter.maximum = 99
             return formatter
         }
         

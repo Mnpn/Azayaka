@@ -6,18 +6,17 @@
 //
 
 import SwiftUI
-import AppKit
 
 class CountdownManager: ObservableObject {
     @Published var countdown: Int = 0
     static let shared = CountdownManager()
     private var countdownWindow: NSWindow?
-    
+
     @MainActor
-    func showCountdown(_ start: Int) async {
-        if start == 0 { return }
+    func showCountdown(_ countdown: Int) async {
+        if countdown == 0 { return }
         await withCheckedContinuation { continuation in
-            self.countdown = start
+            self.countdown = countdown
             countdownWindow = NSWindow(
                 contentRect: NSRect(x: 0, y: 0, width: 100, height: 100),
                 styleMask: [.borderless],
@@ -51,7 +50,7 @@ class CountdownManager: ObservableObject {
 
 struct CountdownView: View {
     @EnvironmentObject var countdownManager: CountdownManager
-    
+
     var body: some View {
         Text("\(countdownManager.countdown)")
             .font(.largeTitle)
