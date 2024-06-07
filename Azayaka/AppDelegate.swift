@@ -75,7 +75,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                 "recordMic": false,
                 "highRes": true,
                 Preferences.updateCheck: true,
-                Preferences.fileName: "Recording at %t".local
+                Preferences.fileName: "Recording at %t".local,
+                "countDown": 0
             ]
         )
         // create a menu bar item

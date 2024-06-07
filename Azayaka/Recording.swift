@@ -34,8 +34,10 @@ extension AppDelegate {
         if streamType == .systemaudio {
             prepareAudioRecording()
         }
-        Task { await record(audioOnly: streamType == .systemaudio, filter: filter!) }
-
+        Task {
+            await CountdownManager.shared.showCountdown(ud.integer(forKey: "countDown"))
+            await record(audioOnly: streamType == .systemaudio, filter: filter!)
+        }
         // while recording, keep a timer which updates the menu's stats
         updateTimer?.invalidate()
         updateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in

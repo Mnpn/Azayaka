@@ -66,18 +66,20 @@
 "Recording Completed" = "录制结束";
 "File saved to: %@" = "文件已保存至: %@";
 "File saved to folder: %@" = "文件已保存到: %@ 目录中";
-"Destination" = "Destination";
-"File name" = "File name";
-"\"%t\" will be replaced with the recording's start time." = "\"%t\" will be replaced with the recording's start time.";
-"Shortcuts" = "Shortcuts";
-"Record system audio" = "Record system audio";
-"Record current display" = "Record current display";
-"Record focused window" = "Record focused window";
-"Recordings can be stopped with the same shortcut." = "Recordings can be stopped with the same shortcut.";
+"Destination" = "保存文件";
+"File name" = "文件名";
+"\"%t\" will be replaced with the recording's start time." = "\"%t\"会被替换为录音的开始时间.";
+"Shortcuts" = "快捷键";
+"Record system audio" = "录制系统声音";
+"Record current display" = "录制当前显示器";
+"Record focused window" = "录制焦点窗口";
+"Recordings can be stopped with the same shortcut." = "可以用同样的快捷键停止录制";
 "Other" = "其他";
 "Launch at login" = "登录时启动";
-"Check for updates at launch" = "Check for updates at launch";
-"Azayaka will check [GitHub](https://github.com/Mnpn/Azayaka/releases) for new updates." = "Azayaka will check [GitHub](https://github.com/Mnpn/Azayaka/releases) for new updates.";
+"Check for updates at launch" = "启动时检查更新";
+"Countdown" = "倒计时";
+"Countdown to start recording, in seconds." = "开始录制倒计时，单位：秒";
+"Azayaka will check [GitHub](https://github.com/Mnpn/Azayaka/releases) for new updates." = "Azayaka会从 [GitHub](https://github.com/Mnpn/Azayaka/releases) 检查更新";
 "Update to %@…" = "更新至 %@…";
 
 // Warning text
