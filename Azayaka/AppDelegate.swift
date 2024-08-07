@@ -86,8 +86,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         menu.minimumWidth = 250
         Task { await updateAvailableContent(buildMenu: true) }
         
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            if let error = error { print("Notification authorization denied: \(error.localizedDescription)") }
+        UNUserNotificationCenter.current().delegate = self
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
+            if let error = error { print("Notification authorisation denied: \(error.localizedDescription)") }
         }
 
         NotificationCenter.default.addObserver( // update the content & menu when a display device has changed

@@ -65,6 +65,7 @@
 "Recording Completed" = "Inspelning slutförd";
 "File saved to: %@" = "Fil sparad till: %@";
 "File saved to folder: %@" = "Fil sparad till mapp: %@";
+"Move to Trash" = "Ta bort";
 "Destination" = "Destination";
 "File name" = "Filnamn";
 "\"%t\" will be replaced with the recording's start time." = "\"%t\" kommer att bytas ut mot inspelningens starttid.";

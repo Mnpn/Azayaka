@@ -66,6 +66,7 @@
 "Recording Completed" = "录制结束";
 "File saved to: %@" = "文件已保存至: %@";
 "File saved to folder: %@" = "文件已保存到: %@ 目录中";
+"Move to Trash" = "Move to Trash";
 "Destination" = "保存文件";
 "File name" = "文件名";
 "\"%t\" will be replaced with the recording's start time." = "\"%t\"会被替换为录音的开始时间.";

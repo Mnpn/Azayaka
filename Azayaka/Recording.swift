@@ -5,7 +5,6 @@
 //  Created by Martin Persson on 2022-12-26.
 //
 
-import UserNotifications
 import ScreenCaptureKit
 import AVFAudio
 import KeyboardShortcuts
@@ -109,20 +108,7 @@ extension AppDelegate {
         }
 
         allowShortcuts(true)
-
-        let content = UNMutableNotificationContent()
-        content.title = "Recording Completed".local
-        if let filePath = filePath {
-            content.body = String(format: "File saved to: %@".local, filePath)
-        } else {
-            content.body = String(format: "File saved to folder: %@".local, ud.string(forKey: "saveDirectory")!)
-        }
-        content.sound = UNNotificationSound.default
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-        let request = UNNotificationRequest(identifier: "azayaka.completed.\(Date.now)", content: content, trigger: trigger)
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error { print("Notification failed to send: \(error.localizedDescription)") }
-        }
+        sendRecordingFinishedNotification()
     }
 
     func updateAudioSettings() {
