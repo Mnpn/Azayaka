@@ -97,7 +97,7 @@
 "unknown audio format while setting audio settings: " = "okänt ljudformat togs emot när ljudinställningarna skulle sättas";
 "[no defaults]" = "[inga standardinställningar]";
 "loaded unknown audio format: " = "laddade ett okänt ljudformat: ";
-"loaded unknown video format" = "laddade ett okänt videoformat: ";
+"loaded unknown video format: " = "laddade ett okänt videoformat: ";
 "unknown stream type" = "okänd strömtyp";
 "audio file writing issue" = "problem uppstod vid skrivning av ljudfil";
 "closing stream with error:\n" = "stänger strömmen med felmeddelandet: \n";

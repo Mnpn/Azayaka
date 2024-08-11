@@ -123,7 +123,7 @@ extension AppDelegate: NSMenuDelegate {
         if let item = menu.items.first(where: { ($0.title == appBundleIdentifier) && $0.identifier?.rawValue ?? "" == "application" }) {
             item.submenu?.addItem(subMenuItem)
         } else {
-            if !ud.bool(forKey: Preferences.frontAppKey) {
+            if !ud.bool(forKey: Preferences.kFrontApp) {
                 let app = NSMenuItem(title: "Unknown".local, action: nil, keyEquivalent: "")
                 app.attributedTitle = getAppNameAttachment(window: window)
                 app.title = appBundleIdentifier // if the title isn't placed after, getting the title will return the attributedTitle

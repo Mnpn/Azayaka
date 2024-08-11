@@ -24,7 +24,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
                     let notificationCategory = UNNotificationCategory(identifier: "recordingFinished", actions: [trashButton], intentIdentifiers: [])
                     un.setNotificationCategories([notificationCategory])
                 } else {
-                    content.body = String(format: "File saved to folder: %@".local, ud.string(forKey: "saveDirectory")!)
+                    content.body = String(format: "File saved to folder: %@".local, ud.string(forKey: Preferences.kSaveDirectory)!)
                 }
                 content.sound = UNNotificationSound.default
                 content.categoryIdentifier = "recordingFinished"

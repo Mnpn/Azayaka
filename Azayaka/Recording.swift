@@ -31,7 +31,7 @@ extension AppDelegate {
             contentFilter = SCContentFilter(desktopIndependentWindow: window!)
         } else {
             let excluded = availableContent?.applications.filter { app in
-                Bundle.main.bundleIdentifier == app.bundleIdentifier && ud.bool(forKey: "hideSelf")
+                Bundle.main.bundleIdentifier == app.bundleIdentifier && ud.bool(forKey: Preferences.kHideSelf)
             }
             contentFilter = SCContentFilter(display: screen ?? availableContent!.displays.first!, excludingApplications: excluded ?? [], exceptingWindows: [])
         }
@@ -40,7 +40,7 @@ extension AppDelegate {
         }
 
         // count down and start setting up recording
-        let countdown = ud.integer(forKey: "countDown")
+        let countdown = ud.integer(forKey: Preferences.kCountdownSecs)
         if countdown > 0 {
             let cdMenu = NSMenu()
             cdMenu.addItem(NSMenuItemWithIcon(icon: "chevron.forward.2", title: "Skip countdown".local, action: #selector(skipCountdown)))
@@ -73,10 +73,10 @@ extension AppDelegate {
     func record(audioOnly: Bool, filter: SCContentFilter) async {
         var conf = SCStreamConfiguration()
         if #available(macOS 15.0, *), !audioOnly {
-            if await ud.bool(forKey: Preferences.enableHDRKey) {
+            if await ud.bool(forKey: Preferences.kEnableHDR) {
                 conf = SCStreamConfiguration(preset: .captureHDRStreamCanonicalDisplay)
             }
-            conf.captureMicrophone = ud.bool(forKey: "recordMic") && !audioOnly
+            conf.captureMicrophone = await ud.bool(forKey: Preferences.kRecordMic) && !audioOnly
         }
 
         conf.width = 2
@@ -84,7 +84,7 @@ extension AppDelegate {
 
         if !audioOnly {
             if #available(macOS 14, *) {
-                let scale = ud.bool(forKey: "highRes") ? Int(filter.pointPixelScale) : 1
+                let scale = await ud.bool(forKey: Preferences.kHighResolution) ? Int(filter.pointPixelScale) : 1
                 conf.width = Int(filter.contentRect.width) * scale
                 conf.height = Int(filter.contentRect.height) * scale
             } else { // ventura..
@@ -105,8 +105,8 @@ extension AppDelegate {
         }
 
         conf.queueDepth = 5 // ensure higher fps at the expense of some memory
-        conf.minimumFrameInterval = CMTime(value: 1, timescale: audioOnly ? CMTimeScale.max : CMTimeScale(ud.integer(forKey: "frameRate")))
-        conf.showsCursor = ud.bool(forKey: "showMouse")
+        conf.minimumFrameInterval = await CMTime(value: 1, timescale: audioOnly ? CMTimeScale.max : CMTimeScale(ud.integer(forKey: Preferences.kFrameRate)))
+        conf.showsCursor = await ud.bool(forKey: Preferences.kShowMouse)
         conf.capturesAudio = true
         conf.sampleRate = audioSettings["AVSampleRateKey"] as! Int
         conf.channelCount = audioSettings["AVNumberOfChannelsKey"] as! Int
@@ -175,25 +175,25 @@ extension AppDelegate {
 
     func updateAudioSettings() {
         audioSettings = [AVSampleRateKey : 48000, AVNumberOfChannelsKey : 2] // reset audioSettings
-        switch ud.string(forKey: "audioFormat") {
+        switch ud.string(forKey: Preferences.kAudioFormat) {
         case AudioFormat.aac.rawValue:
             audioSettings[AVFormatIDKey] = kAudioFormatMPEG4AAC
-            audioSettings[AVEncoderBitRateKey] = ud.integer(forKey: "audioQuality") * 1000
+            audioSettings[AVEncoderBitRateKey] = ud.integer(forKey: Preferences.kAudioQuality) * 1000
         case AudioFormat.alac.rawValue:
             audioSettings[AVFormatIDKey] = kAudioFormatAppleLossless
             audioSettings[AVEncoderBitDepthHintKey] = 16
         case AudioFormat.flac.rawValue:
             audioSettings[AVFormatIDKey] = kAudioFormatFLAC
         case AudioFormat.opus.rawValue:
-            audioSettings[AVFormatIDKey] = ud.string(forKey: "videoFormat") != VideoFormat.mp4.rawValue ? kAudioFormatOpus : kAudioFormatMPEG4AAC
-            audioSettings[AVEncoderBitRateKey] =  ud.integer(forKey: "audioQuality") * 1000
+            audioSettings[AVFormatIDKey] = ud.string(forKey: Preferences.kAudioFormat) != VideoFormat.mp4.rawValue ? kAudioFormatOpus : kAudioFormatMPEG4AAC
+            audioSettings[AVEncoderBitRateKey] = ud.integer(forKey: Preferences.kAudioQuality) * 1000
         default:
-            assertionFailure("unknown audio format while setting audio settings: ".local + (ud.string(forKey: "audioFormat") ?? "[no defaults]".local))
+            assertionFailure("unknown audio format while setting audio settings: ".local + (ud.string(forKey: Preferences.kAudioFormat) ?? "[no defaults]".local))
         }
     }
 
     func prepareAudioRecording() {
-        var fileEnding = ud.string(forKey: "audioFormat") ?? "wat"
+        var fileEnding = ud.string(forKey: Preferences.kAudioFormat) ?? "wat"
         switch fileEnding { // todo: I'd like to store format info differently
             case AudioFormat.aac.rawValue: fallthrough
             case AudioFormat.alac.rawValue: fileEnding = "m4a"
@@ -208,14 +208,14 @@ extension AppDelegate {
     func getFilePath() -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "y-MM-dd HH.mm.ss"
-        var fileName = ud.string(forKey: Preferences.fileName)
+        var fileName = ud.string(forKey: Preferences.kFileName)
         if fileName == nil || fileName!.isEmpty {
             fileName = "Recording at %t".local
         }
         // bit of a magic number but worst case ".flac" is 5 characters on top of this..
         let fileNameWithDates = fileName!.replacingOccurrences(of: "%t", with: dateFormatter.string(from: Date())).prefix(Int(NAME_MAX) - 5)
 
-        let saveDirectory = ud.string(forKey: "saveDirectory")
+        let saveDirectory = ud.string(forKey: Preferences.kSaveDirectory)
         return saveDirectory! + "/" + fileNameWithDates
     }
 

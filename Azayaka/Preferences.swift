@@ -12,11 +12,26 @@ import KeyboardShortcuts
 import ServiceManagement
 
 struct Preferences: View {
-    static let updateCheck = "updateCheck"
-    static let frontAppKey = "frontAppOnly"
-    static let fileName = "outputFileName"
-    static let enableHDRKey = "enableHDR"
-    static let useLegacyRecorderKey = "useLegacyRecorder"
+    static let kFrameRate       = "frameRate"
+    static let kHighResolution  = "highRes"
+    static let kVideoQuality    = "videoQuality"
+    static let kVideoFormat     = "videoFormat"
+    static let kEncoder         = "encoder"
+    static let kEnableHDR       = "enableHDR"
+    static let kHideSelf        = "hideSelf"
+    static let kFrontApp        = "frontAppOnly"
+    static let kShowMouse       = "showMouse"
+
+    static let kAudioFormat     = "audioFormat"
+    static let kAudioQuality    = "audioQuality"
+    static let kRecordMic       = "recordMic"
+
+    static let kFileName        = "outputFileName"
+    static let kSaveDirectory   = "saveDirectory"
+
+    static let kUpdateCheck     = "updateCheck"
+    static let kCountdownSecs   = "countDown"
+    static let kUseKorai        = "useLegacyRecorder"
 
     var body: some View {
         VStack {
@@ -45,17 +60,17 @@ struct Preferences: View {
     }
 
     struct VideoSettings: View {
-        @AppStorage("frameRate")    private var frameRate: Int = 60
-        @AppStorage("videoQuality") private var videoQuality: Double = 1.0
-        @AppStorage("videoFormat")  private var videoFormat: VideoFormat = .mp4
-        @AppStorage("encoder")      private var encoder: Encoder = .h264
-        @AppStorage("highRes")      private var highRes: Bool = true
-        @AppStorage(enableHDRKey)   private var enableHDR: Bool = true
-        @AppStorage(frontAppKey)    private var frontApp: Bool = false
-        @AppStorage("hideSelf")     private var hideSelf: Bool = false
-        @AppStorage("showMouse")    private var showMouse: Bool = true
-        
-        @AppStorage(useLegacyRecorderKey) private var useLegacyRecorder: Bool = false
+        @AppStorage(kFrameRate)         private var frameRate: Int = 60
+        @AppStorage(kHighResolution)    private var highRes: Bool = true
+        @AppStorage(kVideoQuality)      private var videoQuality: Double = 1.0
+        @AppStorage(kVideoFormat)       private var videoFormat: VideoFormat = .mp4
+        @AppStorage(kEncoder)           private var encoder: Encoder = .h264
+        @AppStorage(kEnableHDR)         private var enableHDR: Bool = true
+        @AppStorage(kHideSelf)          private var hideSelf: Bool = false
+        @AppStorage(kFrontApp)          private var frontApp: Bool = false
+        @AppStorage(kShowMouse)         private var showMouse: Bool = true
+
+        @AppStorage(kUseKorai)          private var useLegacyRecorder: Bool = false
 
         var body: some View {
             GroupBox() {
@@ -114,12 +129,9 @@ struct Preferences: View {
     }
 
     struct AudioSettings: View {
-        @AppStorage("audioFormat")  private var audioFormat: AudioFormat = .aac
-        @AppStorage("audioQuality") private var audioQuality: AudioQuality = .high
-        @AppStorage("recordMic")    private var recordMic: Bool = false
-        @AppStorage("separateMic")  private var separateMic: Bool = true
-        
-        @AppStorage(useLegacyRecorderKey) private var useLegacyRecorder: Bool = false
+        @AppStorage(kAudioFormat)  private var audioFormat: AudioFormat = .aac
+        @AppStorage(kAudioQuality) private var audioQuality: AudioQuality = .high
+        @AppStorage(kRecordMic)    private var recordMic: Bool = false
 
         var body: some View {
             GroupBox() {
@@ -187,8 +199,8 @@ struct Preferences: View {
     }
      
     struct OutputSettings: View {
-        @AppStorage("saveDirectory") private var saveDirectory: String?
-        @AppStorage(fileName) private var _fileName: String = "Recording at %t"
+        @AppStorage(kFileName)      private var fileName: String = "Recording at %t"
+        @AppStorage(kSaveDirectory) private var saveDirectory: String?
         @State private var fileNameLength = 0
         private let dateFormatter = DateFormatter()
 
@@ -197,13 +209,13 @@ struct Preferences: View {
                 GroupBox() {
                     VStack() {
                         Form() {
-                            TextField("File name", text: $_fileName).frame(maxWidth: 250)
-                                .onChange(of: _fileName) { newText in
+                            TextField("File name", text: $fileName).frame(maxWidth: 250)
+                                .onChange(of: fileName) { newText in
                                     fileNameLength = getFileNameLength(newText)
                                 }
                                 .onAppear() {
                                     dateFormatter.dateFormat = "y-MM-dd HH.mm.ss"
-                                    fileNameLength = getFileNameLength(_fileName)
+                                    fileNameLength = getFileNameLength(fileName)
                                 }
                                 .foregroundStyle(fileNameLength > NAME_MAX ? .red : .primary)
                             Text("\"%t\" will be replaced with the recording's start time.")
@@ -214,7 +226,8 @@ struct Preferences: View {
                 GroupBox() {
                     VStack(spacing: 2) {
                         Button("Select output directory", action: updateOutputDirectory)
-                        Text(String(format: "Currently set to \"%@\"".local, URL(fileURLWithPath: saveDirectory!).lastPathComponent)).font(.subheadline).foregroundColor(Color.gray)
+                        Text(String(format: "Currently set to \"%@\"".local, (saveDirectory != nil) ? URL(fileURLWithPath: saveDirectory!).lastPathComponent : "an unknown path - please set a new one"))
+                            .font(.subheadline).foregroundColor(Color.gray)
                     }.padding(10).frame(maxWidth: .infinity)
                 }.padding([.bottom, .leading, .trailing], 10)
             }.onTapGesture {
@@ -241,7 +254,7 @@ struct Preferences: View {
     }
     
     struct ShortcutSettings: View {
-        var thing: [(String, KeyboardShortcuts.Name)] = [
+        var shortcut: [(String, KeyboardShortcuts.Name)] = [
             ("Record system audio".local, .recordSystemAudio),
             ("Record current display".local, .recordCurrentDisplay),
             ("Record focused window".local, .recordCurrentWindow)
@@ -250,7 +263,7 @@ struct Preferences: View {
             VStack() {
                 GroupBox() {
                     Form() {
-                        ForEach(thing, id: \.1) { shortcut in
+                        ForEach(shortcut, id: \.1) { shortcut in
                             KeyboardShortcuts.Recorder(shortcut.0, name: shortcut.1).padding([.leading, .trailing], 10).padding(.bottom, 4)
                         }
                     }.frame(alignment: .center).padding([.leading, .trailing], 2).padding(.top, 10)
@@ -261,10 +274,10 @@ struct Preferences: View {
     }
     
     struct OtherSettings: View {
-        @AppStorage(useLegacyRecorderKey) private var useLegacyRecorder: Bool = false
-        @AppStorage(updateCheck)          private var _updateCheck: Bool = true
-        @AppStorage("countDown")          private var countDown: Int = 0
         @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
+        @AppStorage(kUpdateCheck)   private var updateCheck: Bool = true
+        @AppStorage(kCountdownSecs) private var countDown: Int = 0
+        @AppStorage(kUseKorai)      private var useLegacyRecorder: Bool = false
 
         private var numberFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -273,7 +286,7 @@ struct Preferences: View {
             formatter.maximum = 99
             return formatter
         }
-        
+
         var body: some View {
             VStack {
                 GroupBox() {
@@ -291,7 +304,7 @@ struct Preferences: View {
                                 print("Failed to \(newValue ? "enable" : "disable") launch at login: \(error.localizedDescription)")
                             }
                         }
-                        Toggle(isOn: $_updateCheck) {
+                        Toggle(isOn: $updateCheck) {
                             Text("Check for updates at launch")
                         }
                     }.padding([.top, .leading, .trailing], 10).frame(width: 250)
@@ -352,7 +365,7 @@ struct Preferences: View {
 }
 
 #Preview {
-   Preferences()
+    Preferences()
 }
 
 extension AppDelegate {

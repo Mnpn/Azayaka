@@ -15,6 +15,7 @@
 		17322D5E295929A000185BB6 /* Menu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D5D295929A000185BB6 /* Menu.swift */; };
 		174D79882C6417D7005669BF /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174D79872C6417D7005669BF /* Notifications.swift */; };
 		175E29402BD2C94D00EB9F4C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 175E293F2BD2C94D00EB9F4C /* KeyboardShortcuts */; };
+		17606AED2C694FE0008A064E /* Shortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17606AEC2C694FE0008A064E /* Shortcuts.swift */; };
 		17BCDC80295BAC9400448A97 /* Types.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17BCDC7F295BAC9300448A97 /* Types.swift */; };
 		17DBD7C5295B0973005C0690 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DBD7C4295B0973005C0690 /* Preferences.swift */; };
 		17F7E18B2C65097400599CEF /* LegacyProcessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F7E18A2C65096800599CEF /* LegacyProcessing.swift */; };
@@ -34,6 +35,7 @@
 		17322D5B295928BE00185BB6 /* Recording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recording.swift; sourceTree = "<group>"; };
 		17322D5D295929A000185BB6 /* Menu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Menu.swift; sourceTree = "<group>"; };
 		174D79872C6417D7005669BF /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
+		17606AEC2C694FE0008A064E /* Shortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shortcuts.swift; sourceTree = "<group>"; };
 		17BCDC7F295BAC9300448A97 /* Types.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
 		17DBD7C4295B0973005C0690 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
 		17F7E18A2C65096800599CEF /* LegacyProcessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyProcessing.swift; sourceTree = "<group>"; };
@@ -84,6 +86,7 @@
 				17322D592959286100185BB6 /* Processing.swift */,
 				17F7E18A2C65096800599CEF /* LegacyProcessing.swift */,
 				170297D52BCD586A0035EB26 /* Updates.swift */,
+				17606AEC2C694FE0008A064E /* Shortcuts.swift */,
 				7B2603872C0850CD00C47D89 /* Countdown.swift */,
 				18B09AB92BCB6D74005CDC4E /* Localizable.strings */,
 				17322D4E2958D08000185BB6 /* Assets.xcassets */,
@@ -175,6 +178,7 @@
 				17DBD7C5295B0973005C0690 /* Preferences.swift in Sources */,
 				17BCDC80295BAC9400448A97 /* Types.swift in Sources */,
 				17322D4B2958D07E00185BB6 /* AppDelegate.swift in Sources */,
+				17606AED2C694FE0008A064E /* Shortcuts.swift in Sources */,
 				17322D5C295928BE00185BB6 /* Recording.swift in Sources */,
 				17F7E18B2C65097400599CEF /* LegacyProcessing.swift in Sources */,
 				7B2603882C0850CD00C47D89 /* Countdown.swift in Sources */,
@@ -330,7 +334,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 53;
+				CURRENT_PROJECT_VERSION = 54;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 35BSP6SUG9;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -364,7 +368,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 53;
+				CURRENT_PROJECT_VERSION = 54;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 35BSP6SUG9;
 				ENABLE_HARDENED_RUNTIME = YES;

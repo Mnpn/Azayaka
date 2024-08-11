@@ -27,9 +27,6 @@ struct Azayaka: App {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOutput {
-    var vW: AVAssetWriter!
-    var vwInput, awInput, micInput: AVAssetWriterInput!
-    let audioEngine = AVAudioEngine()
     var stream: SCStream!
     var filePath: String!
     var audioFile: AVAudioFile?
@@ -54,8 +51,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
 
     var useLegacyRecorder = false
     // new recorder
-    var recordingOutput: Any? // wow this is mega jank, this will hold an SCRecordingOutput
+    var recordingOutput: Any? // wow this is mega jank, this will hold an SCRecordingOutput but it's only a thing on sequoia
     // legacy recorder
+    var vW: AVAssetWriter!
+    var vwInput, awInput, micInput: AVAssetWriterInput!
+    let audioEngine = AVAudioEngine()
     var startTime: Date?
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
@@ -66,23 +66,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
 
         ud.register( // default defaults (used if not set)
             defaults: [
-                "audioFormat": AudioFormat.aac.rawValue,
-                "audioQuality": AudioQuality.high.rawValue,
-                "frameRate": 60,
-                "videoQuality": 1.0,
-                "videoFormat": VideoFormat.mp4.rawValue,
-                "encoder": Encoder.h264.rawValue,
-                "saveDirectory": saveDirectory,
-                "hideSelf": false,
-                Preferences.frontAppKey: false,
-                "showMouse": true,
-                "recordMic": false,
-                Preferences.enableHDRKey: true,
-                "highRes": true,
-                Preferences.updateCheck: true,
-                Preferences.fileName: "Recording at %t".local,
-                "countDown": 0,
-                Preferences.useLegacyRecorderKey: ProcessInfo.processInfo.operatingSystemVersion.majorVersion < 15 // sequoia
+                Preferences.kFrameRate: 60,
+                Preferences.kHighResolution: true,
+                Preferences.kVideoQuality: 1.0,
+                Preferences.kVideoFormat: VideoFormat.mp4.rawValue,
+                Preferences.kEncoder: Encoder.h264.rawValue,
+                Preferences.kEnableHDR: true,
+                Preferences.kHideSelf: false,
+                Preferences.kFrontApp: false,
+                Preferences.kShowMouse: true,
+
+                Preferences.kAudioFormat: AudioFormat.aac.rawValue,
+                Preferences.kAudioQuality: AudioQuality.high.rawValue,
+                Preferences.kRecordMic: false,
+
+                Preferences.kFileName: "Recording at %t".local,
+                Preferences.kSaveDirectory: saveDirectory,
+
+                Preferences.kUpdateCheck: true,
+                Preferences.kCountdownSecs: 0,
+                Preferences.kUseKorai: ProcessInfo.processInfo.operatingSystemVersion.majorVersion < 15 // sequoia
             ]
         )
         // create a menu bar item
@@ -106,7 +109,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         }
 
         #if !DEBUG // no point in checking for updates if we're not on a release
-        if ud.bool(forKey: Preferences.updateCheck) {
+        if ud.bool(forKey: Preferences.kUpdateCheck) {
             UpdateHandler.checkForUpdates()
         }
         #endif
@@ -134,12 +137,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
             return false
         }
         assert(self.availableContent?.displays.isEmpty != nil, "There needs to be at least one display connected".local)
-        let frontOnly = await UserDefaults.standard.bool(forKey: Preferences.frontAppKey)
         DispatchQueue.main.async {
             if buildMenu {
                 self.createMenu()
             }
-            self.refreshWindows(frontOnly: frontOnly)
+            self.refreshWindows(frontOnly: self.ud.bool(forKey: Preferences.kFrontApp))
             // ask to just refresh the windows list instead of rebuilding it all
         }
         return true
@@ -163,53 +165,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         }
     }
 
-    // a ScreenCaptureKit implementation does not work correctly, is it the order of the returned windows perhaps?
-    // optionOnScreenOnly mentions "Windows are returned in order from front to back", which might be the magic here.
-    func getFocusedWindowID() async -> CGWindowID? {
-        guard let frontAppPID = NSWorkspace.shared.frontmostApplication?.processIdentifier else { return nil }
-        guard frontAppPID != ProcessInfo.processInfo.processIdentifier else { return nil }
-        guard let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: AnyObject]] else { return nil }
-
-        guard await updateAvailableContent(buildMenu: false) else { return nil } // to make sure we've got the latest content for getValidWindows
-
-        for windowInfo in windowList {
-            if let windowPID = windowInfo["kCGWindowOwnerPID"] as? pid_t,
-               let windowID = windowInfo["kCGWindowNumber"] as? CGWindowID,
-               windowPID == frontAppPID,
-               getValidWindows(frontOnly: false).contains(where: { $0.windowID == windowID }) { // make sure this window is available
-                return windowID
-            }
-        }
-
-        return nil
-    }
-
-    func getValidWindows(frontOnly: Bool) -> [SCWindow] {
-        let frontAppId = frontOnly ? NSWorkspace.shared.frontmostApplication?.processIdentifier : nil
-        // in sonoma, there is a new new purple thing overlaying the traffic lights, I don't really want this to show up.
-        // its title is simply "Window", but its bundle id is the same as the parent, so this seems like a strange bodge..
-        return availableContent!.windows.filter {
-            guard let app = $0.owningApplication,
-                let title = $0.title, !title.isEmpty else {
-                return false
-            }
-            return !excludedWindows.contains(app.bundleIdentifier)
-                && !title.contains("Item-0")
-                && title != "Window"
-                && (!frontOnly
-                    || frontAppId == nil // include all if none is frontmost
-                    || (frontAppId == app.processID))
-        }
-    }
-
-    func allowShortcuts(_ allow: Bool) {
-        if allow {
-            KeyboardShortcuts.enable(.recordCurrentDisplay, .recordCurrentWindow, .recordSystemAudio)
-        } else {
-            KeyboardShortcuts.disable(.recordCurrentDisplay, .recordCurrentWindow, .recordSystemAudio)
-        }
-    }
-
     func applicationWillTerminate(_ aNotification: Notification) {
         if stream != nil {
             stopRecording()
@@ -218,53 +173,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
         return true
-    }
-}
-
-@MainActor
-final class AppState: ObservableObject {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-
-    init() {
-        KeyboardShortcuts.onKeyDown(for: .recordSystemAudio) { [self] in
-            Task { await toggleRecording(type: "audio") }
-        }
-        KeyboardShortcuts.onKeyDown(for: .recordCurrentDisplay) { [self] in
-            Task { await toggleRecording(type: "display") }
-        }
-        KeyboardShortcuts.onKeyDown(for: .recordCurrentWindow) { [self] in
-            Task { await toggleRecording(type: "window") }
-        }
-    }
-
-    func toggleRecording(type: String) async {
-        appDelegate.allowShortcuts(false)
-        guard CountdownManager.shared.timer == nil else { // cancel a countdown if in progress
-            CountdownManager.shared.finishCountdown(startRecording: false)
-            return
-        }
-        if appDelegate.stream == nil {
-            let menuItem = NSMenuItem() // this will be our sender, which includes details about which content it is we want to record
-            menuItem.identifier = NSUserInterfaceItemIdentifier(type)
-            if type == "display" {
-                if let currentDisplayID = appDelegate.getScreenWithMouse()?.displayID { // use display with mouse on it
-                    menuItem.title = currentDisplayID.description
-                } else { // fall back to first available display
-                    menuItem.title = (appDelegate.availableContent!.displays.first?.displayID.description)!
-                }
-            } else if type == "window" {
-                if let windowID = await appDelegate.getFocusedWindowID() {
-                    menuItem.title = windowID.description
-                } else {
-                    // todo: relay lack of windows to user
-                    appDelegate.allowShortcuts(true)
-                    return
-                }
-            }
-            appDelegate.prepRecord(menuItem)
-        } else {
-            appDelegate.stopRecording()
-        }
     }
 }
 

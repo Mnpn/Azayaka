@@ -16,16 +16,16 @@ extension AppDelegate {
         startTime = nil
 
         vW = try? AVAssetWriter.init(outputURL: URL(fileURLWithPath: filePath), fileType: fileType)
-        let fpsMultiplier: Double = Double(ud.integer(forKey: "frameRate"))/8
+        let fpsMultiplier: Double = Double(ud.integer(forKey: Preferences.kFrameRate))/8
         let encoderMultiplier: Double = encoder == .hevc ? 0.5 : 0.9
-        let targetBitrate = (Double(conf.width) * Double(conf.height) * fpsMultiplier * encoderMultiplier * ud.double(forKey: "videoQuality"))
+        let targetBitrate = (Double(conf.width) * Double(conf.height) * fpsMultiplier * encoderMultiplier * ud.double(forKey: Preferences.kVideoQuality))
         let videoSettings: [String: Any] = [
             AVVideoCodecKey: encoder,
             AVVideoWidthKey: conf.width,
             AVVideoHeightKey: conf.height,
             AVVideoCompressionPropertiesKey: [
                 AVVideoAverageBitRateKey: Int(targetBitrate),
-                AVVideoExpectedSourceFrameRateKey: ud.integer(forKey: "frameRate")
+                AVVideoExpectedSourceFrameRateKey: ud.integer(forKey: Preferences.kFrameRate)
             ] as [String : Any]
         ]
         vwInput = AVAssetWriterInput(mediaType: AVMediaType.video, outputSettings: videoSettings)
@@ -41,7 +41,7 @@ extension AppDelegate {
             vW.add(awInput)
         }
         
-        recordMic = ud.bool(forKey: "recordMic")
+        recordMic = ud.bool(forKey: Preferences.kRecordMic)
         if recordMic {
             micInput = AVAssetWriterInput(mediaType: AVMediaType.audio, outputSettings: audioSettings)
             micInput.expectsMediaDataInRealTime = true

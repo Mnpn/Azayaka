@@ -18,7 +18,7 @@ class Updates {
 
     func createUpdateNotice() -> NSMenuItem? {
         var updateNotice: NSMenuItem? = nil;
-        if UserDefaults.standard.bool(forKey: Preferences.updateCheck) &&
+        if UserDefaults.standard.bool(forKey: Preferences.kUpdateCheck) &&
             updateVersion != nil && updateVersion != Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String {
             updateNotice = NSMenuItem(title: String(format: "Update to %@…".local, updateVersion!), action: #selector(openUpdatePage), keyEquivalent: "")
         }
