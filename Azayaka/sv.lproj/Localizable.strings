@@ -82,6 +82,8 @@
 "Update to %@…" = "Uppdatera till %@…";
 "Countdown" = "Nedräkning";
 "Countdown to start recording, in seconds." = "Antal sekunder att räkna ner innan inspelningar börjar.";
+"Skip countdown" = "Hoppa över nedräkningen";
+"Cancel" = "Avbryt";
 "Use legacy recorder" = "Använd äldre inspelare";
 "Since macOS Sequoia, Azayaka can use Apple's provided recorder. Select this if you want Azayaka to use its own recorder instead." = "Sedan macOS Sequoia kan Azayaka använda Apples inspelare. Välj detta om du vill att Azayaka ska använda sin egna inspelare istället.";
 "Using Apple's recorder instead of Azayaka's own (\"legacy\") requires macOS Sequoia or newer." = "Användning av Apples inspelare istället för Azayakas egna (\"äldre\") kräver macOS Sequoia eller senare.";

@@ -11,17 +11,21 @@ import KeyboardShortcuts
 
 extension AppDelegate {
     @objc func prepRecord(_ sender: NSMenuItem) {
+        guard availableContent != nil else { print("no available content?"); allowShortcuts(true); return }
+        screen = availableContent!.displays.first(where: { sender.title == $0.displayID.description })
+        window = availableContent!.windows.first(where: { sender.title == $0.windowID.description })
+
         switch (sender.identifier?.rawValue) {
             case "window":  streamType = .window
             case "display": streamType = .screen
             case "audio":   streamType = .systemaudio
             default: return // if we don't even know what to record I don't think we should even try
         }
+
         statusItem.menu = nil
         updateAudioSettings()
-        // file preparation
-        screen = availableContent!.displays.first(where: { sender.title == $0.displayID.description })
-        window = availableContent!.windows.first(where: { sender.title == $0.windowID.description })
+
+        // filter content
         let contentFilter: SCContentFilter?
         if streamType == .window {
             contentFilter = SCContentFilter(desktopIndependentWindow: window!)
@@ -34,10 +38,26 @@ extension AppDelegate {
         if streamType == .systemaudio {
             prepareAudioRecording()
         }
+
+        // count down and start setting up recording
+        let countdown = ud.integer(forKey: "countDown")
+        if countdown > 0 {
+            let cdMenu = NSMenu()
+            cdMenu.addItem(NSMenuItemWithIcon(icon: "chevron.forward.2", title: "Skip countdown".local, action: #selector(skipCountdown)))
+            cdMenu.addItem(NSMenuItemWithIcon(icon: "xmark", title: "Cancel".local, action: #selector(stopCountdown)))
+            addMenuFooter(toMenu: cdMenu)
+            statusItem.menu = cdMenu
+        }
+        allowShortcuts(true)
         Task {
-            await CountdownManager.shared.showCountdown(ud.integer(forKey: "countDown"))
+            guard await CountdownManager.shared.showCountdown(countdown) else {
+                stopRecording(withError: true)
+                return
+            }
+            allowShortcuts(false)
             await record(audioOnly: streamType == .systemaudio, filter: contentFilter!)
         }
+
         // while recording, keep a timer which updates the menu's stats
         updateTimer?.invalidate()
         updateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
@@ -46,6 +66,9 @@ extension AppDelegate {
         RunLoop.current.add(updateTimer!, forMode: .common) // required to have the menu update while open
         updateTimer?.fire()
     }
+
+    @objc func stopCountdown() { CountdownManager.shared.finishCountdown(startRecording: false) }
+    @objc func skipCountdown() { CountdownManager.shared.finishCountdown(startRecording: true) }
 
     func record(audioOnly: Bool, filter: SCContentFilter) async {
         var conf = SCStreamConfiguration()

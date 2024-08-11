@@ -239,6 +239,10 @@ final class AppState: ObservableObject {
 
     func toggleRecording(type: String) async {
         appDelegate.allowShortcuts(false)
+        guard CountdownManager.shared.timer == nil else { // cancel a countdown if in progress
+            CountdownManager.shared.finishCountdown(startRecording: false)
+            return
+        }
         if appDelegate.stream == nil {
             let menuItem = NSMenuItem() // this will be our sender, which includes details about which content it is we want to record
             menuItem.identifier = NSUserInterfaceItemIdentifier(type)

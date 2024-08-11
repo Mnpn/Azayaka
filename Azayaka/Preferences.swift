@@ -304,9 +304,9 @@ struct Preferences: View {
                             TextField("Countdown", value: $countDown, formatter: numberFormatter)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .padding([.leading, .trailing], 10)
-                            Text("Countdown to start recording, in seconds.")
-                                .font(.subheadline).foregroundColor(Color.gray)
-                        }.frame(maxWidth: 250)
+                        }.frame(maxWidth: 200)
+                        Text("Countdown to start recording, in seconds.")
+                            .font(.subheadline).foregroundColor(Color.gray)
                     }.padding(10).frame(maxWidth: .infinity)
                 }.padding([.leading, .trailing], 10)
                 GroupBox() {

@@ -85,6 +85,8 @@
 "Update to %@…" = "更新至 %@…";
 "Countdown" = "Countdown";
 "Countdown to start recording, in seconds." = "Countdown to start recording, in seconds.";
+"Skip countdown" = "Skip countdown";
+"Cancel" = "Cancel";
 "Use legacy recorder" = "Use legacy recorder";
 "Since macOS Sequoia, Azayaka can use Apple's provided recorder. Select this if you want Azayaka to use its own recorder instead." = "Since macOS Sequoia, Azayaka can use Apple's provided recorder. Select this if you want Azayaka to use its own recorder instead.";
 "Using Apple's recorder instead of Azayaka's own (\"legacy\") requires macOS Sequoia or newer." = "Using Apple's recorder instead of Azayaka's own (\"legacy\") requires macOS Sequoia or newer.";

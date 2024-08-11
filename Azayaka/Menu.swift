@@ -64,12 +64,7 @@ extension AppDelegate: NSMenuDelegate {
             menu.addItem(noneAvailable)
         }
 
-        menu.addItem(NSMenuItem.separator())
-        if let updateNotice = UpdateHandler.createUpdateNotice() {
-            menu.addItem(updateNotice)
-        }
-        menu.addItem(NSMenuItem(title: "Preferences…".local, action: #selector(openPreferences), keyEquivalent: ","))
-        menu.addItem(NSMenuItem(title: "Quit Azayaka".local, action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        addMenuFooter(toMenu: menu)
         statusItem.menu = menu
     }
 
@@ -179,6 +174,15 @@ extension AppDelegate: NSMenuDelegate {
         return headerItem
     }
 
+    func addMenuFooter(toMenu menu: NSMenu) {
+        menu.addItem(NSMenuItem.separator())
+        if let updateNotice = UpdateHandler.createUpdateNotice() {
+            menu.addItem(updateNotice)
+        }
+        menu.addItem(NSMenuItem(title: "Preferences…".local, action: #selector(openPreferences), keyEquivalent: ","))
+        menu.addItem(NSMenuItem(title: "Quit Azayaka".local, action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+    }
+
     func menuWillOpen(_ menu: NSMenu) {
         allowShortcuts(false) // as per documentation - https://github.com/sindresorhus/KeyboardShortcuts/blob/main/Sources/KeyboardShortcuts/NSMenuItem%2B%2B.swift#L47
         if streamType == nil { // not recording
@@ -203,5 +207,21 @@ extension AppDelegate: NSMenuDelegate {
 
     @objc func openUpdatePage() {
         NSWorkspace.shared.open(URL(string: UpdateHandler.updateURL)!)
+    }
+}
+
+class NSMenuItemWithIcon: NSMenuItem {
+    init(icon: String, title: String, action: Selector?, keyEquivalent: String = "") {
+        super.init(title: title, action: action, keyEquivalent: keyEquivalent)
+        let attr = NSMutableAttributedString()
+        let imageAttachment = NSTextAttachment()
+        imageAttachment.image = NSImage(systemSymbolName: icon, accessibilityDescription: nil) // todo: consider a11y?
+        attr.append(NSAttributedString(attachment: imageAttachment))
+        attr.append(NSAttributedString(string: " \(title)"))
+        self.attributedTitle = attr
+    }
+
+    required init(coder: NSCoder) {
+        fatalError("init(coder:) is not a thing")
     }
 }
