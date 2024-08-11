@@ -15,7 +15,9 @@ struct Preferences: View {
     static let updateCheck = "updateCheck"
     static let frontAppKey = "frontAppOnly"
     static let fileName = "outputFileName"
-    
+    static let enableHDRKey = "enableHDR"
+    static let useLegacyRecorderKey = "useLegacyRecorder"
+
     var body: some View {
         VStack {
             TabView {
@@ -48,9 +50,12 @@ struct Preferences: View {
         @AppStorage("videoFormat")  private var videoFormat: VideoFormat = .mp4
         @AppStorage("encoder")      private var encoder: Encoder = .h264
         @AppStorage("highRes")      private var highRes: Bool = true
+        @AppStorage(enableHDRKey)   private var enableHDR: Bool = true
         @AppStorage(frontAppKey)    private var frontApp: Bool = false
         @AppStorage("hideSelf")     private var hideSelf: Bool = false
         @AppStorage("showMouse")    private var showMouse: Bool = true
+        
+        @AppStorage(useLegacyRecorderKey) private var useLegacyRecorder: Bool = false
 
         var body: some View {
             GroupBox() {
@@ -66,11 +71,13 @@ struct Preferences: View {
                         Text("Auto").tag(true)
                         Text("Low (1x)").tag(false)
                     }.padding([.leading, .trailing], 10)
-                    Picker("Quality", selection: $videoQuality) {
-                        Text("Low").tag(0.3)
-                        Text("Medium").tag(0.7)
-                        Text("High").tag(1.0)
-                    }.padding([.leading, .trailing], 10)
+                    if useLegacyRecorder {
+                        Picker("Quality", selection: $videoQuality) {
+                            Text("Low").tag(0.3)
+                            Text("Medium").tag(0.7)
+                            Text("High").tag(1.0)
+                        }.padding([.leading, .trailing], 10)
+                    }
                     Picker("Format", selection: $videoFormat) {
                         Text("MOV").tag(VideoFormat.mov)
                         Text("MP4").tag(VideoFormat.mp4)
@@ -81,15 +88,26 @@ struct Preferences: View {
                     }.padding([.leading, .trailing], 10)
                 }.frame(maxWidth: 200).padding(10)
                 VStack(alignment: .leading) {
+                    if #available(macOS 15, *) {
+                        Toggle(isOn: $enableHDR) {
+                            Text("Use HDR if available") // would be nice if apple had some sort of way to check if HDR recording is supported without trying to initialise the stream and get a fat configuration error..
+                        }
+                    } else {
+                        Toggle(isOn: .constant(false)) {
+                            Text("Use HDR if available")
+                        }.disabled(true)
+                        Text("Available on macOS Sequoia or newer.")
+                            .font(.footnote).foregroundColor(Color.gray)
+                    }
                     Toggle(isOn: $hideSelf) {
                         Text("Exclude Azayaka itself")
-                    }.toggleStyle(CheckboxToggleStyle())
+                    }
                     Toggle(isOn: $frontApp) {
                         Text("Only list focused app's windows")
-                    }.toggleStyle(CheckboxToggleStyle())
+                    }
                     Toggle(isOn: $showMouse) {
                         Text("Show mouse cursor")
-                    }.toggleStyle(CheckboxToggleStyle())
+                    }
                 }.frame(maxWidth: .infinity).padding([.leading, .trailing, .bottom], 10)
             }.padding(10)
         }
@@ -99,6 +117,9 @@ struct Preferences: View {
         @AppStorage("audioFormat")  private var audioFormat: AudioFormat = .aac
         @AppStorage("audioQuality") private var audioQuality: AudioQuality = .high
         @AppStorage("recordMic")    private var recordMic: Bool = false
+        @AppStorage("separateMic")  private var separateMic: Bool = true
+        
+        @AppStorage(useLegacyRecorderKey) private var useLegacyRecorder: Bool = false
 
         var body: some View {
             GroupBox() {
@@ -128,17 +149,17 @@ struct Preferences: View {
                     if #available(macOS 14, *) { // apparently they changed onChange in Sonoma
                         Toggle(isOn: $recordMic) {
                             Text("Record microphone")
-                        }.toggleStyle(CheckboxToggleStyle()).onChange(of: recordMic) {
+                        }.onChange(of: recordMic) {
                             Task { await performMicCheck() }
                         }
                     } else {
                         Toggle(isOn: $recordMic) {
                             Text("Record microphone")
-                        }.toggleStyle(CheckboxToggleStyle()).onChange(of: recordMic) { _ in
+                        }.onChange(of: recordMic) { _ in
                             Task { await performMicCheck() }
                         }
                     }
-                    Text("Doesn't apply to system audio-only recordings. The currently set input device will be used, and will be written as a separate audio track.")
+                    Text("Doesn't apply to system audio-only recordings. Uses the currently set input device. When using the legacy recorder, this will be written as a separate audio track.")
                         .font(.footnote).foregroundColor(Color.gray)
                 }.frame(maxWidth: .infinity).padding(10)
             }.onAppear {
@@ -164,7 +185,6 @@ struct Preferences: View {
             }
         }
     }
-     
      
     struct OutputSettings: View {
         @AppStorage("saveDirectory") private var saveDirectory: String?
@@ -241,8 +261,9 @@ struct Preferences: View {
     }
     
     struct OtherSettings: View {
-        @AppStorage(updateCheck) private var _updateCheck: Bool = true
-        @AppStorage("countDown") private var countDown: Int = 0
+        @AppStorage(useLegacyRecorderKey) private var useLegacyRecorder: Bool = false
+        @AppStorage(updateCheck)          private var _updateCheck: Bool = true
+        @AppStorage("countDown")          private var countDown: Int = 0
         @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
 
         private var numberFormatter: NumberFormatter {
@@ -285,8 +306,27 @@ struct Preferences: View {
                                 .padding([.leading, .trailing], 10)
                             Text("Countdown to start recording, in seconds.")
                                 .font(.subheadline).foregroundColor(Color.gray)
-                        }.frame(maxWidth: 200).padding(10)
+                        }.frame(maxWidth: 250)
                     }.padding(10).frame(maxWidth: .infinity)
+                }.padding([.leading, .trailing], 10)
+                GroupBox() {
+                    if #available(macOS 15, *) {
+                        VStack(alignment: .leading) {
+                            Toggle(isOn: $useLegacyRecorder) {
+                                Text("Use legacy recorder")
+                            }
+                        }.padding([.top, .leading, .trailing], 10)
+                        Text("Since macOS Sequoia, Azayaka can use Apple's provided recorder. Select this if you want Azayaka to use its own recorder instead.")
+                            .font(.footnote).foregroundColor(Color.gray).frame(maxWidth: .infinity).padding([.bottom, .leading, .trailing], 10)
+                    } else {
+                        VStack(alignment: .leading) {
+                            Toggle(isOn: .constant(true)) {
+                                Text("Use legacy recorder")
+                            }.disabled(true)
+                        }.padding([.top, .leading, .trailing], 10)
+                        Text("Using Apple's recorder instead of Azayaka's own (\"legacy\") requires macOS Sequoia or newer.")
+                            .font(.footnote).foregroundColor(Color.gray).frame(maxWidth: .infinity).padding([.bottom, .leading, .trailing], 10)
+                    }
                 }.padding([.bottom, .leading, .trailing], 10)
                 HStack {
                     Text("Azayaka \(getVersion()) (\(getBuild()))").foregroundColor(Color.secondary)

@@ -44,6 +44,7 @@
 "Low" = "较低";
 "Medium" = "中等";
 "High" = "高品质";
+"Use HDR if available" = "Use HDR if available";
 "Exclude Azayaka itself" = "从画面中排除 Azayaka 本身";
 "Only list focused app's windows" = "只列出当前聚焦的应用的窗口";
 "Show mouse cursor" = "录制鼠标光标";
@@ -57,7 +58,7 @@
 "Extreme - 320Kbps" = "极致 - 320Kbps";
 "These settings are also used when recording video. If set to Opus, MP4 will fall back to AAC." = "录制视频时也会遵从这些设置, 但如果音频编码被设为 Opus ,则录制 MP4 时会回退至 AAC 编码.";
 "Record microphone" = "录制麦克风声音";
-"Doesn't apply to system audio-only recordings. The currently set input device will be used, and will be written as a separate audio track." = "录制视频时, 来自系统默认音频输入设备的声音将被写入单独的音轨 (此功能不适用于\"仅录音\")";
+"Doesn't apply to system audio-only recordings. Uses the currently set input device. When using the legacy recorder, this will be written as a separate audio track." = "Doesn't apply to system audio-only recordings. Uses the currently set input device. When using the legacy recorder, this will be written as a separate audio track.";
 "Select output directory" = "选择保存位置";
 "Azayaka needs permission to record your microphone to do this." = "Azayaka 需要使用麦克风权限来录制麦克风声音.";
 "Currently set to \"%@\"" = "当前保存位置为\"%@\"";
@@ -82,6 +83,12 @@
 "Countdown to start recording, in seconds." = "开始录制倒计时，单位：秒";
 "Azayaka will check [GitHub](https://github.com/Mnpn/Azayaka/releases) for new updates." = "Azayaka会从 [GitHub](https://github.com/Mnpn/Azayaka/releases) 检查更新";
 "Update to %@…" = "更新至 %@…";
+"Countdown" = "Countdown";
+"Countdown to start recording, in seconds." = "Countdown to start recording, in seconds.";
+"Use legacy recorder" = "Use legacy recorder";
+"Since macOS Sequoia, Azayaka can use Apple's provided recorder. Select this if you want Azayaka to use its own recorder instead." = "Since macOS Sequoia, Azayaka can use Apple's provided recorder. Select this if you want Azayaka to use its own recorder instead.";
+"Using Apple's recorder instead of Azayaka's own (\"legacy\") requires macOS Sequoia or newer." = "Using Apple's recorder instead of Azayaka's own (\"legacy\") requires macOS Sequoia or newer.";
+
 
 // Warning text
 /*

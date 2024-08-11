@@ -44,6 +44,7 @@
 "Low" = "Låg";
 "Medium" = "Medium";
 "High" = "Hög";
+"Use HDR if available" = "Använd HDR om tillgängligt";
 "Exclude Azayaka itself" = "Exkludera Azayaka";
 "Only list focused app's windows" = "Visa endast fönster från fokuserad app";
 "Show mouse cursor" = "Visa muspekaren";
@@ -57,7 +58,7 @@
 "Extreme - 320Kbps" = "Extrem - 320Kbps";
 "These settings are also used when recording video. If set to Opus, MP4 will fall back to AAC." = "Dessa inställningar används även vid videoinspelning. Om Opus används kommer MP4-formatet att använda AAC.";
 "Record microphone" = "Spela in mikrofon";
-"Doesn't apply to system audio-only recordings. The currently set input device will be used, and will be written as a separate audio track." = "Gäller inte för systemljudsinspelningar. Den nuvarande input-enheten kommer att användas, och kommer att skrivas till ett sekundärt ljudspår.";
+"Doesn't apply to system audio-only recordings. Uses the currently set input device. When using the legacy recorder, this will be written as a separate audio track." = "Gäller inte för systemljudsinspelningar. Den valda input-enheten används. Om den äldre inspelaren används kommer detta att skrivas till ett sekundärt ljudspår.";
 "Select output directory" = "Välj destinationsmapp";
 "Azayaka needs permission to record your microphone to do this." = "Azayaka behöver tillstånd för att spela in din mikrofon för att göra detta.";
 "Currently set to \"%@\"" = "Satt till \"%@\"";
@@ -79,6 +80,11 @@
 "Check for updates at launch" = "Sök efter uppdateringar vid start";
 "Azayaka will check [GitHub](https://github.com/Mnpn/Azayaka/releases) for new updates." = "Azayaka kommer att kolla [GitHub](https://github.com/Mnpn/Azayaka/releases) efter uppdateringar.";
 "Update to %@…" = "Uppdatera till %@…";
+"Countdown" = "Nedräkning";
+"Countdown to start recording, in seconds." = "Antal sekunder att räkna ner innan inspelningar börjar.";
+"Use legacy recorder" = "Använd äldre inspelare";
+"Since macOS Sequoia, Azayaka can use Apple's provided recorder. Select this if you want Azayaka to use its own recorder instead." = "Sedan macOS Sequoia kan Azayaka använda Apples inspelare. Välj detta om du vill att Azayaka ska använda sin egna inspelare istället.";
+"Using Apple's recorder instead of Azayaka's own (\"legacy\") requires macOS Sequoia or newer." = "Användning av Apples inspelare istället för Azayakas egna (\"äldre\") kräver macOS Sequoia eller senare.";
 
 
 // Warning text

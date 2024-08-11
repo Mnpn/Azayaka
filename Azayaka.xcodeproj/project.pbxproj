@@ -17,6 +17,7 @@
 		175E29402BD2C94D00EB9F4C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 175E293F2BD2C94D00EB9F4C /* KeyboardShortcuts */; };
 		17BCDC80295BAC9400448A97 /* Types.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17BCDC7F295BAC9300448A97 /* Types.swift */; };
 		17DBD7C5295B0973005C0690 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DBD7C4295B0973005C0690 /* Preferences.swift */; };
+		17F7E18B2C65097400599CEF /* LegacyProcessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F7E18A2C65096800599CEF /* LegacyProcessing.swift */; };
 		18B09AB72BCB6D74005CDC4E /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 18B09AB92BCB6D74005CDC4E /* Localizable.strings */; };
 		18B09ABC2BCBA40B005CDC4E /* MenuBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18B09ABB2BCBA40B005CDC4E /* MenuBar.swift */; };
 		7B2603882C0850CD00C47D89 /* Countdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2603872C0850CD00C47D89 /* Countdown.swift */; };
@@ -35,6 +36,7 @@
 		174D79872C6417D7005669BF /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
 		17BCDC7F295BAC9300448A97 /* Types.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
 		17DBD7C4295B0973005C0690 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
+		17F7E18A2C65096800599CEF /* LegacyProcessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyProcessing.swift; sourceTree = "<group>"; };
 		18B09AB82BCB6D74005CDC4E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		18B09ABA2BCB6D8D005CDC4E /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		18B09ABB2BCBA40B005CDC4E /* MenuBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBar.swift; sourceTree = "<group>"; };
@@ -80,6 +82,7 @@
 				18B09ABB2BCBA40B005CDC4E /* MenuBar.swift */,
 				174D79872C6417D7005669BF /* Notifications.swift */,
 				17322D592959286100185BB6 /* Processing.swift */,
+				17F7E18A2C65096800599CEF /* LegacyProcessing.swift */,
 				170297D52BCD586A0035EB26 /* Updates.swift */,
 				7B2603872C0850CD00C47D89 /* Countdown.swift */,
 				18B09AB92BCB6D74005CDC4E /* Localizable.strings */,
@@ -120,7 +123,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1510;
-				LastUpgradeCheck = 1540;
+				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					17322D462958D07E00185BB6 = {
 						CreatedOnToolsVersion = 14.1;
@@ -173,6 +176,7 @@
 				17BCDC80295BAC9400448A97 /* Types.swift in Sources */,
 				17322D4B2958D07E00185BB6 /* AppDelegate.swift in Sources */,
 				17322D5C295928BE00185BB6 /* Recording.swift in Sources */,
+				17F7E18B2C65097400599CEF /* LegacyProcessing.swift in Sources */,
 				7B2603882C0850CD00C47D89 /* Countdown.swift in Sources */,
 				18B09ABC2BCBA40B005CDC4E /* MenuBar.swift in Sources */,
 				170297D62BCD586A0035EB26 /* Updates.swift in Sources */,
@@ -326,9 +330,9 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 51;
+				CURRENT_PROJECT_VERSION = 52;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 35BSP6SUG9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Azayaka;
@@ -342,7 +346,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.mnpn.Azayaka;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRIP_SWIFT_SYMBOLS = NO;
@@ -360,9 +364,9 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 51;
+				CURRENT_PROJECT_VERSION = 52;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 35BSP6SUG9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Azayaka;
@@ -376,7 +380,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.mnpn.Azayaka;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRIP_SWIFT_SYMBOLS = NO;

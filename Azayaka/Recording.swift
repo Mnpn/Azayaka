@@ -22,20 +22,21 @@ extension AppDelegate {
         // file preparation
         screen = availableContent!.displays.first(where: { sender.title == $0.displayID.description })
         window = availableContent!.windows.first(where: { sender.title == $0.windowID.description })
+        let contentFilter: SCContentFilter?
         if streamType == .window {
-            filter = SCContentFilter(desktopIndependentWindow: window!)
+            contentFilter = SCContentFilter(desktopIndependentWindow: window!)
         } else {
             let excluded = availableContent?.applications.filter { app in
                 Bundle.main.bundleIdentifier == app.bundleIdentifier && ud.bool(forKey: "hideSelf")
             }
-            filter = SCContentFilter(display: screen ?? availableContent!.displays.first!, excludingApplications: excluded ?? [], exceptingWindows: [])
+            contentFilter = SCContentFilter(display: screen ?? availableContent!.displays.first!, excludingApplications: excluded ?? [], exceptingWindows: [])
         }
         if streamType == .systemaudio {
             prepareAudioRecording()
         }
         Task {
             await CountdownManager.shared.showCountdown(ud.integer(forKey: "countDown"))
-            await record(audioOnly: streamType == .systemaudio, filter: filter!)
+            await record(audioOnly: streamType == .systemaudio, filter: contentFilter!)
         }
         // while recording, keep a timer which updates the menu's stats
         updateTimer?.invalidate()
@@ -47,15 +48,40 @@ extension AppDelegate {
     }
 
     func record(audioOnly: Bool, filter: SCContentFilter) async {
-        let conf = SCStreamConfiguration()
+        var conf = SCStreamConfiguration()
+        if #available(macOS 15.0, *), !audioOnly {
+            if await ud.bool(forKey: Preferences.enableHDRKey) {
+                conf = SCStreamConfiguration(preset: .captureHDRStreamCanonicalDisplay)
+            }
+            conf.captureMicrophone = ud.bool(forKey: "recordMic") && !audioOnly
+        }
+
         conf.width = 2
         conf.height = 2
 
         if !audioOnly {
-            conf.width = Int(filter.contentRect.width) * (ud.bool(forKey: "highRes") ? Int(filter.pointPixelScale) : 1)
-            conf.height = Int(filter.contentRect.height) * (ud.bool(forKey: "highRes") ? Int(filter.pointPixelScale) : 1)
+            if #available(macOS 14, *) {
+                let scale = ud.bool(forKey: "highRes") ? Int(filter.pointPixelScale) : 1
+                conf.width = Int(filter.contentRect.width) * scale
+                conf.height = Int(filter.contentRect.height) * scale
+            } else { // ventura..
+                // this code is just bad but I don't know how to do it better, the good solution (above) is sonoma+..
+                // it seems windows are available on all displays, and there's no way to get a window's display
+                let scale = Int(
+                    (screen != nil
+                        ? NSScreen.screens.first(where: { $0.displayID == screen?.displayID })!.backingScaleFactor
+                        : NSScreen.main?.backingScaleFactor)
+                    ?? 1)
+                conf.width = streamType == .screen
+                    ? availableContent!.displays[0].width*scale
+                    : Int( (window?.frame.width)!*CGFloat(scale) )
+                conf.height = streamType == .screen
+                    ? availableContent!.displays[0].height*scale
+                    : Int( (window?.frame.height)!*CGFloat(scale) )
+            }
         }
 
+        conf.queueDepth = 5 // ensure higher fps at the expense of some memory
         conf.minimumFrameInterval = CMTime(value: 1, timescale: audioOnly ? CMTimeScale.max : CMTimeScale(ud.integer(forKey: "frameRate")))
         conf.showsCursor = ud.bool(forKey: "showMouse")
         conf.capturesAudio = true
@@ -63,17 +89,22 @@ extension AppDelegate {
         conf.channelCount = audioSettings["AVNumberOfChannelsKey"] as! Int
 
         stream = SCStream(filter: filter, configuration: conf, delegate: self)
-        do {
+        startRecording: do {
             try stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: .global())
             try stream.addStreamOutput(self, type: .audio, sampleHandlerQueue: .global())
+            if #available(macOS 15.0, *), conf.captureMicrophone {
+                try stream.addStreamOutput(self, type: .microphone, sampleHandlerQueue: .global())
+            }
             if !audioOnly {
-                initVideo(conf: conf)
+                if !initVideo(conf: conf) { break startRecording }
             } else {
                 startTime = Date.now
             }
             try await stream.startCapture()
         } catch {
-            assertionFailure("capture failed".local)
+            alertRecordingFailure(error)
+            stream = nil
+            stopRecording(withError: true)
             return
         }
 
@@ -85,21 +116,27 @@ extension AppDelegate {
         allowShortcuts(true)
     }
 
-    @objc func stopRecording() {
+    @objc func stopRecording(withError: Bool = false) {
         statusItem.menu = nil
 
         if stream != nil {
             stream.stopCapture()
+            stream = nil
         }
-        stream = nil
-        if streamType != .systemaudio {
-            closeVideo()
+
+        if useLegacyRecorder {
+            startTime = nil
+            if streamType != .systemaudio {
+                closeVideo()
+            }
+        } else {
+            recordingOutput = nil
         }
         streamType = nil
         audioFile = nil // close audio file
         window = nil
         screen = nil
-        startTime = nil
+        
         updateTimer?.invalidate()
 
         DispatchQueue.main.async { [self] in
@@ -108,7 +145,9 @@ extension AppDelegate {
         }
 
         allowShortcuts(true)
-        sendRecordingFinishedNotification()
+        if !withError {
+            sendRecordingFinishedNotification()
+        }
     }
 
     func updateAudioSettings() {
@@ -152,7 +191,9 @@ extension AppDelegate {
         }
         // bit of a magic number but worst case ".flac" is 5 characters on top of this..
         let fileNameWithDates = fileName!.replacingOccurrences(of: "%t", with: dateFormatter.string(from: Date())).prefix(Int(NAME_MAX) - 5)
-        return ud.string(forKey: "saveDirectory")! + "/" + fileNameWithDates
+
+        let saveDirectory = ud.string(forKey: "saveDirectory")
+        return saveDirectory! + "/" + fileNameWithDates
     }
 
     func getRecordingLength() -> String {
@@ -161,22 +202,45 @@ extension AppDelegate {
         formatter.zeroFormattingBehavior = .pad
         formatter.unitsStyle = .positional
         //if self.streamType == nil { self.startTime = nil }
-        return formatter.string(from: Date.now.timeIntervalSince(startTime ?? Date.now)) ?? "Unknown".local
+        if useLegacyRecorder || streamType == .systemaudio {
+            return formatter.string(from: Date.now.timeIntervalSince(startTime ?? Date.now)) ?? "Unknown".local
+        } else if #available(macOS 15, *) {
+            if let recOut = (recordingOutput as? SCRecordingOutput) {
+                if recOut.recordedDuration.seconds.isNaN { return "00:00" }
+                return formatter.string(from: recOut.recordedDuration.seconds) ?? "Unknown".local
+            }
+        }
+        return "--:--"
     }
 
     func getRecordingSize() -> String {
-        do {
-            if let filePath = filePath {
-                let fileAttr = try FileManager.default.attributesOfItem(atPath: filePath)
-                let byteFormat = ByteCountFormatter()
-                byteFormat.allowedUnits = [.useMB]
-                byteFormat.countStyle = .file
-                return byteFormat.string(fromByteCount: fileAttr[FileAttributeKey.size] as! Int64)
+        let byteFormat = ByteCountFormatter()
+        byteFormat.allowedUnits = [.useMB]
+        byteFormat.countStyle = .file
+        if useLegacyRecorder || streamType == .systemaudio {
+            do {
+                if let filePath = filePath {
+                    let fileAttr = try FileManager.default.attributesOfItem(atPath: filePath)
+                    return byteFormat.string(fromByteCount: fileAttr[FileAttributeKey.size] as! Int64)
+                }
+            } catch {
+                print(String(format: "failed to fetch file for size indicator: %@".local, error.localizedDescription))
             }
-        } catch {
-            print(String(format: "failed to fetch file for size indicator: %@".local, error.localizedDescription))
+        } else if #available(macOS 15, *), let recOut = (recordingOutput as? SCRecordingOutput) {
+            return byteFormat.string(fromByteCount: Int64(recOut.recordedFileSize))
         }
         return "Unknown".local
+    }
+    
+    func alertRecordingFailure(_ error: Error) {
+        DispatchQueue.main.async {
+            let alert = NSAlert()
+            alert.messageText = "Capture failed!".local
+            alert.informativeText = "Couldn't start the recording:\n“\(error.localizedDescription)”\n\nIt is possible that the recording settings, such as HDR, are not compatible with your device.".local
+            alert.addButton(withTitle: "OK".local)
+            alert.alertStyle = .critical
+            alert.runModal()
+        }
     }
 }
 

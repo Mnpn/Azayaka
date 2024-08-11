@@ -30,13 +30,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     var vW: AVAssetWriter!
     var vwInput, awInput, micInput: AVAssetWriterInput!
     let audioEngine = AVAudioEngine()
-    var startTime: Date?
     var stream: SCStream!
     var filePath: String!
     var audioFile: AVAudioFile?
     var audioSettings: [String : Any]!
     var availableContent: SCShareableContent?
-    var filter: SCContentFilter?
     var updateTimer: Timer?
     var recordMic = false
 
@@ -54,12 +52,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     let ud = UserDefaults.standard
     let UpdateHandler = Updates()
 
+    var useLegacyRecorder = false
+    // new recorder
+    var recordingOutput: Any? // wow this is mega jank, this will hold an SCRecordingOutput
+    // legacy recorder
+    var startTime: Date?
+
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         lazy var userDesktop = (NSSearchPathForDirectoriesInDomains(.desktopDirectory, .userDomainMask, true) as [String]).first!
-        
+
         // the `com.apple.screencapture` domain has the user set path for where they want to store screenshots or videos
         let saveDirectory = (UserDefaults(suiteName: "com.apple.screencapture")?.string(forKey: "location") ?? userDesktop) as NSString
-        
+
         ud.register( // default defaults (used if not set)
             defaults: [
                 "audioFormat": AudioFormat.aac.rawValue,
@@ -73,10 +77,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                 Preferences.frontAppKey: false,
                 "showMouse": true,
                 "recordMic": false,
+                Preferences.enableHDRKey: true,
                 "highRes": true,
                 Preferences.updateCheck: true,
                 Preferences.fileName: "Recording at %t".local,
-                "countDown": 0
+                "countDown": 0,
+                Preferences.useLegacyRecorderKey: ProcessInfo.processInfo.operatingSystemVersion.majorVersion < 15 // sequoia
             ]
         )
         // create a menu bar item
@@ -128,7 +134,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
             return false
         }
         assert(self.availableContent?.displays.isEmpty != nil, "There needs to be at least one display connected".local)
-        let frontOnly = UserDefaults.standard.bool(forKey: Preferences.frontAppKey)
+        let frontOnly = await UserDefaults.standard.bool(forKey: Preferences.frontAppKey)
         DispatchQueue.main.async {
             if buildMenu {
                 self.createMenu()
