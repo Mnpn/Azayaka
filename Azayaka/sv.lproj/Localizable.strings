@@ -102,4 +102,5 @@
 "audio file writing issue" = "problem uppstod vid skrivning av ljudfil";
 "closing stream with error:\n" = "stänger strömmen med felmeddelandet: \n";
 "\nthis might be due to the window closing or the user stopping from the sonoma ui" = "\ndetta kan bero på fönstrets stängning eller att användaren stoppat från sonoma-ui:n.";
+"Failed to create destination folder: " = "Kunde inte skapa destinationsmapp: ";
 */

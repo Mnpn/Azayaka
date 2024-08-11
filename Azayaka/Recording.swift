@@ -216,6 +216,13 @@ extension AppDelegate {
         let fileNameWithDates = fileName!.replacingOccurrences(of: "%t", with: dateFormatter.string(from: Date())).prefix(Int(NAME_MAX) - 5)
 
         let saveDirectory = ud.string(forKey: Preferences.kSaveDirectory)
+        // ensure the destination folder exists
+        do {
+            try FileManager.default.createDirectory(atPath: saveDirectory!, withIntermediateDirectories: true, attributes: nil)
+        } catch {
+            print("Failed to create destination folder: ".local + error.localizedDescription)
+        }
+
         return saveDirectory! + "/" + fileNameWithDates
     }
 
