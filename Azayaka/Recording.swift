@@ -35,9 +35,6 @@ extension AppDelegate {
             }
             contentFilter = SCContentFilter(display: screen ?? availableContent!.displays.first!, excludingApplications: excluded ?? [], exceptingWindows: [])
         }
-        if streamType == .systemaudio {
-            prepareAudioRecording()
-        }
 
         // count down and start setting up recording
         let countdown = ud.integer(forKey: Preferences.kCountdownSecs)
@@ -55,6 +52,9 @@ extension AppDelegate {
                 return
             }
             allowShortcuts(false)
+            if streamType == .systemaudio { // this creates the file, so make sure this happens after the countdown
+                prepareAudioRecording()
+            }
             await record(audioOnly: streamType == .systemaudio, filter: contentFilter!)
         }
 
