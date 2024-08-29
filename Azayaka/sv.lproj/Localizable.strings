@@ -44,7 +44,8 @@
 "Low" = "Låg";
 "Medium" = "Medium";
 "High" = "Hög";
-"Use HDR if available" = "Använd HDR om tillgängligt";
+"Record in HDR" = "Spela in i HDR";
+"Requires Apple Silicon running macOS Sequoia or newer." = "Kräver Apple Silicon som kör macOS Sequoia eller nyare.";
 "Exclude Azayaka itself" = "Exkludera Azayaka";
 "Only list focused app's windows" = "Visa endast fönster från fokuserad app";
 "Show mouse cursor" = "Visa muspekaren";

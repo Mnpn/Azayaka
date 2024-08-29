@@ -71,7 +71,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                 Preferences.kVideoQuality: 1.0,
                 Preferences.kVideoFormat: VideoFormat.mp4.rawValue,
                 Preferences.kEncoder: Encoder.h264.rawValue,
-                Preferences.kEnableHDR: true,
+                Preferences.kEnableHDR: utsname.isAppleSilicon,
                 Preferences.kHideSelf: false,
                 Preferences.kFrontApp: false,
                 Preferences.kShowMouse: true,

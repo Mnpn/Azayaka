@@ -103,15 +103,17 @@ struct Preferences: View {
                     }.padding([.leading, .trailing], 10)
                 }.frame(maxWidth: 200).padding(10)
                 VStack(alignment: .leading) {
-                    if #available(macOS 15, *) {
+                    // apparently HDR requires Apple Silicon -- https://github.com/xamarin/xamarin-macios/wiki/ScreenCaptureKit-macOS-xcode16.0-b1/89fe4157b4a46303192fa11d3db775baf0c9a543
+                    // will throw an invalid configuration error when attempted on intel
+                    if #available(macOS 15, *), utsname.isAppleSilicon {
                         Toggle(isOn: $enableHDR) {
-                            Text("Use HDR if available") // would be nice if apple had some sort of way to check if HDR recording is supported without trying to initialise the stream and get a fat configuration error..
+                            Text("Record in HDR")
                         }
                     } else {
                         Toggle(isOn: .constant(false)) {
-                            Text("Use HDR if available")
+                            Text("Record in HDR")
                         }.disabled(true)
-                        Text("Available on macOS Sequoia or newer.")
+                        Text("Requires Apple Silicon running macOS Sequoia or newer.")
                             .font(.footnote).foregroundColor(Color.gray)
                     }
                     Toggle(isOn: $hideSelf) {

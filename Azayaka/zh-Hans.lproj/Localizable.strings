@@ -44,7 +44,8 @@
 "Low" = "较低";
 "Medium" = "中等";
 "High" = "高品质";
-"Use HDR if available" = "Use HDR if available";
+"Record in HDR" = "Record in HDR";
+"Requires Apple Silicon running macOS Sequoia or newer." = "Requires Apple Silicon running macOS Sequoia or newer.";
 "Exclude Azayaka itself" = "从画面中排除 Azayaka 本身";
 "Only list focused app's windows" = "只列出当前聚焦的应用的窗口";
 "Show mouse cursor" = "录制鼠标光标";

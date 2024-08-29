@@ -52,8 +52,10 @@ extension AppDelegate {
                 return
             }
             allowShortcuts(false)
-            if streamType == .systemaudio { // this creates the file, so make sure this happens after the countdown
-                prepareAudioRecording()
+            DispatchQueue.main.async { [self] in
+                if streamType == .systemaudio { // this creates the file, so make sure this happens after the countdown
+                    prepareAudioRecording()
+                }
             }
             await record(audioOnly: streamType == .systemaudio, filter: contentFilter!)
         }
