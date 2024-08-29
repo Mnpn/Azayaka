@@ -16,13 +16,13 @@ class CountdownManager: ObservableObject {
 
     @MainActor
     func showCountdown(_ countdown: Int) async -> Bool { // returns if the countdown completed
-        if countdown == 0 { return true }
+        if countdown == 0 || NSEvent.modifierFlags.contains(NSEvent.ModifierFlags.option) { return true } // todo: can't use option to skip when using a keybind
         return await withCheckedContinuation { cont in
             continuation = cont
             self.countdown = countdown
-            countdownWindow = NSWindow(
+            countdownWindow = NSPanel(
                 contentRect: NSRect(x: 0, y: 0, width: 100, height: 100),
-                styleMask: [.borderless],
+                styleMask: [.borderless, .nonactivatingPanel],
                 backing: .buffered, defer: false)
             countdownWindow?.isReleasedWhenClosed = false
             countdownWindow?.level = .floating
@@ -30,7 +30,6 @@ class CountdownManager: ObservableObject {
             countdownWindow?.backgroundColor = .clear
             countdownWindow?.isOpaque = false
             countdownWindow?.hasShadow = true
-            countdownWindow?.ignoresMouseEvents = true
             let countdownView = NSHostingView(rootView: CountdownView().environmentObject(self))
             countdownWindow?.contentView = countdownView
             if let countdownWindow = countdownWindow { countdownWindow.orderFrontRegardless() }
@@ -60,9 +59,21 @@ class CountdownManager: ObservableObject {
 struct CountdownView: View {
     @EnvironmentObject var countdownManager: CountdownManager
     @State var progress: Double = 0.0
+    @State private var hovering = false
 
     var body: some View {
         ZStack {
+            Image(systemName: "chevron.forward.2")
+                .font(.largeTitle)
+                .foregroundColor(.accentColor)
+                .hidden(!hovering)
+            Text("\(countdownManager.countdown)")
+                .font(.largeTitle)
+                .foregroundColor(.primary)
+                .hidden(hovering)
+            Circle().fill(.gray).opacity(0.25) // because .fill(bool ? a : b) is "only available in macOS 14"
+                .scaleEffect(0.7)
+                .hidden(!hovering)
             Circle()
                 .stroke(.gray, lineWidth: 8)
                 .scaleEffect(0.7)
@@ -76,11 +87,22 @@ struct CountdownView: View {
                         progress = 1
                     }
                 }
-            Text("\(countdownManager.countdown)")
-                .font(.largeTitle)
-                .foregroundColor(.primary)
+                .onHover { over in // circles have to go above for the hover area to be correct
+                    withAnimation(.easeInOut(duration: 0.1)) {
+                        hovering = over
+                    }
+                }
         }
         .background(.regularMaterial)
         .cornerRadius(.infinity)
+        .onTapGesture {
+            countdownManager.finishCountdown(startRecording: true)
+        }
+    }
+}
+
+extension View {
+    func hidden(_ shouldHide: Bool) -> some View {
+        opacity(shouldHide ? 0 : 1)
     }
 }
