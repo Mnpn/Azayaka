@@ -60,6 +60,7 @@ struct CountdownView: View {
     @EnvironmentObject var countdownManager: CountdownManager
     @State var progress: Double = 0.0
     @State private var hovering = false
+    @Environment(\.colorScheme) var theme
 
     var body: some View {
         ZStack {
@@ -80,7 +81,11 @@ struct CountdownView: View {
             Circle() // because apparently scaling a ProgressView doesn't work?
                 .trim(from: 0, to: progress)
                 .rotation(.degrees(-90))
-                .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                .stroke(
+                    UserDefaults.standard.integer(forKey: "AppleAccentColor") != -1 ? Color.accentColor : // because "graphite" is literally Color.gray (the lower ring)..
+                        theme == .dark ? Color.white : Color.black, // ..and this then needs to adapt to the theme
+                    style: StrokeStyle(lineWidth: 8, lineCap: .round)
+                )
                 .scaleEffect(0.7)
                 .onAppear {
                     withAnimation(.linear(duration: TimeInterval(countdownManager.countdown))) {
