@@ -91,7 +91,10 @@ extension AppDelegate: NSMenuDelegate {
 
         // add valid windows which are not yet in the list
         let addedItems = menu.items.compactMap { $0.identifier?.rawValue == "window" ? $0.title : "" }
-        for window in validWindows.filter({ !addedItems.contains($0.windowID.description) }) {
+        for window in validWindows.filter({
+            !addedItems.contains($0.windowID.description) &&
+            ($0.owningApplication?.applicationName ?? "") + ($0.owningApplication?.bundleIdentifier ?? "") != "" // exclude apps which have no name or bundles, like the app for the "Menubar" window
+        }) {
             newWindow(window: window)
         }
     }
@@ -101,7 +104,7 @@ extension AppDelegate: NSMenuDelegate {
             let icon = NSWorkspace.shared.icon(forFile: appURL.path)
             return icon
         }
-        return nil
+        return NSImage(systemSymbolName: "questionmark.app.dashed", accessibilityDescription: "application icon".local)
     }
     
     func getScreenWithMouse() -> NSScreen? {
@@ -126,7 +129,7 @@ extension AppDelegate: NSMenuDelegate {
             if !ud.bool(forKey: Preferences.kFrontApp) {
                 let app = NSMenuItem(title: "Unknown".local, action: nil, keyEquivalent: "")
                 app.attributedTitle = getAppNameAttachment(window: window)
-                app.title = appBundleIdentifier // if the title isn't placed after, getting the title will return the attributedTitle
+                app.title = appBundleIdentifier // if the title isn't placed after the attributed, getting the title will return the attributedTitle
                 app.identifier = NSUserInterfaceItemIdentifier("application")
                 app.setAccessibilityLabel("App name: ".local + appName) // VoiceOver will otherwise read the app bundle identifier (the item's non-attributed title)
                 let subMenu = NSMenu()
@@ -154,9 +157,9 @@ extension AppDelegate: NSMenuDelegate {
         let imageAttachment = NSTextAttachment()
         imageAttachment.image = NSImage(systemSymbolName: "macwindow", accessibilityDescription: "window icon".local)
         let imageString = NSAttributedString(attachment: imageAttachment)
-        
+
         let str = NSAttributedString(string: " " + (window.title ?? "No title".local))//, attributes: [.font: NSFont.systemFont(ofSize: 12, weight: .regular), .foregroundColor: NSColor.secondaryLabelColor])
-        
+
         let output = NSMutableAttributedString()
         output.append(imageString)
         output.append(str)
