@@ -220,9 +220,9 @@ struct Preferences: View {
                                     fileNameLength = getFileNameLength(fileName)
                                 }
                                 .foregroundStyle(fileNameLength > NAME_MAX ? .red : .primary)
-                            Text("\"%t\" will be replaced with the recording's start time.")
-                                .font(.subheadline).foregroundColor(Color.gray)
                         }
+                        Text("\"%t\" will be replaced with the recording's start time.")
+                            .font(.subheadline).foregroundColor(Color.gray)
                     }.padding(10).frame(maxWidth: .infinity)
                 }.padding([.top, .leading, .trailing], 10)
                 GroupBox() {

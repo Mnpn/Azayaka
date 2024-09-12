@@ -17,14 +17,14 @@ extension AppDelegate: NSMenuDelegate {
         if streamType != nil { // recording?
             var typeText = ""
             if screen != nil {
-                let fallbackName = "Display ".local + String((availableContent?.displays.firstIndex(where: { $0.displayID == screen?.displayID }) ?? -1)+1)
+                let fallbackName = String(format: "Display %lld".local, (availableContent?.displays.firstIndex(where: { $0.displayID == screen?.displayID }) ?? -1)+1)
                 typeText = NSScreen.screens.first(where: { $0.displayID == screen?.displayID })?.localizedName ?? fallbackName
             } else if window != nil {
                 typeText = window?.owningApplication?.applicationName.uppercased() ?? "A window".local
             } else {
                 typeText = "System Audio".local
             }
-            menu.addItem(header("Recording ".local + typeText, size: 12))
+            menu.addItem(header(String(format: "Recording %@".local, typeText), size: 12))
 
             menu.addItem(NSMenuItem(title: "Stop Recording".local, action: #selector(stopRecording), keyEquivalent: ""))
             menu.addItem(NSMenuItem.separator())
@@ -39,7 +39,7 @@ extension AppDelegate: NSMenuDelegate {
             menu.addItem(header("Displays".local))
 
             for (i, display) in availableContent!.displays.enumerated() {
-                let screenName = NSScreen.screens.first(where: { $0.displayID == display.displayID })?.localizedName ?? "Display ".local + "\(i+1)"
+                let screenName = NSScreen.screens.first(where: { $0.displayID == display.displayID })?.localizedName ?? String(format: "Display %lld".local, "\(i+1)")
                 let displayItem = NSMenuItem(title: "Unknown Display".local, action: #selector(prepRecord), keyEquivalent: "")
                 let displayName = screenName + (display.displayID == CGMainDisplayID() ? " (Main)".local : "") + " "
                 let displayNameStr = NSMutableAttributedString(string: displayName)
@@ -121,7 +121,7 @@ extension AppDelegate: NSMenuDelegate {
         subMenuItem.attributedTitle = getFancyWindowString(window: window)
         subMenuItem.title = String(window.windowID)
         subMenuItem.identifier = NSUserInterfaceItemIdentifier("window")
-        subMenuItem.setAccessibilityLabel("Window title: ".local + (window.title ?? "No title".local)) // VoiceOver will otherwise read the window ID (the item's non-attributed title)
+        subMenuItem.setAccessibilityLabel(String(format: "Window title: %@".local, (window.title ?? "No title".local))) // VoiceOver will otherwise read the window ID (the item's non-attributed title)
 
         if let item = menu.items.first(where: { ($0.title == appBundleIdentifier) && $0.identifier?.rawValue ?? "" == "application" }) {
             item.submenu?.addItem(subMenuItem)
@@ -131,7 +131,7 @@ extension AppDelegate: NSMenuDelegate {
                 app.attributedTitle = getAppNameAttachment(window: window)
                 app.title = appBundleIdentifier // if the title isn't placed after the attributed, getting the title will return the attributedTitle
                 app.identifier = NSUserInterfaceItemIdentifier("application")
-                app.setAccessibilityLabel("App name: ".local + appName) // VoiceOver will otherwise read the app bundle identifier (the item's non-attributed title)
+                app.setAccessibilityLabel(String(format: "App name: %@".local, appName)) // VoiceOver will otherwise read the app bundle identifier (the item's non-attributed title)
                 let subMenu = NSMenu()
                 subMenu.addItem(subMenuItem)
                 app.submenu = subMenu

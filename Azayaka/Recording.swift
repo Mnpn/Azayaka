@@ -268,8 +268,8 @@ extension AppDelegate {
         DispatchQueue.main.async {
             let alert = NSAlert()
             alert.messageText = "Capture failed!".local
-            alert.informativeText = "Couldn't start the recording:\n“\(error.localizedDescription)”\n\nIt is possible that the recording settings, such as HDR, are not compatible with your device.".local
-            alert.addButton(withTitle: "OK".local)
+            alert.informativeText = String(format: "Couldn't start the recording:\n“%@”\n\nIt is possible that the recording settings, such as HDR or the encoder, are not compatible with your device.".local, error.localizedDescription)
+            alert.addButton(withTitle: "Okay".local)
             alert.alertStyle = .critical
             alert.runModal()
         }

@@ -16,16 +16,15 @@
 		174D79882C6417D7005669BF /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 174D79872C6417D7005669BF /* Notifications.swift */; };
 		175E29402BD2C94D00EB9F4C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 175E293F2BD2C94D00EB9F4C /* KeyboardShortcuts */; };
 		17606AED2C694FE0008A064E /* Shortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17606AEC2C694FE0008A064E /* Shortcuts.swift */; };
+		17A92A4B2C9383190059E616 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 17A92A4A2C9383190059E616 /* Localizable.xcstrings */; };
 		17BCDC80295BAC9400448A97 /* Types.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17BCDC7F295BAC9300448A97 /* Types.swift */; };
 		17DBD7C5295B0973005C0690 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DBD7C4295B0973005C0690 /* Preferences.swift */; };
 		17F7E18B2C65097400599CEF /* LegacyProcessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17F7E18A2C65096800599CEF /* LegacyProcessing.swift */; };
-		18B09AB72BCB6D74005CDC4E /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 18B09AB92BCB6D74005CDC4E /* Localizable.strings */; };
 		18B09ABC2BCBA40B005CDC4E /* MenuBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18B09ABB2BCBA40B005CDC4E /* MenuBar.swift */; };
 		7B2603882C0850CD00C47D89 /* Countdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2603872C0850CD00C47D89 /* Countdown.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		170297D22BCD525F0035EB26 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/Localizable.strings; sourceTree = "<group>"; };
 		170297D52BCD586A0035EB26 /* Updates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updates.swift; sourceTree = "<group>"; };
 		17322D472958D07E00185BB6 /* Azayaka.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Azayaka.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		17322D4A2958D07E00185BB6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -36,11 +35,10 @@
 		17322D5D295929A000185BB6 /* Menu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Menu.swift; sourceTree = "<group>"; };
 		174D79872C6417D7005669BF /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
 		17606AEC2C694FE0008A064E /* Shortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shortcuts.swift; sourceTree = "<group>"; };
+		17A92A4A2C9383190059E616 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		17BCDC7F295BAC9300448A97 /* Types.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
 		17DBD7C4295B0973005C0690 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
 		17F7E18A2C65096800599CEF /* LegacyProcessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyProcessing.swift; sourceTree = "<group>"; };
-		18B09AB82BCB6D74005CDC4E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
-		18B09ABA2BCB6D8D005CDC4E /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		18B09ABB2BCBA40B005CDC4E /* MenuBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBar.swift; sourceTree = "<group>"; };
 		7B2603872C0850CD00C47D89 /* Countdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Countdown.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -88,7 +86,7 @@
 				170297D52BCD586A0035EB26 /* Updates.swift */,
 				17606AEC2C694FE0008A064E /* Shortcuts.swift */,
 				7B2603872C0850CD00C47D89 /* Countdown.swift */,
-				18B09AB92BCB6D74005CDC4E /* Localizable.strings */,
+				17A92A4A2C9383190059E616 /* Localizable.xcstrings */,
 				17322D4E2958D08000185BB6 /* Assets.xcassets */,
 				17322D532958D08000185BB6 /* Azayaka.entitlements */,
 			);
@@ -162,7 +160,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				17322D4F2958D08000185BB6 /* Assets.xcassets in Resources */,
-				18B09AB72BCB6D74005CDC4E /* Localizable.strings in Resources */,
+				17A92A4B2C9383190059E616 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -189,19 +187,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXVariantGroup section */
-		18B09AB92BCB6D74005CDC4E /* Localizable.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				18B09AB82BCB6D74005CDC4E /* en */,
-				18B09ABA2BCB6D8D005CDC4E /* zh-Hans */,
-				170297D22BCD525F0035EB26 /* sv */,
-			);
-			name = Localizable.strings;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		17322D542958D08000185BB6 /* Debug */ = {
@@ -264,6 +249,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -321,6 +307,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 			};
 			name = Release;
@@ -334,7 +321,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 61;
+				CURRENT_PROJECT_VERSION = 62;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 35BSP6SUG9;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -368,7 +355,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 61;
+				CURRENT_PROJECT_VERSION = 62;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 35BSP6SUG9;
 				ENABLE_HARDENED_RUNTIME = YES;

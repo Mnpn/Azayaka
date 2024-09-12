@@ -127,7 +127,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                     requestPermissions()
                 default:
                     print("Failed to fetch available content: ".local, error.localizedDescription)
-                infoItem.attributedTitle = NSAttributedString(string: "Failed to fetch available content: ".local + "\n\(error.localizedDescription)")
+                infoItem.attributedTitle = NSAttributedString(string: String(format: "Failed to fetch available content:\n%@".local, error.localizedDescription))
             }
             infoMenu.addItem(infoItem)
             infoMenu.addItem(NSMenuItem.separator())
