@@ -9,6 +9,7 @@ import SwiftUI
 import AVFAudio
 import AVFoundation
 import KeyboardShortcuts
+import ScreenCaptureKit
 import ServiceManagement
 
 struct Preferences: View {
@@ -71,6 +72,7 @@ struct Preferences: View {
         @AppStorage(kShowMouse)         private var showMouse: Bool = true
 
         @AppStorage(kUseKorai)          private var useLegacyRecorder: Bool = false
+        @State private var hoveringWarning: Bool = false
 
         var body: some View {
             GroupBox() {
@@ -81,27 +83,40 @@ struct Preferences: View {
                         Text("25").tag(25)
                         Text("24").tag(24)
                         Text("15").tag(15)
-                    }.padding([.leading, .trailing], 10)
+                    }.padding(.trailing, 25)
                     Picker("Resolution", selection: $highRes) {
                         Text("Auto").tag(true)
                         Text("Low (1x)").tag(false)
-                    }.padding([.leading, .trailing], 10)
+                    }.padding(.trailing, 25)
                     if useLegacyRecorder {
                         Picker("Quality", selection: $videoQuality) {
                             Text("Low").tag(0.3)
                             Text("Medium").tag(0.7)
                             Text("High").tag(1.0)
-                        }.padding([.leading, .trailing], 10)
+                        }.padding(.trailing, 25)
                     }
                     Picker("Format", selection: $videoFormat) {
                         Text("MOV").tag(VideoFormat.mov)
                         Text("MP4").tag(VideoFormat.mp4)
-                    }.padding([.leading, .trailing], 10)
-                    Picker("Encoder", selection: $encoder) {
-                        Text("H.264").tag(Encoder.h264)
-                        Text("H.265").tag(Encoder.h265)
-                    }.padding([.leading, .trailing], 10)
-                }.frame(maxWidth: 200).padding(10)
+                    }.padding(.trailing, 25)
+                    HStack {
+                        Picker("Encoder", selection: $encoder) {
+                            Text("H.264").tag(Encoder.h264)
+                            Text("H.265").tag(Encoder.h265)
+                        }.padding(.trailing, encoder == .h265 && !useLegacyRecorder && !deviceSupportsNonKoraiHEVC() ? 0 : 25)
+                        if #available(macOS 15, *), encoder == .h265 && !useLegacyRecorder && !deviceSupportsNonKoraiHEVC() {
+                            // This is truly awful.
+                            // For some reason my Intel Mac does not show H.265 as an available video codec when using SCRecordingOutputConfiguration.
+                            // I don't know why. Apple's sample code and demos show both H.264 and H.265 as available. I guess it might be the same as
+                            // with HDR, where Intel just throws a configuration error because it's not supported.
+                            // Warning the user if the same is likely to happen on their device is the best UI I could come up with. Alternatively you
+                            // could only list available ones (e.g. ["H.264", "H.264 (Legacy)", "H.265 (Legacy)"]), but I don't want to break UserDefaults/tags
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.yellow)
+                                .help(Text("It appears that your device might not support H.265 with Apple's recorder. You may have to switch to the legacy recorder found in the \"Other\" tab to use H.265."))
+                        }
+                    }
+                }.frame(maxWidth: 200).padding(10).padding(.leading, 30)
                 VStack(alignment: .leading) {
                     // apparently HDR requires Apple Silicon -- https://github.com/xamarin/xamarin-macios/wiki/ScreenCaptureKit-macOS-xcode16.0-b1/89fe4157b4a46303192fa11d3db775baf0c9a543
                     // will throw an invalid configuration error when attempted on intel
@@ -127,6 +142,13 @@ struct Preferences: View {
                     }
                 }.frame(maxWidth: .infinity).padding([.leading, .trailing, .bottom], 10)
             }.padding(10)
+        }
+
+        func deviceSupportsNonKoraiHEVC() -> Bool {
+            if #available(macOS 15, *) {
+                return SCRecordingOutputConfiguration().availableVideoCodecTypes.contains(.hevc)
+            }
+            return false
         }
     }
 
