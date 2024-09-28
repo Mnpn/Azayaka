@@ -85,7 +85,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
 
                 Preferences.kUpdateCheck: true,
                 Preferences.kCountdownSecs: 0,
-                Preferences.kUseKorai: ProcessInfo.processInfo.operatingSystemVersion.majorVersion < 15 // sequoia
+                Preferences.kUseKorai: ProcessInfo.processInfo.operatingSystemVersion.majorVersion < 15 // ventura & sequoia
             ]
         )
         // create a menu bar item

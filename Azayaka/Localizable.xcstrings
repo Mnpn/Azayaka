@@ -293,13 +293,13 @@
         }
       }
     },
-    "Couldn't start the recording:\n“%@”\n\nIt is possible that the recording settings, such as HDR or the encoder, are not compatible with your device." : {
+    "Couldn't start the recording:\n“%@”\n\nIt is possible that the recording settings, such as HDR or the encoder, are not compatible with your device.\n\nPlease check Azayaka's preferences." : {
       "extractionState" : "manual",
       "localizations" : {
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kunde inte starta inspelningen:\n”%@”\n\nDet är möjligt att inspelningsinställningarna (som HDR eller enkodaren) ej är kompatibla med din enhet."
+            "value" : "Kunde inte starta inspelningen:\n”%@”\n\nDet är möjligt att inspelningsinställningarna (som HDR eller enkodaren) ej är kompatibla med din enhet.\n\nVänligen kolla Azayakas inställningar."
           }
         }
       }
@@ -687,12 +687,13 @@
     "https://mnpn.dev" : {
       "shouldTranslate" : false
     },
-    "It appears that your device might not support H.265 with Apple's recorder. You may have to switch to the legacy recorder found in the \"Other\" tab to encode H.265." : {
+    "It appears that your device might not support %@ with Apple's recorder. You may have to switch to the legacy recorder, found in the \"Other\" tab, to use %@." : {
+      "extractionState" : "manual",
       "localizations" : {
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Det verkar som att din enhet nog inte stödjer H.265-enkodning med Apples inspelare. Du kanske måste byta till den äldre inspelaren som finns i “Övrigt”-fliken för att använda H.265."
+            "value" : "Det verkar som att din enhet nog inte stödjer %@-enkodning med Apples inspelare. Du kanske måste byta till den äldre inspelaren som finns i “Övrigt”-fliken för att använda %@."
           }
         }
       }
@@ -915,6 +916,7 @@
       }
     },
     "Open Settings" : {
+      "comment" : "(System Settings)",
       "extractionState" : "manual",
       "localizations" : {
         "sv" : {

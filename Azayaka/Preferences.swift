@@ -100,11 +100,13 @@ struct Preferences: View {
                         Text("MP4").tag(VideoFormat.mp4)
                     }.padding(.trailing, 25)
                     HStack {
+                        let codec = encoder == .h264 ? AVVideoCodecType.h264 : AVVideoCodecType.hevc
+                        let encoderName = encoder == .h264 ? "H.264" : "H.265"
                         Picker("Encoder", selection: $encoder) {
                             Text("H.264").tag(Encoder.h264)
                             Text("H.265").tag(Encoder.h265)
-                        }.padding(.trailing, encoder == .h265 && !useLegacyRecorder && !deviceSupportsNonKoraiHEVC() ? 0 : 25)
-                        if #available(macOS 15, *), encoder == .h265 && !useLegacyRecorder && !deviceSupportsNonKoraiHEVC() {
+                        }.padding(.trailing, !useLegacyRecorder && !deviceSupportsNonKoraiEncoder(codec) ? 0 : 25)
+                        if #available(macOS 15, *), !useLegacyRecorder && !deviceSupportsNonKoraiEncoder(codec) {
                             // This is truly awful.
                             // For some reason my Intel Mac does not show H.265 as an available video codec when using SCRecordingOutputConfiguration.
                             // I don't know why. Apple's sample code and demos show both H.264 and H.265 as available. I guess it might be the same as
@@ -113,7 +115,7 @@ struct Preferences: View {
                             // could only list available ones (e.g. ["H.264", "H.264 (Legacy)", "H.265 (Legacy)"]), but I don't want to break UserDefaults/tags
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .foregroundColor(.yellow)
-                                .help(Text("It appears that your device might not support H.265 with Apple's recorder. You may have to switch to the legacy recorder found in the \"Other\" tab to use H.265."))
+                                .help(Text(String(format: "It appears that your device might not support %@ with Apple's recorder. You may have to switch to the legacy recorder, found in the \"Other\" tab, to use %@.".local, encoderName, encoderName)))
                         }
                     }
                 }.frame(maxWidth: 200).padding(10).padding(.leading, 30)
@@ -144,9 +146,9 @@ struct Preferences: View {
             }.padding(10)
         }
 
-        func deviceSupportsNonKoraiHEVC() -> Bool {
+        func deviceSupportsNonKoraiEncoder(_ encoder: AVVideoCodecType) -> Bool {
             if #available(macOS 15, *) {
-                return SCRecordingOutputConfiguration().availableVideoCodecTypes.contains(.hevc)
+                return SCRecordingOutputConfiguration().availableVideoCodecTypes.contains(encoder)
             }
             return false
         }
