@@ -29,6 +29,14 @@ extension AppDelegate: NSMenuDelegate {
             menu.addItem(NSMenuItem(title: "Stop Recording".local, action: #selector(stopRecording), keyEquivalent: ""))
             menu.addItem(NSMenuItem.separator())
             menu.addItem(info)
+
+            // while recording, keep a timer which updates the menu's stats
+            updateTimer?.invalidate()
+            updateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+                self.updateMenu()
+            }
+            RunLoop.current.add(updateTimer!, forMode: .common) // required to have the menu update while open
+            updateTimer?.fire()
         } else {
             menu.addItem(header("Audio-only".local))
 

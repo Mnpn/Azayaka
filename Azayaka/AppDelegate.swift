@@ -82,6 +82,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
 
                 Preferences.kFileName: "Recording at %t".local,
                 Preferences.kSaveDirectory: saveDirectory,
+                Preferences.kAutoClipboard: false,
 
                 Preferences.kUpdateCheck: true,
                 Preferences.kCountdownSecs: 0,
@@ -163,6 +164,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                 default: return
             }
         }
+    }
+
+    func copyToClipboard(_ content: [any NSPasteboardWriting]) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.writeObjects(content)
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {

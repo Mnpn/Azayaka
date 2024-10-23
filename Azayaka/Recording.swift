@@ -52,21 +52,16 @@ extension AppDelegate {
                 return
             }
             allowShortcuts(false)
-            DispatchQueue.main.async { [self] in
-                if streamType == .systemaudio { // this creates the file, so make sure this happens after the countdown
-                    prepareAudioRecording()
+            if streamType == .systemaudio { // this creates the file, so make sure this happens after the countdown
+                do {
+                    try prepareAudioRecording()
+                } catch {
+                    stopRecording(withError: true)
+                    return
                 }
             }
             await record(audioOnly: streamType == .systemaudio, filter: contentFilter!)
         }
-
-        // while recording, keep a timer which updates the menu's stats
-        updateTimer?.invalidate()
-        updateTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            self.updateMenu()
-        }
-        RunLoop.current.add(updateTimer!, forMode: .common) // required to have the menu update while open
-        updateTimer?.fire()
     }
 
     @objc func stopCountdown() { CountdownManager.shared.finishCountdown(startRecording: false) }
@@ -142,36 +137,37 @@ extension AppDelegate {
     }
 
     @objc func stopRecording(withError: Bool = false) {
-        statusItem.menu = nil
-
-        if stream != nil {
-            stream.stopCapture()
-            stream = nil
-        }
-
-        if useLegacyRecorder {
-            startTime = nil
-            if streamType != .systemaudio {
-                closeVideo()
-            }
-        } else {
-            recordingOutput = nil
-        }
-        streamType = nil
-        audioFile = nil // close audio file
-        window = nil
-        screen = nil
-        
-        updateTimer?.invalidate()
-
         DispatchQueue.main.async { [self] in
+            statusItem.menu = nil
+
+            if stream != nil {
+                stream.stopCapture()
+                stream = nil
+            }
+
+            if useLegacyRecorder {
+                startTime = nil
+                if streamType != .systemaudio {
+                    closeVideo()
+                }
+            } else {
+                recordingOutput = nil
+            }
+            streamType = nil
+            audioFile = nil // close audio file
+            window = nil
+            screen = nil
+
+            updateTimer?.invalidate()
+
             updateIcon()
             createMenu()
-        }
 
-        allowShortcuts(true)
-        if !withError {
-            sendRecordingFinishedNotification()
+            allowShortcuts(true)
+            if !withError {
+                sendRecordingFinishedNotification()
+                copyToClipboard([NSURL(fileURLWithPath: filePath)])
+            }
         }
     }
 
@@ -194,17 +190,29 @@ extension AppDelegate {
         }
     }
 
-    func prepareAudioRecording() {
+    func prepareAudioRecording() throws {
         var fileEnding = ud.string(forKey: Preferences.kAudioFormat) ?? "wat"
         switch fileEnding { // todo: I'd like to store format info differently
-            case AudioFormat.aac.rawValue: fallthrough
-            case AudioFormat.alac.rawValue: fileEnding = "m4a"
-            case AudioFormat.flac.rawValue: fileEnding = "flac"
-            case AudioFormat.opus.rawValue: fileEnding = "ogg"
-            default: assertionFailure("loaded unknown audio format: ".local + fileEnding)
+        case AudioFormat.aac.rawValue: fallthrough
+        case AudioFormat.alac.rawValue: fileEnding = "m4a"
+        case AudioFormat.flac.rawValue: fileEnding = "flac"
+        case AudioFormat.opus.rawValue: fileEnding = "ogg"
+        default: assertionFailure("loaded unknown audio format: ".local + fileEnding)
         }
         filePath = "\(getFilePath()).\(fileEnding)"
-        audioFile = try! AVAudioFile(forWriting: URL(fileURLWithPath: filePath), settings: audioSettings, commonFormat: .pcmFormatFloat32, interleaved: false)
+        do {
+            audioFile = try AVAudioFile(forWriting: URL(fileURLWithPath: filePath), settings: audioSettings, commonFormat: .pcmFormatFloat32, interleaved: false)
+        } catch {
+            DispatchQueue.main.async {
+                let alert = NSAlert()
+                alert.messageText = "Couldn't initialise the audio file!".local
+                alert.informativeText = error.localizedDescription
+                alert.addButton(withTitle: "Okay".local)
+                alert.alertStyle = .critical
+                alert.runModal()
+            }
+            throw error
+        }
     }
 
     func getFilePath() -> String {

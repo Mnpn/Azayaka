@@ -13,15 +13,20 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         let un = UNUserNotificationCenter.current()
         un.requestAuthorization(options: [.alert]) { [self] (authorised, error) in
             if authorised {
+                let autoCopy = ud.bool(forKey: Preferences.kAutoClipboard)
                 let content = UNMutableNotificationContent()
-                content.title = "Recording Completed".local
+                content.title = autoCopy ? "Recording Completed and Copied".local : "Recording Completed".local
                 if let filePath = filePath {
                     content.body = String(format: "File saved to: %@".local, filePath)
                     content.userInfo = ["recordingFilePath" : filePath] // if we don't have the file path we should not be attempting to trash anything, so don't even include the userInfo if not
 
                     // add the "move to trash" action button
                     let trashButton = UNNotificationAction(identifier: "moveRecordingToTrash", title: "Move to Trash".local, options: .destructive)
-                    let notificationCategory = UNNotificationCategory(identifier: "recordingFinished", actions: [trashButton], intentIdentifiers: [])
+                    let copyButton = UNNotificationAction(identifier: "copyRecordingToClipboard", title: "Copy to Clipboard".local, options: .destructive)
+                    let notificationCategory = UNNotificationCategory(
+                        identifier: "recordingFinished",
+                        actions: autoCopy ? [trashButton] : [trashButton, copyButton],
+                        intentIdentifiers: [])
                     un.setNotificationCategories([notificationCategory])
                 } else {
                     content.body = String(format: "File saved to folder: %@".local, ud.string(forKey: Preferences.kSaveDirectory)!)
@@ -51,6 +56,9 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
                 } catch {
                     print("Attempt at moving recording to trash failed: \(error.localizedDescription)")
                 }
+                break
+            case "copyRecordingToClipboard":
+                copyToClipboard([NSURL(fileURLWithPath: recordingFilePath)])
                 break
             default: // focus finder and select file
                 NSWorkspace.shared.selectFile(URL(fileURLWithPath: recordingFilePath).path, inFileViewerRootedAtPath: "")

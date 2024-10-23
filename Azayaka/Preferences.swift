@@ -29,6 +29,7 @@ struct Preferences: View {
 
     static let kFileName        = "outputFileName"
     static let kSaveDirectory   = "saveDirectory"
+    static let kAutoClipboard   = "autoCopyToClipboard"
 
     static let kUpdateCheck     = "updateCheck"
     static let kCountdownSecs   = "countDown"
@@ -75,8 +76,8 @@ struct Preferences: View {
         @State private var hoveringWarning: Bool = false
 
         var body: some View {
-            GroupBox() {
-                Form() {
+            GroupBox {
+                Form {
                     Picker("FPS", selection: $frameRate) {
                         Text("60").tag(60)
                         Text("30").tag(30)
@@ -160,9 +161,9 @@ struct Preferences: View {
         @AppStorage(kRecordMic)    private var recordMic: Bool = false
 
         var body: some View {
-            GroupBox() {
-                VStack() {
-                    Form() {
+            GroupBox {
+                VStack {
+                    Form {
                         Picker("Format", selection: $audioFormat) {
                             Text("AAC").tag(AudioFormat.aac)
                             Text("ALAC (Lossless)").tag(AudioFormat.alac)
@@ -183,7 +184,7 @@ struct Preferences: View {
                         .font(.footnote).foregroundColor(Color.gray)
                 }.padding([.top, .leading, .trailing], 10)
                 Spacer(minLength: 5)
-                VStack() {
+                VStack {
                     if #available(macOS 14, *) { // apparently they changed onChange in Sonoma
                         Toggle(isOn: $recordMic) {
                             Text("Record microphone")
@@ -227,19 +228,20 @@ struct Preferences: View {
     struct OutputSettings: View {
         @AppStorage(kFileName)      private var fileName: String = "Recording at %t"
         @AppStorage(kSaveDirectory) private var saveDirectory: String?
+        @AppStorage(kAutoClipboard) private var autoClipboard: Bool = false
         @State private var fileNameLength = 0
         private let dateFormatter = DateFormatter()
 
         var body: some View {
-            VStack() {
-                GroupBox() {
-                    VStack() {
-                        Form() {
+            VStack {
+                GroupBox {
+                    VStack {
+                        Form {
                             TextField("File name", text: $fileName).frame(maxWidth: 250)
                                 .onChange(of: fileName) { newText in
                                     fileNameLength = getFileNameLength(newText)
                                 }
-                                .onAppear() {
+                                .onAppear {
                                     dateFormatter.dateFormat = "y-MM-dd HH.mm.ss"
                                     fileNameLength = getFileNameLength(fileName)
                                 }
@@ -249,13 +251,22 @@ struct Preferences: View {
                             .font(.subheadline).foregroundColor(Color.gray)
                     }.padding(10).frame(maxWidth: .infinity)
                 }.padding([.top, .leading, .trailing], 10)
-                GroupBox() {
-                    VStack(spacing: 2) {
-                        Button("Select output directory", action: updateOutputDirectory)
-                        Text(String(format: "Currently set to \"%@\"".local, (saveDirectory != nil) ? URL(fileURLWithPath: saveDirectory!).lastPathComponent : "an unknown path - please set a new one"))
-                            .font(.subheadline).foregroundColor(Color.gray)
+                GroupBox {
+                    VStack(spacing: 15) {
+                        VStack(spacing: 2) {
+                            Button("Select output directory", action: updateOutputDirectory)
+                            Text(String(format: "Currently set to \"%@\"".local, (saveDirectory != nil) ? URL(fileURLWithPath: saveDirectory!).lastPathComponent : "an unknown path - please set a new one"))
+                                .font(.subheadline).foregroundColor(Color.gray)
+                        }
+                        VStack {
+                            Toggle(isOn: $autoClipboard) {
+                                Text("Automatically copy recordings to clipboard")
+                            }
+                            Text("If not done automatically, recordings can still be copied from notifications.")
+                                .font(.subheadline).foregroundColor(Color.gray)
+                        }
                     }.padding(10).frame(maxWidth: .infinity)
-                }.padding([.bottom, .leading, .trailing], 10)
+                }.padding([.leading, .trailing, .bottom], 10)
             }.onTapGesture {
                 DispatchQueue.main.async { // because the textfield likes focus..
                     NSApp.keyWindow?.makeFirstResponder(nil)
@@ -286,9 +297,9 @@ struct Preferences: View {
             ("Record focused window".local, .recordCurrentWindow)
         ]
         var body: some View {
-            VStack() {
-                GroupBox() {
-                    Form() {
+            VStack {
+                GroupBox {
+                    Form {
                         ForEach(shortcut, id: \.1) { shortcut in
                             KeyboardShortcuts.Recorder(shortcut.0, name: shortcut.1).padding([.leading, .trailing], 10).padding(.bottom, 4)
                         }
@@ -315,7 +326,7 @@ struct Preferences: View {
 
         var body: some View {
             VStack {
-                GroupBox() {
+                GroupBox {
                     VStack(alignment: .leading) {
                         Toggle(isOn: $launchAtLogin) {
                             Text("Launch at login")
@@ -337,9 +348,9 @@ struct Preferences: View {
                     Text("Azayaka will check [GitHub](https://github.com/Mnpn/Azayaka/releases) for new updates.")
                         .font(.footnote).foregroundColor(Color.gray).frame(maxWidth: .infinity).padding([.bottom, .leading, .trailing], 10)
                 }.padding([.top, .leading, .trailing], 10)
-                GroupBox() {
-                    VStack() {
-                        Form() {
+                GroupBox {
+                    VStack {
+                        Form {
                             TextField("Countdown", value: $countDown, formatter: numberFormatter)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .padding([.leading, .trailing], 10)
@@ -348,7 +359,7 @@ struct Preferences: View {
                             .font(.subheadline).foregroundColor(Color.gray)
                     }.padding(10).frame(maxWidth: .infinity)
                 }.padding([.leading, .trailing], 10)
-                GroupBox() {
+                GroupBox {
                     if #available(macOS 15, *) {
                         VStack(alignment: .leading) {
                             Toggle(isOn: $useLegacyRecorder) {
