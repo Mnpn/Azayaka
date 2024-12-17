@@ -48,10 +48,8 @@ extension AppDelegate: SCRecordingOutputDelegate {
     }
 
     func closeVideo() {
-        let dispatchGroup = DispatchGroup()
-        dispatchGroup.enter()
-        vwInput.markAsFinished()
-        awInput.markAsFinished()
+        vwInput?.markAsFinished()
+        awInput?.markAsFinished()
         if recordMic {
             micInput.markAsFinished()
             if #unavailable(macOS 15) {
@@ -59,11 +57,9 @@ extension AppDelegate: SCRecordingOutputDelegate {
                 audioEngine.stop()
             }
         }
-        vW.finishWriting {
+        vW?.finishWriting {
             self.startTime = nil
-            dispatchGroup.leave()
         }
-        dispatchGroup.wait()
     }
 
     func stream(_ stream: SCStream, didStopWithError error: Error) { // stream error

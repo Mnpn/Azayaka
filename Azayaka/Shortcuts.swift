@@ -30,6 +30,7 @@ final class AppState: ObservableObject {
         appDelegate.allowShortcuts(false)
         guard CountdownManager.shared.timer == nil else { // cancel a countdown if in progress
             CountdownManager.shared.finishCountdown(startRecording: false)
+            appDelegate.allowShortcuts(true)
             return
         }
         if appDelegate.stream == nil {

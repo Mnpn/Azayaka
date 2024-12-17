@@ -149,6 +149,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     }
 
     func requestPermissions() {
+        allowShortcuts(false)
         DispatchQueue.main.async {
             let alert = NSAlert()
             alert.messageText = "Azayaka needs permissions!".local
@@ -163,6 +164,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                 case .alertThirdButtonReturn: NSApp.terminate(self)
                 default: return
             }
+            self.allowShortcuts(true)
         }
     }
 

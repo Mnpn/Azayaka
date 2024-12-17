@@ -121,6 +121,7 @@ extension AppDelegate {
                 startTime = Date.now
             }
             try await stream.startCapture()
+            allowShortcuts(true)
         } catch {
             alertRecordingFailure(error)
             stream = nil
@@ -132,8 +133,6 @@ extension AppDelegate {
             updateIcon()
             createMenu()
         }
-
-        allowShortcuts(true)
     }
 
     @objc func stopRecording(withError: Bool = false) {
@@ -163,8 +162,8 @@ extension AppDelegate {
             updateIcon()
             createMenu()
 
-            allowShortcuts(true)
             if !withError {
+                allowShortcuts(true)
                 sendRecordingFinishedNotification()
                 copyToClipboard([NSURL(fileURLWithPath: filePath)])
             }
@@ -273,6 +272,7 @@ extension AppDelegate {
     }
     
     func alertRecordingFailure(_ error: Error) {
+        allowShortcuts(false)
         DispatchQueue.main.async {
             let alert = NSAlert()
             alert.messageText = "Capture failed!".local
@@ -280,6 +280,7 @@ extension AppDelegate {
             alert.addButton(withTitle: "Okay".local)
             alert.alertStyle = .critical
             alert.runModal()
+            self.allowShortcuts(true)
         }
     }
 }
