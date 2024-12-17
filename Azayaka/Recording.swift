@@ -145,13 +145,13 @@ extension AppDelegate {
                 stream = nil
             }
 
-            if useLegacyRecorder {
+            if useSystemRecorder {
+                recordingOutput = nil
+            } else {
                 startTime = nil
                 if streamType != .systemaudio {
                     closeVideo()
                 }
-            } else {
-                recordingOutput = nil
             }
             streamType = nil
             audioFile = nil // close audio file
@@ -242,7 +242,7 @@ extension AppDelegate {
         formatter.zeroFormattingBehavior = .pad
         formatter.unitsStyle = .positional
         //if self.streamType == nil { self.startTime = nil }
-        if useLegacyRecorder || streamType == .systemaudio {
+        if !useSystemRecorder || streamType == .systemaudio {
             return formatter.string(from: Date.now.timeIntervalSince(startTime ?? Date.now)) ?? "Unknown".local
         } else if #available(macOS 15, *) {
             if let recOut = (recordingOutput as? SCRecordingOutput) {
@@ -257,7 +257,7 @@ extension AppDelegate {
         let byteFormat = ByteCountFormatter()
         byteFormat.allowedUnits = [.useMB]
         byteFormat.countStyle = .file
-        if useLegacyRecorder || streamType == .systemaudio {
+        if !useSystemRecorder || streamType == .systemaudio {
             do {
                 if let filePath = filePath {
                     let fileAttr = try FileManager.default.attributesOfItem(atPath: filePath)

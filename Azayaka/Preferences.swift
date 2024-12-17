@@ -33,7 +33,7 @@ struct Preferences: View {
 
     static let kUpdateCheck     = "updateCheck"
     static let kCountdownSecs   = "countDown"
-    static let kUseKorai        = "useLegacyRecorder"
+    static let kSystemRecorder  = "useSystemRecorder"
 
     var body: some View {
         VStack {
@@ -72,7 +72,7 @@ struct Preferences: View {
         @AppStorage(kFrontApp)          private var frontApp: Bool = false
         @AppStorage(kShowMouse)         private var showMouse: Bool = true
 
-        @AppStorage(kUseKorai)          private var useLegacyRecorder: Bool = false
+        @AppStorage(kSystemRecorder)    private var useSystemRecorder: Bool = false
         @State private var hoveringWarning: Bool = false
 
         var body: some View {
@@ -89,7 +89,7 @@ struct Preferences: View {
                         Text("Auto").tag(true)
                         Text("Low (1x)").tag(false)
                     }.padding(.trailing, 25)
-                    if useLegacyRecorder {
+                    if !useSystemRecorder {
                         Picker("Quality", selection: $videoQuality) {
                             Text("Low").tag(0.3)
                             Text("Medium").tag(0.7)
@@ -106,8 +106,8 @@ struct Preferences: View {
                         Picker("Encoder", selection: $encoder) {
                             Text("H.264").tag(Encoder.h264)
                             Text("H.265").tag(Encoder.h265)
-                        }.padding(.trailing, !useLegacyRecorder && !deviceSupportsNonKoraiEncoder(codec) ? 0 : 25)
-                        if #available(macOS 15, *), !useLegacyRecorder && !deviceSupportsNonKoraiEncoder(codec) {
+                        }.padding(.trailing, useSystemRecorder && !deviceSupportsNonKoraiEncoder(codec) ? 0 : 25)
+                        if #available(macOS 15, *), useSystemRecorder && !deviceSupportsNonKoraiEncoder(codec) {
                             // This is truly awful.
                             // For some reason my Intel Mac does not show H.265 as an available video codec when using SCRecordingOutputConfiguration.
                             // I don't know why. Apple's sample code and demos show both H.264 and H.265 as available. I guess it might be the same as
@@ -116,7 +116,7 @@ struct Preferences: View {
                             // could only list available ones (e.g. ["H.264", "H.264 (Legacy)", "H.265 (Legacy)"]), but I don't want to break UserDefaults/tags
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .foregroundColor(.yellow)
-                                .help(Text(String(format: "It appears that your device might not support %@ with Apple's recorder. You may have to switch to the legacy recorder, found in the \"Other\" tab, to use %@.".local, encoderName, encoderName)))
+                                .help(Text(String(format: "It appears that your device might not support %@ with Apple's recorder. You may have to switch back to the default recorder, found in the \"Other\" tab, to use %@.".local, encoderName, encoderName)))
                         }
                     }
                 }.frame(maxWidth: 200).padding(10).padding(.leading, 30)
@@ -156,14 +156,16 @@ struct Preferences: View {
     }
 
     struct AudioSettings: View {
-        @AppStorage(kAudioFormat)  private var audioFormat: AudioFormat = .aac
-        @AppStorage(kAudioQuality) private var audioQuality: AudioQuality = .high
-        @AppStorage(kRecordMic)    private var recordMic: Bool = false
+        @AppStorage(kAudioFormat)    private var audioFormat: AudioFormat = .aac
+        @AppStorage(kAudioQuality)   private var audioQuality: AudioQuality = .high
+        @AppStorage(kRecordMic)      private var recordMic: Bool = false
+        @AppStorage(kSystemRecorder) private var usingSystemRecorder: Bool = false
 
         var body: some View {
             GroupBox {
                 VStack {
                     Form {
+                        let isLossless = audioFormat == .alac || audioFormat == .flac
                         Picker("Format", selection: $audioFormat) {
                             Text("AAC").tag(AudioFormat.aac)
                             Text("ALAC (Lossless)").tag(AudioFormat.alac)
@@ -171,16 +173,18 @@ struct Preferences: View {
                             Text("Opus").tag(AudioFormat.opus)
                         }.padding([.leading, .trailing], 10)
                         Picker("Quality", selection: $audioQuality) {
-                            if audioFormat == .alac || audioFormat == .flac {
+                            if isLossless {
                                 Text("Lossless").tag(audioQuality)
                             }
                             Text("Normal - 128Kbps").tag(AudioQuality.normal)
                             Text("Good - 192Kbps").tag(AudioQuality.good)
                             Text("High - 256Kbps").tag(AudioQuality.high)
                             Text("Extreme - 320Kbps").tag(AudioQuality.extreme)
-                        }.padding([.leading, .trailing], 10).disabled(audioFormat == .alac || audioFormat == .flac)
+                        }.padding([.leading, .trailing], 10).disabled(isLossless)
                     }.frame(maxWidth: 250)
-                    Text("These settings are also used when recording video. If set to Opus, MP4 will fall back to AAC.")
+                    Text(usingSystemRecorder
+                         ? "When using the system recorder, these settings only apply to audio-only recordings. Screen recordings will always be 128Kbps AAC."
+                         : "These settings are also used when recording video. If set to Opus, MP4 will fall back to AAC.")
                         .font(.footnote).foregroundColor(Color.gray)
                 }.padding([.top, .leading, .trailing], 10)
                 Spacer(minLength: 5)
@@ -198,7 +202,7 @@ struct Preferences: View {
                             Task { await performMicCheck() }
                         }
                     }
-                    Text("Doesn't apply to system audio-only recordings. Uses the currently set input device. When using the legacy recorder, this will be written as a separate audio track.")
+                    Text("Doesn't apply to system audio-only recordings. Uses the currently set input device. When not using the system recorder, this will be written as a separate audio track.")
                         .font(.footnote).foregroundColor(Color.gray)
                 }.frame(maxWidth: .infinity).padding(10)
             }.onAppear {
@@ -262,8 +266,6 @@ struct Preferences: View {
                             Toggle(isOn: $autoClipboard) {
                                 Text("Automatically copy recordings to clipboard")
                             }
-                            Text("If not done automatically, recordings can still be copied from notifications.")
-                                .font(.subheadline).foregroundColor(Color.gray)
                         }
                     }.padding(10).frame(maxWidth: .infinity)
                 }.padding([.leading, .trailing, .bottom], 10)
@@ -303,8 +305,9 @@ struct Preferences: View {
                         ForEach(shortcut, id: \.1) { shortcut in
                             KeyboardShortcuts.Recorder(shortcut.0, name: shortcut.1).padding([.leading, .trailing], 10).padding(.bottom, 4)
                         }
-                    }.frame(alignment: .center).padding([.leading, .trailing], 2).padding(.top, 10)
-                    Text("Recordings can be stopped with the same shortcut.").font(.subheadline).foregroundColor(Color.gray).padding(.bottom, 10)
+                    }.frame(alignment: .center).padding([.leading, .trailing], 2).padding(.top, 10).frame(maxWidth: .infinity)
+                    Text("Recordings can be stopped with the same shortcut.")
+                        .font(.subheadline).foregroundColor(Color.gray).padding(.bottom, 10)
                 }.padding(10)
             }
         }
@@ -312,9 +315,9 @@ struct Preferences: View {
     
     struct OtherSettings: View {
         @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
-        @AppStorage(kUpdateCheck)   private var updateCheck: Bool = true
-        @AppStorage(kCountdownSecs) private var countDown: Int = 0
-        @AppStorage(kUseKorai)      private var useLegacyRecorder: Bool = false
+        @AppStorage(kUpdateCheck)    private var updateCheck: Bool = true
+        @AppStorage(kCountdownSecs)  private var countDown: Int = 0
+        @AppStorage(kSystemRecorder) private var useSystemRecorder: Bool = false
 
         private var numberFormatter: NumberFormatter {
             let formatter = NumberFormatter()
@@ -362,22 +365,22 @@ struct Preferences: View {
                 GroupBox {
                     if #available(macOS 15, *) {
                         VStack(alignment: .leading) {
-                            Toggle(isOn: $useLegacyRecorder) {
-                                Text("Use legacy recorder")
+                            Toggle(isOn: $useSystemRecorder) {
+                                Text("Use system recorder")
                             }
                         }.padding([.top, .leading, .trailing], 10)
-                        Text("Since macOS Sequoia, Azayaka can use Apple's provided recorder. Select this if you want Azayaka to use its own recorder instead.")
+                        Text("Since macOS Sequoia, Azayaka can use Apple's provided recorder instead of its own. Try it if Azayaka's recorder has issues for you.\n- It has a fixed audio quality of 128Kbps AAC.\n- Audio-only recordings will always use Azayaka's recorder regardless of this setting.")
                             .font(.footnote).foregroundColor(Color.gray).frame(maxWidth: .infinity).padding([.bottom, .leading, .trailing], 10)
                     } else {
                         VStack(alignment: .leading) {
-                            Toggle(isOn: .constant(true)) {
-                                Text("Use legacy recorder")
+                            Toggle(isOn: .constant(false)) {
+                                Text("Use system recorder")
                             }.disabled(true)
                         }.padding([.top, .leading, .trailing], 10)
-                        Text("Using Apple's recorder instead of Azayaka's own (\"legacy\") requires macOS Sequoia or newer.")
+                        Text("Using Apple's recorder instead of Azayaka's own requires macOS Sequoia or newer.")
                             .font(.footnote).foregroundColor(Color.gray).frame(maxWidth: .infinity).padding([.bottom, .leading, .trailing], 10)
                     }
-                }.padding([.bottom, .leading, .trailing], 10)
+                }.padding([.leading, .trailing], 10)
                 HStack {
                     Text("Azayaka \(getVersion()) (\(getBuild()))").foregroundColor(Color.secondary)
                     Spacer()

@@ -25,8 +25,8 @@ extension AppDelegate: SCRecordingOutputDelegate {
             default: assertionFailure("loaded unknown video format: \(fileEnding)".local)
         }
         filePath = "\(getFilePath()).\(fileEnding)"
-        useLegacyRecorder = ud.bool(forKey: Preferences.kUseKorai)
-        if #available(macOS 15.0, *), !useLegacyRecorder { // sequoia+, write using SCK if desired
+        useSystemRecorder = ud.bool(forKey: Preferences.kSystemRecorder)
+        if #available(macOS 15.0, *), useSystemRecorder { // sequoia+, write using SCK if desired
             let output = SCRecordingOutputConfiguration()
             output.outputURL = URL(fileURLWithPath: filePath)
             output.outputFileType = fileType
@@ -42,7 +42,7 @@ extension AppDelegate: SCRecordingOutputDelegate {
                 return false
             }
         } else { // ventura & sonoma, always write using AVAssetWriter
-            initLegacyRecorder(conf: conf, encoder: encoder, filePath: filePath, fileType: fileType!)
+            initClassicRecorder(conf: conf, encoder: encoder, filePath: filePath, fileType: fileType!)
         }
         return true
     }

@@ -1,5 +1,5 @@
 //
-//  LegacyRecording.swift
+//  ClassicProcessing.swift
 //  Azayaka
 //
 //  Created by Martin Persson on 2024-08-08.
@@ -7,12 +7,12 @@
 
 import ScreenCaptureKit
 
-// This file contains code related to the "old" recorder, which I've dubbed "Korai".
-// It uses an AVAssetWriter instead of the ScreenCaptureKit recorder found in macOS Sequoia.
+// This file contains code related to the "classic" recorder. It uses an
+// AVAssetWriter instead of the ScreenCaptureKit recorder found in macOS Sequoia.
 // System audio-only recording still uses this.
 
 extension AppDelegate {
-    func initLegacyRecorder(conf: SCStreamConfiguration, encoder: AVVideoCodecType, filePath: String, fileType: AVFileType) {
+    func initClassicRecorder(conf: SCStreamConfiguration, encoder: AVVideoCodecType, filePath: String, fileType: AVFileType) {
         startTime = nil
 
         vW = try? AVAssetWriter.init(outputURL: URL(fileURLWithPath: filePath), fileType: fileType)
@@ -50,8 +50,8 @@ extension AppDelegate {
                 vW.add(micInput)
             }
         }
-        
-        // on macOS 15, korai will handle mic recording directly with SCK + AVAssetWriter
+
+        // on macOS 15, the system recorder will handle mic recording directly with SCK + AVAssetWriter
         if #unavailable(macOS 15), recordMic {
             let input = audioEngine.inputNode
             input.installTap(onBus: 0, bufferSize: 1024, format: input.inputFormat(forBus: 0)) { [self] (buffer, time) in
@@ -61,13 +61,13 @@ extension AppDelegate {
             }
             try! audioEngine.start()
         }
-            
+
         vW.startWriting()
     }
     
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of outputType: SCStreamOutputType) {
-        guard (streamType == .systemaudio || useLegacyRecorder) && sampleBuffer.isValid else { return }
-        
+        guard (streamType == .systemaudio || !useSystemRecorder) && sampleBuffer.isValid else { return }
+
         switch outputType {
             case .screen:
                 if screen == nil && window == nil { break }

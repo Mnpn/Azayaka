@@ -445,13 +445,12 @@
         }
       }
     },
-    "Doesn't apply to system audio-only recordings. Uses the currently set input device. When using the legacy recorder, this will be written as a separate audio track." : {
-      "extractionState" : "manual",
+    "Doesn't apply to system audio-only recordings. Uses the currently set input device. When not using the system recorder, this will be written as a separate audio track." : {
       "localizations" : {
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gäller inte för systemljudsinspelningar. Den valda input-enheten används. Om den äldre inspelaren används kommer detta att skrivas till ett sekundärt ljudspår."
+            "value" : "Gäller inte för systemljudsinspelningar. Den valda input-enheten används. Om systemets inspelare inte används kommer detta att skrivas till ett sekundärt ljudspår."
           }
         }
       }
@@ -707,16 +706,6 @@
     },
     "https://mnpn.dev" : {
       "shouldTranslate" : false
-    },
-    "If not done automatically, recordings can still be copied from notifications." : {
-      "localizations" : {
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Det går att kopiera sparade filer från notiser när detta är avstängt."
-          }
-        }
-      }
     },
     "It appears that your device might not support %@ with Apple's recorder. You may have to switch to the legacy recorder, found in the \"Other\" tab, to use %@." : {
       "extractionState" : "manual",
@@ -1277,6 +1266,16 @@
         }
       }
     },
+    "Since macOS Sequoia, Azayaka can use Apple's provided recorder instead of its own. Try it if Azayaka's recorder has issues for you.\n- It has a fixed audio quality of 128Kbps AAC.\n- Audio-only recordings will always use Azayaka's recorder regardless of this setting." : {
+      "localizations" : {
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sedan macOS Sequoia kan Azayaka använda Apples inspelare istället för sin egna. Välj detta om du har problem med Azayakas egna inspelare.\n- Den har en låst ljudkvalitet, 128Kbps AAC.\n- Systemljudsinspelningar kommer alltid att använda Azayakas inspelare oavsett."
+          }
+        }
+      }
+    },
     "Since macOS Sequoia, Azayaka can use Apple's provided recorder. Select this if you want Azayaka to use its own recorder instead." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1418,23 +1417,22 @@
         }
       }
     },
-    "Use legacy recorder" : {
-      "extractionState" : "manual",
+    "Use system recorder" : {
       "localizations" : {
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Använd äldre inspelare"
+            "value" : "Använd systemets inspelare"
           }
         }
       }
     },
-    "Using Apple's recorder instead of Azayaka's own (\"legacy\") requires macOS Sequoia or newer." : {
+    "Using Apple's recorder instead of Azayaka's own requires macOS Sequoia or newer." : {
       "localizations" : {
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Användning av Apples inspelare istället för Azayakas egna (\"äldre\") kräver macOS Sequoia eller senare."
+            "value" : "Användning av Apples inspelare istället för Azayakas egna kräver macOS Sequoia eller senare."
           }
         }
       }
@@ -1452,6 +1450,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "视频"
+          }
+        }
+      }
+    },
+    "When using the system recorder, these settings only apply to audio-only recordings. Screen recordings will always be 128Kbps AAC." : {
+      "localizations" : {
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "När du använder systemets inspelare kommer dessa inställningar endast att gälla för systemljudsinspelningar. Skärminspelningar kommer alltid att vara 128Kbps AAC."
           }
         }
       }

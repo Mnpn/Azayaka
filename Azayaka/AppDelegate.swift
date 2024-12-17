@@ -49,7 +49,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     let ud = UserDefaults.standard
     let UpdateHandler = Updates()
 
-    var useLegacyRecorder = false
+    var useSystemRecorder = false
     // new recorder
     var recordingOutput: Any? // wow this is mega jank, this will hold an SCRecordingOutput but it's only a thing on sequoia
     // legacy recorder
@@ -86,7 +86,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
 
                 Preferences.kUpdateCheck: true,
                 Preferences.kCountdownSecs: 0,
-                Preferences.kUseKorai: ProcessInfo.processInfo.operatingSystemVersion.majorVersion < 15 // ventura & sequoia
+                Preferences.kSystemRecorder: false
             ]
         )
         // create a menu bar item
