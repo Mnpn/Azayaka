@@ -27,6 +27,7 @@ extension AppDelegate: NSMenuDelegate {
             menu.addItem(header(String(format: "Recording %@".local, typeText), size: 12))
 
             menu.addItem(NSMenuItem(title: "Stop Recording".local, action: #selector(stopRecording), keyEquivalent: ""))
+            menu.addItem(NSMenuItem(title: "Save Replay".local, action: #selector(saveReplay), keyEquivalent: ""))
             menu.addItem(NSMenuItem.separator())
             menu.addItem(info)
 
@@ -74,6 +75,11 @@ extension AppDelegate: NSMenuDelegate {
 
         addMenuFooter(toMenu: menu)
         statusItem.menu = menu
+    }
+
+    @objc func saveReplay() {
+        (stream as! SCStream).isPaused = true
+        classicProcessing?.saveReplayBuffer()
     }
 
     func updateMenu() {
@@ -218,6 +224,56 @@ extension AppDelegate: NSMenuDelegate {
 
     @objc func openUpdatePage() {
         NSWorkspace.shared.open(URL(string: UpdateHandler.updateURL)!)
+    }
+}
+
+extension ClassicProcessing {
+    @objc func saveReplayBuffer() {
+        guard let replayBuffer = self.replayBuffer else { return }
+        let samples = replayBuffer.getSamples()
+        guard !samples.isEmpty else { return }
+        
+        let filePath = "\(downloadsFolder)/Replay \(Date().formatted(date: .numeric, time: .standard)).\(fileType.fileExtension)"
+        
+        let vW = try? AVAssetWriter.init(outputURL: URL(fileURLWithPath: filePath), fileType: fileType)
+        let vwInput = AVAssetWriterInput(mediaType: AVMediaType.video, outputSettings: videoSettings)
+        vwInput.expectsMediaDataInRealTime = true
+        
+        if vW.canAdd(vwInput) {
+            vW.add(vwInput)
+        }
+        
+        vW.startWriting()
+        vW.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(samples.first!))
+        
+        for sample in samples {
+            if vwInput.isReadyForMoreMediaData {
+                vwInput.append(sample)
+            }
+        }
+        
+        vwInput.markAsFinished()
+        vW.finishWriting {
+            guard let error = vW.error else {
+                DispatchQueue.main.async {
+                    let notif = NSUserNotification()
+                    notif.title = "Replay saved!".local
+                    notif.informativeText = "Your replay has been saved to \(downloadsFolder) as Replay \(Date().formatted(date: .numeric, time: .standard)).\(fileType.fileExtension)."
+                    NSUserNotificationCenter.default.deliver(notif)
+                }
+                self.replayBuffer?.clear()
+                (self.stream as! SCStream).isPaused = false
+                return
+            }
+            
+            DispatchQueue.main.async {
+                let notif = NSUserNotification()
+                notif.title = "Replay failed!".local
+                notif.informativeText = "There was an issue saving the replay, sorry! \(error.localizedDescription)"
+                NSUserNotificationCenter.default.deliver(notif)
+            }
+            (self.stream as! SCStream).isPaused = false
+        }
     }
 }
 

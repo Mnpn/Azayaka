@@ -11,8 +11,31 @@ import ScreenCaptureKit
 // AVAssetWriter instead of the ScreenCaptureKit recorder found in macOS Sequoia.
 // System audio-only recording still uses this.
 
-extension AppDelegate {
-    func initClassicRecorder(conf: SCStreamConfiguration, encoder: AVVideoCodecType, filePath: String, fileType: AVFileType) {
+class ClassicProcessing: NSObject {
+    var startTime: Date?
+    var vW: AVAssetWriter!
+    var vwInput: AVAssetWriterInput!
+    var awInput: AVAssetWriterInput!
+    var micInput: AVAssetWriterInput!
+    var audioFile: AVAudioFile!
+    var recordMic: Bool!
+    var downloadsFolder: String!
+    var stream: SCStream!
+    var fileType: AVFileType!
+    var videoSettings: [String: Any]!
+    var audioSettings: [String: Any]!
+    var ud = UserDefaults.standard
+    var audioEngine = AVAudioEngine()
+    var replayBuffer: ReplayBuffer?
+
+    init(stream: SCStream, conf: SCStreamConfiguration, encoder: AVVideoCodecType, filePath: String, fileType: AVFileType, videoSettings: [String: Any], audioSettings: [String: Any]) {
+        super.init()
+        self.stream = stream
+        self.fileType = fileType
+        self.videoSettings = videoSettings
+        self.audioSettings = audioSettings
+        downloadsFolder = ud.string(forKey: Preferences.kDownloadsFolder) ?? "~/Downloads".local.standardizingPath
+        
         startTime = nil
 
         vW = try? AVAssetWriter.init(outputURL: URL(fileURLWithPath: filePath), fileType: fileType)
@@ -63,14 +86,17 @@ extension AppDelegate {
         }
 
         vW.startWriting()
+        
+        replayBuffer = ReplayBuffer(frameRate: Double(ud.integer(forKey: Preferences.kFrameRate)))
     }
     
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of outputType: SCStreamOutputType) {
-        guard (streamType == .systemaudio || !useSystemRecorder) && sampleBuffer.isValid else { return }
+        guard sampleBuffer.isValid else { return }
+        
+        replayBuffer?.add(sampleBuffer)
 
         switch outputType {
             case .screen:
-                if screen == nil && window == nil { break }
                 guard let attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false) as? [[SCStreamFrameInfo: Any]],
                       let attachments = attachmentsArray.first else { return }
                 guard let statusRawValue = attachments[SCStreamFrameInfo.status] as? Int,
@@ -86,25 +112,65 @@ extension AppDelegate {
                 }
                 break
             case .audio:
-                if streamType == .systemaudio { // write directly to file if not video recording
-                    guard let samples = sampleBuffer.asPCMBuffer else { return }
-                    do {
-                        try audioFile!.write(from: samples)
-                    }
-                    catch { assertionFailure("audio file writing issue".local) }
-                } else { // otherwise send the audio data to AVAssetWriter
-                    if (awInput != nil) && awInput.isReadyForMoreMediaData {
-                        awInput.append(sampleBuffer)
-                    }
+                if awInput != nil && awInput.isReadyForMoreMediaData {
+                    awInput.append(sampleBuffer)
                 }
+                break
             case .microphone: // only available on sequoia - older versions will use AVAudioEngine
-                if streamType != .systemaudio {
-                    if (micInput != nil) && micInput.isReadyForMoreMediaData {
-                        micInput.append(sampleBuffer)
-                    }
+                if micInput != nil && micInput.isReadyForMoreMediaData {
+                    micInput.append(sampleBuffer)
                 }
+                break
             @unknown default:
                 assertionFailure("unknown stream type".local)
+        }
+    }
+}
+
+extension ClassicProcessing {
+    @objc func saveReplayBuffer() {
+        guard let replayBuffer = self.replayBuffer else { return }
+        let samples = replayBuffer.getSamples()
+        guard !samples.isEmpty else { return }
+        
+        let filePath = "\(downloadsFolder)/Replay \(Date().formatted(date: .numeric, time: .standard)).\(fileType.fileExtension)"
+        
+        let vW = try? AVAssetWriter.init(outputURL: URL(fileURLWithPath: filePath), fileType: fileType)
+        let vwInput = AVAssetWriterInput(mediaType: AVMediaType.video, outputSettings: videoSettings)
+        vwInput.expectsMediaDataInRealTime = true
+        
+        if vW.canAdd(vwInput) {
+            vW.add(vwInput)
+        }
+        
+        vW.startWriting()
+        vW.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(samples.first!))
+        
+        for sample in samples {
+            if vwInput.isReadyForMoreMediaData {
+                vwInput.append(sample)
+            }
+        }
+        
+        vwInput.markAsFinished()
+        vW.finishWriting {
+            guard let error = vW.error else {
+                DispatchQueue.main.async {
+                    let notif = NSUserNotification()
+                    notif.title = "Replay saved!".local
+                    notif.informativeText = "Your replay has been saved to \(self.downloadsFolder ?? "Downloads".local) as Replay \(Date().formatted(date: .numeric, time: .standard)).\(self.fileType?.fileExtension ?? "mp4")."
+                    NSUserNotificationCenter.default.deliver(notif)
+                }
+                replayBuffer.clear()
+                return
+            }
+            
+            DispatchQueue.main.async {
+                let notif = NSUserNotification()
+                notif.title = "Replay failed!".local
+                notif.informativeText = "There was an issue saving the replay, sorry! \(error.localizedDescription)"
+                NSUserNotificationCenter.default.deliver(notif)
+            }
         }
     }
 }

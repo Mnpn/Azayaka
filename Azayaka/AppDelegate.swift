@@ -23,8 +23,12 @@ struct Azayaka: App {
             Preferences()
                 .fixedSize()
         }
-    }
-}
++    }
++
++    func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of outputType: SCStreamOutputType) {
++        classicProcessing?.stream(stream, didOutputSampleBuffer: sampleBuffer, of: outputType)
++    }
++}
 
 class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOutput {
     var stream: SCStream!
@@ -34,6 +38,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     var availableContent: SCShareableContent?
     var updateTimer: Timer?
     var recordMic = false
+    var classicProcessing: ClassicProcessing?
 
     var screen: SCDisplay?
     var window: SCWindow?
@@ -52,11 +57,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     var useSystemRecorder = false
     // new recorder
     var recordingOutput: Any? // wow this is mega jank, this will hold an SCRecordingOutput but it's only a thing on sequoia
-    // legacy recorder
-    var vW: AVAssetWriter!
-    var vwInput, awInput, micInput: AVAssetWriterInput!
-    let audioEngine = AVAudioEngine()
-    var startTime: Date?
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         lazy var userDesktop = (NSSearchPathForDirectoriesInDomains(.desktopDirectory, .userDomainMask, true) as [String]).first!

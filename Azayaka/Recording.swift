@@ -109,6 +109,9 @@ extension AppDelegate {
         conf.channelCount = audioSettings["AVNumberOfChannelsKey"] as! Int
 
         stream = SCStream(filter: filter, configuration: conf, delegate: self)
+        classicProcessing?.replayBuffer = ReplayBuffer(frameRate: Double(ud.integer(forKey: Preferences.kFrameRate)))
+        
+        
         startRecording: do {
             try stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: .global())
             try stream.addStreamOutput(self, type: .audio, sampleHandlerQueue: .global())
