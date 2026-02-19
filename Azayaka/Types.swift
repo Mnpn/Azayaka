@@ -36,6 +36,7 @@ extension KeyboardShortcuts.Name {
     static let recordSystemAudio = Self("recordSystemAudio")
     static let recordCurrentWindow = Self("recordCurrentWindow")
     static let recordCurrentDisplay = Self("recordCurrentDisplay")
+    static let toggleMicrophone = Self("toggleMicrophone")
 }
 
 // https://stackoverflow.com/a/73232453

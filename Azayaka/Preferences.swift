@@ -328,7 +328,8 @@ struct Preferences: View {
         var shortcut: [(String, KeyboardShortcuts.Name)] = [
             ("Record system audio".local, .recordSystemAudio),
             ("Record current display".local, .recordCurrentDisplay),
-            ("Record focused window".local, .recordCurrentWindow)
+            ("Record focused window".local, .recordCurrentWindow),
+            ("Toggle microphone".local, .toggleMicrophone)
         ]
         var body: some View {
             VStack {

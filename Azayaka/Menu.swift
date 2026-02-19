@@ -220,8 +220,13 @@ extension AppDelegate: NSMenuDelegate {
 
     func updateIcon() {
         if let button = statusItem.button {
-            let iconView = NSHostingView(rootView: MenuBar(recordingStatus: self.streamType != nil, recordingLength: getRecordingLength()))
-            iconView.frame = NSRect(x: 0, y: 1, width: self.streamType != nil ? 72 : 33, height: 20)
+            let isMicMuted = !ud.bool(forKey: Preferences.kRecordMic)
+            let isRecording = self.streamType != nil
+            let iconView = NSHostingView(rootView: MenuBar(recordingStatus: isRecording, recordingLength: getRecordingLength(), micMuted: isMicMuted))
+            var width: CGFloat = 33
+            if isRecording { width = 72 }
+            if isMicMuted { width += 16 }
+            iconView.frame = NSRect(x: 0, y: 1, width: width, height: 20)
             button.subviews = [iconView]
             button.frame = iconView.frame
             button.setAccessibilityLabel("Azayaka")
