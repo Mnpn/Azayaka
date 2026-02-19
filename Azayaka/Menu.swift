@@ -8,6 +8,7 @@ import SwiftUI
 import ScreenCaptureKit
 import ServiceManagement
 import KeyboardShortcuts
+import AVFoundation
 
 extension AppDelegate: NSMenuDelegate {
     func createMenu() {
@@ -38,6 +39,17 @@ extension AppDelegate: NSMenuDelegate {
             RunLoop.current.add(updateTimer!, forMode: .common) // required to have the menu update while open
             updateTimer?.fire()
         } else {
+            menu.addItem(header("Sources".local))
+
+            let sysAudioItem = NSMenuItem(title: "System Audio".local, action: #selector(toggleSystemAudio), keyEquivalent: "")
+            sysAudioItem.state = ud.bool(forKey: Preferences.kRecordSystemAudio) ? .on : .off
+            menu.addItem(sysAudioItem)
+
+            let micItem = NSMenuItem(title: "Microphone".local, action: #selector(toggleMicrophone), keyEquivalent: "")
+            micItem.state = ud.bool(forKey: Preferences.kRecordMic) ? .on : .off
+            menu.addItem(micItem)
+
+            menu.addItem(NSMenuItem.separator())
             menu.addItem(header("Audio-only".local))
 
             let audio = NSMenuItem(title: "System Audio".local, action: #selector(prepRecord), keyEquivalent: "")
@@ -218,6 +230,27 @@ extension AppDelegate: NSMenuDelegate {
 
     @objc func openUpdatePage() {
         NSWorkspace.shared.open(URL(string: UpdateHandler.updateURL)!)
+    }
+
+    @objc func toggleSystemAudio(_ sender: NSMenuItem) {
+        let newValue = !ud.bool(forKey: Preferences.kRecordSystemAudio)
+        ud.set(newValue, forKey: Preferences.kRecordSystemAudio)
+        sender.state = newValue ? .on : .off
+    }
+
+    @objc func toggleMicrophone(_ sender: NSMenuItem) {
+        let newValue = !ud.bool(forKey: Preferences.kRecordMic)
+        ud.set(newValue, forKey: Preferences.kRecordMic)
+        sender.state = newValue ? .on : .off
+        if newValue && ud.string(forKey: Preferences.kSelectedMicrophone)?.isEmpty != false {
+            // auto-select the default mic if none is selected
+            if let defaultMic = AVCaptureDevice.default(for: .audio) {
+                ud.set(defaultMic.uniqueID, forKey: Preferences.kSelectedMicrophone)
+            }
+        }
+        if !newValue {
+            ud.set("", forKey: Preferences.kSelectedMicrophone)
+        }
     }
 }
 

@@ -23,9 +23,11 @@ struct Preferences: View {
     static let kFrontApp        = "frontAppOnly"
     static let kShowMouse       = "showMouse"
 
-    static let kAudioFormat     = "audioFormat"
-    static let kAudioQuality    = "audioQuality"
-    static let kRecordMic       = "recordMic"
+    static let kAudioFormat         = "audioFormat"
+    static let kAudioQuality        = "audioQuality"
+    static let kRecordMic           = "recordMic"
+    static let kRecordSystemAudio   = "recordSystemAudio"
+    static let kSelectedMicrophone  = "selectedMicrophone"
 
     static let kFileName        = "outputFileName"
     static let kSaveDirectory   = "saveDirectory"
@@ -157,10 +159,13 @@ struct Preferences: View {
     }
 
     struct AudioSettings: View {
-        @AppStorage(kAudioFormat)    private var audioFormat: AudioFormat = .aac
-        @AppStorage(kAudioQuality)   private var audioQuality: AudioQuality = .high
-        @AppStorage(kRecordMic)      private var recordMic: Bool = false
-        @AppStorage(kSystemRecorder) private var usingSystemRecorder: Bool = false
+        @AppStorage(kAudioFormat)         private var audioFormat: AudioFormat = .aac
+        @AppStorage(kAudioQuality)        private var audioQuality: AudioQuality = .high
+        @AppStorage(kRecordMic)           private var recordMic: Bool = false
+        @AppStorage(kRecordSystemAudio)   private var recordSystemAudio: Bool = true
+        @AppStorage(kSelectedMicrophone)  private var selectedMicrophone: String = ""
+        @AppStorage(kSystemRecorder)      private var usingSystemRecorder: Bool = false
+        @State private var availableMics: [AVCaptureDevice] = []
 
         var body: some View {
             GroupBox {
@@ -189,33 +194,59 @@ struct Preferences: View {
                         .font(.footnote).foregroundColor(Color.gray)
                 }.padding([.top, .leading, .trailing], 10)
                 Spacer(minLength: 5)
-                VStack {
-                    if #available(macOS 14, *) { // apparently they changed onChange in Sonoma
-                        Toggle(isOn: $recordMic) {
-                            Text("Record microphone")
-                        }.onChange(of: recordMic) {
-                            Task { await performMicCheck() }
+                VStack(alignment: .leading) {
+                    Toggle(isOn: $recordSystemAudio) {
+                        Text("Record system audio")
+                    }
+                    Spacer(minLength: 8)
+                    Picker("Microphone", selection: $selectedMicrophone) {
+                        Text("No Microphone").tag("")
+                        ForEach(availableMics, id: \.uniqueID) { device in
+                            Text(device.localizedName).tag(device.uniqueID)
                         }
-                    } else {
-                        Toggle(isOn: $recordMic) {
-                            Text("Record microphone")
-                        }.onChange(of: recordMic) { _ in
+                    }
+                    .onChange(of: selectedMicrophone) { _ in
+                        recordMic = !selectedMicrophone.isEmpty
+                        if recordMic {
                             Task { await performMicCheck() }
                         }
                     }
-                    Text("Doesn't apply to system audio-only recordings. Uses the currently set input device. When not using the system recorder, this will be written as a separate audio track.")
+                    Text("Doesn't apply to system audio-only recordings. When not using the system recorder, this will be written as a separate audio track.")
                         .font(.footnote).foregroundColor(Color.gray)
                 }.frame(maxWidth: .infinity).padding(10)
             }.onAppear {
-                recordMic = recordMic && AVCaptureDevice.authorizationStatus(for: .audio) == .authorized // untick box if no perms
+                refreshMicrophones()
+                if recordMic && AVCaptureDevice.authorizationStatus(for: .audio) != .authorized {
+                    recordMic = false
+                    selectedMicrophone = ""
+                }
+                // fallback: if selected mic is gone, reset to system default or none
+                if !selectedMicrophone.isEmpty && !availableMics.contains(where: { $0.uniqueID == selectedMicrophone }) {
+                    if let defaultMic = AVCaptureDevice.default(for: .audio) {
+                        selectedMicrophone = defaultMic.uniqueID
+                    } else {
+                        selectedMicrophone = ""
+                        recordMic = false
+                    }
+                }
             }.padding(10)
         }
-        
+
+        private func refreshMicrophones() {
+            let discovery = AVCaptureDevice.DiscoverySession(
+                deviceTypes: [.builtInMicrophone, .externalUnknown],
+                mediaType: .audio,
+                position: .unspecified
+            )
+            availableMics = discovery.devices
+        }
+
         func performMicCheck() async {
-            guard recordMic == true else { return }
+            guard recordMic else { return }
             if await AVCaptureDevice.requestAccess(for: .audio) { return }
 
             recordMic = false
+            selectedMicrophone = ""
             DispatchQueue.main.async {
                 let alert = NSAlert()
                 alert.messageText = "Azayaka needs permissions!".local

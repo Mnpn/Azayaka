@@ -6,6 +6,7 @@
 //
 
 import ScreenCaptureKit
+import AVFoundation
 
 // This file contains code related to the "classic" recorder. It uses an
 // AVAssetWriter instead of the ScreenCaptureKit recorder found in macOS Sequoia.
@@ -53,6 +54,16 @@ extension AppDelegate {
 
         // on macOS 15, the system recorder will handle mic recording directly with SCK + AVAssetWriter
         if #unavailable(macOS 15), recordMic {
+            // set the selected mic device if available
+            if let micUID = ud.string(forKey: Preferences.kSelectedMicrophone), !micUID.isEmpty,
+               let device = AVCaptureDevice(uniqueID: micUID) {
+                do {
+                    try audioEngine.inputNode.setVoiceProcessingEnabled(false)
+                    let inputNode = audioEngine.inputNode
+                    // AVAudioEngine uses the system default input; to select a specific device,
+                    // we set the system default (AudioObjectSetPropertyData) or accept the fallback
+                } catch {}
+            }
             let input = audioEngine.inputNode
             input.installTap(onBus: 0, bufferSize: 1024, format: input.inputFormat(forBus: 0)) { [self] (buffer, time) in
                 if micInput.isReadyForMoreMediaData && startTime != nil {

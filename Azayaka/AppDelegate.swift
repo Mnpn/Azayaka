@@ -79,6 +79,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
                 Preferences.kAudioFormat: AudioFormat.aac.rawValue,
                 Preferences.kAudioQuality: AudioQuality.high.rawValue,
                 Preferences.kRecordMic: false,
+                Preferences.kRecordSystemAudio: true,
+                Preferences.kSelectedMicrophone: "",
 
                 Preferences.kFileName: "Recording at %t".local,
                 Preferences.kSaveDirectory: saveDirectory,
