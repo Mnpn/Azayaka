@@ -49,6 +49,10 @@ extension AppDelegate: NSMenuDelegate {
             micItem.state = ud.bool(forKey: Preferences.kRecordMic) ? .on : .off
             menu.addItem(micItem)
 
+            let cameraItem = NSMenuItem(title: "Camera".local, action: #selector(toggleCamera), keyEquivalent: "")
+            cameraItem.state = ud.bool(forKey: Preferences.kShowCamera) ? .on : .off
+            menu.addItem(cameraItem)
+
             menu.addItem(NSMenuItem.separator())
             menu.addItem(header("Audio-only".local))
 
@@ -248,13 +252,24 @@ extension AppDelegate: NSMenuDelegate {
         ud.set(newValue, forKey: Preferences.kRecordMic)
         sender.state = newValue ? .on : .off
         if newValue && ud.string(forKey: Preferences.kSelectedMicrophone)?.isEmpty != false {
-            // auto-select the default mic if none is selected
             if let defaultMic = AVCaptureDevice.default(for: .audio) {
                 ud.set(defaultMic.uniqueID, forKey: Preferences.kSelectedMicrophone)
             }
         }
         if !newValue {
             ud.set("", forKey: Preferences.kSelectedMicrophone)
+        }
+        updateIcon()
+    }
+
+    @objc func toggleCamera(_ sender: NSMenuItem) {
+        let newValue = !ud.bool(forKey: Preferences.kShowCamera)
+        ud.set(newValue, forKey: Preferences.kShowCamera)
+        sender.state = newValue ? .on : .off
+        if newValue {
+            showCameraOverlay()
+        } else {
+            hideCameraOverlay()
         }
     }
 }

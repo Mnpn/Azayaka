@@ -33,9 +33,13 @@ struct Preferences: View {
     static let kSaveDirectory   = "saveDirectory"
     static let kAutoClipboard   = "autoCopyToClipboard"
 
-    static let kUpdateCheck     = "updateCheck"
-    static let kCountdownSecs   = "countDown"
-    static let kSystemRecorder  = "useSystemRecorder"
+    static let kUpdateCheck         = "updateCheck"
+    static let kCountdownSecs       = "countDown"
+    static let kSystemRecorder      = "useSystemRecorder"
+
+    static let kShowCamera          = "showCamera"
+    static let kSelectedCamera      = "selectedCamera"
+    static let kCameraSize          = "cameraSize"
 
     var body: some View {
         VStack {
@@ -46,6 +50,10 @@ struct Preferences: View {
 
                 AudioSettings().tabItem {
                     Label("Audio", systemImage: "waveform")
+                }
+
+                CameraSettings().tabItem {
+                    Label("Camera", systemImage: "camera")
                 }
 
                 OutputSettings().tabItem {
@@ -60,7 +68,7 @@ struct Preferences: View {
                     Label("Other", systemImage: "gearshape")
                 }
             }
-        }.frame(width: 350)
+        }.frame(width: 420)
     }
 
     struct VideoSettings: View {
@@ -260,7 +268,69 @@ struct Preferences: View {
             }
         }
     }
-     
+
+    struct CameraSettings: View {
+        @AppStorage(kShowCamera)      private var showCamera: Bool = false
+        @AppStorage(kSelectedCamera)  private var selectedCamera: String = ""
+        @AppStorage(kCameraSize)      private var cameraSize: Double = 150
+        @State private var availableCameras: [AVCaptureDevice] = []
+
+        var body: some View {
+            GroupBox {
+                VStack(alignment: .leading) {
+                    Toggle(isOn: $showCamera) {
+                        Text("Show camera overlay")
+                    }
+                    .onChange(of: showCamera) { _ in
+                        NotificationCenter.default.post(name: .cameraOverlayChanged, object: nil)
+                    }
+                    Spacer(minLength: 8)
+                    Picker("Camera", selection: $selectedCamera) {
+                        Text("Default").tag("")
+                        ForEach(availableCameras, id: \.uniqueID) { device in
+                            Text(device.localizedName).tag(device.uniqueID)
+                        }
+                    }
+                    .onChange(of: selectedCamera) { _ in
+                        guard showCamera else { return }
+                        NotificationCenter.default.post(name: .cameraOverlayChanged, object: nil)
+                    }
+                    Spacer(minLength: 8)
+                    HStack {
+                        Text("Size")
+                        Slider(value: $cameraSize, in: 80...300, step: 10)
+                        Text("\(Int(cameraSize))px")
+                            .monospacedDigit()
+                            .frame(width: 44, alignment: .trailing)
+                    }
+                    .onChange(of: cameraSize) { _ in
+                        NotificationCenter.default.post(name: .cameraOverlaySizeChanged, object: nil)
+                    }
+                    Text("The camera overlay is a floating circle that can be freely dragged around the screen. It will be captured as part of any screen recording.")
+                        .font(.footnote).foregroundColor(Color.gray)
+                }.padding(10)
+            }.onAppear {
+                refreshCameras()
+                if !selectedCamera.isEmpty && !availableCameras.contains(where: { $0.uniqueID == selectedCamera }) {
+                    selectedCamera = ""
+                }
+            }.padding(10)
+        }
+
+        private func refreshCameras() {
+            var deviceTypes: [AVCaptureDevice.DeviceType] = [.builtInWideAngleCamera, .externalUnknown]
+            if #available(macOS 14.0, *) {
+                deviceTypes.append(.continuityCamera)
+            }
+            let discovery = AVCaptureDevice.DiscoverySession(
+                deviceTypes: deviceTypes,
+                mediaType: .video,
+                position: .unspecified
+            )
+            availableCameras = discovery.devices
+        }
+    }
+
     struct OutputSettings: View {
         @AppStorage(kFileName)      private var fileName: String = "Recording at %t"
         @AppStorage(kSaveDirectory) private var saveDirectory: String?

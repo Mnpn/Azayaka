@@ -57,6 +57,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     var vwInput, awInput, micInput: AVAssetWriterInput!
     let audioEngine = AVAudioEngine()
     var startTime: Date?
+    var cameraOverlay: CameraOverlay?
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         lazy var userDesktop = (NSSearchPathForDirectoriesInDomains(.desktopDirectory, .userDomainMask, true) as [String]).first!
@@ -88,7 +89,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
 
                 Preferences.kUpdateCheck: true,
                 Preferences.kCountdownSecs: 0,
-                Preferences.kSystemRecorder: false
+                Preferences.kSystemRecorder: false,
+
+                Preferences.kShowCamera: false,
+                Preferences.kSelectedCamera: "",
+                Preferences.kCameraSize: 150.0
             ]
         )
         // create a menu bar item
@@ -103,7 +108,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
             if let error = error { print("Notification authorisation denied: \(error.localizedDescription)") }
         }
 
-        NotificationCenter.default.addObserver( // update the content & menu when a display device has changed
+        NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
             object: NSApplication.shared,
             queue: OperationQueue.main
@@ -111,11 +116,30 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
             Task { await updateAvailableContent(buildMenu: true) }
         }
 
-        #if !DEBUG // no point in checking for updates if we're not on a release
+        NotificationCenter.default.addObserver(forName: .cameraOverlayChanged, object: nil, queue: .main) { [weak self] _ in
+            guard let self else { return }
+            if self.ud.bool(forKey: Preferences.kShowCamera) {
+                self.showCameraOverlay()
+            } else {
+                self.hideCameraOverlay()
+            }
+        }
+
+        NotificationCenter.default.addObserver(forName: .cameraOverlaySizeChanged, object: nil, queue: .main) { [weak self] _ in
+            guard let self else { return }
+            let size = CGFloat(self.ud.double(forKey: Preferences.kCameraSize))
+            self.cameraOverlay?.updateSize(size)
+        }
+
+        #if !DEBUG
         if ud.bool(forKey: Preferences.kUpdateCheck) {
             UpdateHandler.checkForUpdates()
         }
         #endif
+
+        if ud.bool(forKey: Preferences.kShowCamera) {
+            showCameraOverlay()
+        }
     }
 
     func updateAvailableContent(buildMenu: Bool) async -> Bool { // returns status of getting content from SCK
@@ -179,13 +203,37 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
         if stream != nil {
             stopRecording()
         }
+        hideCameraOverlay()
     }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
         return true
     }
+
+    func showCameraOverlay() {
+        let size = CGFloat(ud.double(forKey: Preferences.kCameraSize))
+        if cameraOverlay == nil {
+            cameraOverlay = CameraOverlay(size: size)
+        } else {
+            cameraOverlay?.updateSize(size)
+        }
+        let deviceID = ud.string(forKey: Preferences.kSelectedCamera)
+        cameraOverlay?.startCamera(deviceID: deviceID)
+        cameraOverlay?.orderFront(nil)
+    }
+
+    func hideCameraOverlay() {
+        cameraOverlay?.stopCamera()
+        cameraOverlay?.orderOut(nil)
+        cameraOverlay = nil
+    }
 }
 
 extension String {
     var local: String { return NSLocalizedString(self, comment: "") }
+}
+
+extension Notification.Name {
+    static let cameraOverlayChanged = Notification.Name("cameraOverlayChanged")
+    static let cameraOverlaySizeChanged = Notification.Name("cameraOverlaySizeChanged")
 }

@@ -29,15 +29,13 @@ struct MenuBar: View {
                         .monospacedDigit()
                     if micMuted {
                         Image(systemName: "mic.slash")
-                            .font(.system(size: 9))
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: 12))
                     }
                 } else {
                     Image("menuBarIcon")
                     if micMuted {
                         Image(systemName: "mic.slash")
-                            .font(.system(size: 9))
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: 12))
                     }
                 }
             }

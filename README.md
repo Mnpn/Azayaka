@@ -14,6 +14,7 @@ That's right, record your screen or an app, with its playing audio, regardless o
 - Simple, unobtrusive menu bar application
 - Choose between .mp4 or .mov files, H.264 or H.265
 - Audio options ranging from Opus & AAC to lossless ALAC & FLAC
+- Circular camera overlay (freely positioned, configurable)
 
 <p align="center">
 <br>
