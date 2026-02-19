@@ -8,6 +8,7 @@ import SwiftUI
 import ScreenCaptureKit
 import ServiceManagement
 import KeyboardShortcuts
+import AVFoundation
 
 extension AppDelegate: NSMenuDelegate {
     func createMenu() {
@@ -38,6 +39,21 @@ extension AppDelegate: NSMenuDelegate {
             RunLoop.current.add(updateTimer!, forMode: .common) // required to have the menu update while open
             updateTimer?.fire()
         } else {
+            menu.addItem(header("Sources".local))
+
+            let sysAudioItem = NSMenuItem(title: "System Audio".local, action: #selector(toggleSystemAudio), keyEquivalent: "")
+            sysAudioItem.state = ud.bool(forKey: Preferences.kRecordSystemAudio) ? .on : .off
+            menu.addItem(sysAudioItem)
+
+            let micItem = NSMenuItem(title: "Microphone".local, action: #selector(toggleMicrophone), keyEquivalent: "")
+            micItem.state = ud.bool(forKey: Preferences.kRecordMic) ? .on : .off
+            menu.addItem(micItem)
+
+            let cameraItem = NSMenuItem(title: "Camera".local, action: #selector(toggleCamera), keyEquivalent: "")
+            cameraItem.state = ud.bool(forKey: Preferences.kShowCamera) ? .on : .off
+            menu.addItem(cameraItem)
+
+            menu.addItem(NSMenuItem.separator())
             menu.addItem(header("Audio-only".local))
 
             let audio = NSMenuItem(title: "System Audio".local, action: #selector(prepRecord), keyEquivalent: "")
@@ -208,8 +224,13 @@ extension AppDelegate: NSMenuDelegate {
 
     func updateIcon() {
         if let button = statusItem.button {
-            let iconView = NSHostingView(rootView: MenuBar(recordingStatus: self.streamType != nil, recordingLength: getRecordingLength()))
-            iconView.frame = NSRect(x: 0, y: 1, width: self.streamType != nil ? 72 : 33, height: 20)
+            let isMicMuted = !ud.bool(forKey: Preferences.kRecordMic)
+            let isRecording = self.streamType != nil
+            let iconView = NSHostingView(rootView: MenuBar(recordingStatus: isRecording, recordingLength: getRecordingLength(), micMuted: isMicMuted))
+            var width: CGFloat = 33
+            if isRecording { width = 72 }
+            if isMicMuted { width += 16 }
+            iconView.frame = NSRect(x: 0, y: 1, width: width, height: 20)
             button.subviews = [iconView]
             button.frame = iconView.frame
             button.setAccessibilityLabel("Azayaka")
@@ -218,6 +239,38 @@ extension AppDelegate: NSMenuDelegate {
 
     @objc func openUpdatePage() {
         NSWorkspace.shared.open(URL(string: UpdateHandler.updateURL)!)
+    }
+
+    @objc func toggleSystemAudio(_ sender: NSMenuItem) {
+        let newValue = !ud.bool(forKey: Preferences.kRecordSystemAudio)
+        ud.set(newValue, forKey: Preferences.kRecordSystemAudio)
+        sender.state = newValue ? .on : .off
+    }
+
+    @objc func toggleMicrophone(_ sender: NSMenuItem) {
+        let newValue = !ud.bool(forKey: Preferences.kRecordMic)
+        ud.set(newValue, forKey: Preferences.kRecordMic)
+        sender.state = newValue ? .on : .off
+        if newValue && ud.string(forKey: Preferences.kSelectedMicrophone)?.isEmpty != false {
+            if let defaultMic = AVCaptureDevice.default(for: .audio) {
+                ud.set(defaultMic.uniqueID, forKey: Preferences.kSelectedMicrophone)
+            }
+        }
+        if !newValue {
+            ud.set("", forKey: Preferences.kSelectedMicrophone)
+        }
+        updateIcon()
+    }
+
+    @objc func toggleCamera(_ sender: NSMenuItem) {
+        let newValue = !ud.bool(forKey: Preferences.kShowCamera)
+        ud.set(newValue, forKey: Preferences.kShowCamera)
+        sender.state = newValue ? .on : .off
+        if newValue {
+            showCameraOverlay()
+        } else {
+            hideCameraOverlay()
+        }
     }
 }
 

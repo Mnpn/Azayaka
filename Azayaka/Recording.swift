@@ -69,11 +69,23 @@ extension AppDelegate {
 
     func record(audioOnly: Bool, filter: SCContentFilter) async {
         var conf = SCStreamConfiguration()
+        let shouldRecordMic = await ud.bool(forKey: Preferences.kRecordMic)
         if #available(macOS 15.0, *), !audioOnly {
             if await ud.bool(forKey: Preferences.kEnableHDR) {
                 conf = SCStreamConfiguration(preset: .captureHDRStreamCanonicalDisplay)
             }
-            conf.captureMicrophone = await ud.bool(forKey: Preferences.kRecordMic) && !audioOnly
+            conf.captureMicrophone = shouldRecordMic && !audioOnly
+            if shouldRecordMic, let micUID = await ud.string(forKey: Preferences.kSelectedMicrophone), !micUID.isEmpty {
+                // use selected mic if still available, otherwise fall back to system default
+                let discovery = AVCaptureDevice.DiscoverySession(
+                    deviceTypes: [.builtInMicrophone, .externalUnknown],
+                    mediaType: .audio,
+                    position: .unspecified
+                )
+                if discovery.devices.contains(where: { $0.uniqueID == micUID }) {
+                    conf.microphoneCaptureDeviceID = micUID
+                }
+            }
         }
 
         conf.width = 2
@@ -104,7 +116,8 @@ extension AppDelegate {
         conf.queueDepth = 5 // ensure higher fps at the expense of some memory
         conf.minimumFrameInterval = await CMTime(value: 1, timescale: audioOnly ? CMTimeScale.max : CMTimeScale(ud.integer(forKey: Preferences.kFrameRate)))
         conf.showsCursor = await ud.bool(forKey: Preferences.kShowMouse)
-        conf.capturesAudio = true
+        let recordSystemAudio = await ud.bool(forKey: Preferences.kRecordSystemAudio)
+        conf.capturesAudio = audioOnly || recordSystemAudio
         conf.sampleRate = audioSettings["AVSampleRateKey"] as! Int
         conf.channelCount = audioSettings["AVNumberOfChannelsKey"] as! Int
 

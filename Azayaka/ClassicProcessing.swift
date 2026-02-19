@@ -6,6 +6,7 @@
 //
 
 import ScreenCaptureKit
+import AVFoundation
 
 // This file contains code related to the "classic" recorder. It uses an
 // AVAssetWriter instead of the ScreenCaptureKit recorder found in macOS Sequoia.

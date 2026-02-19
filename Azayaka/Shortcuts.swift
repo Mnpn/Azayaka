@@ -6,6 +6,7 @@
 //
 
 import AppKit
+import AVFoundation
 import KeyboardShortcuts
 import ScreenCaptureKit
 import SwiftUI
@@ -23,6 +24,9 @@ final class AppState: ObservableObject {
         }
         KeyboardShortcuts.onKeyDown(for: .recordCurrentWindow) { [self] in
             Task { await toggleRecording(type: "window") }
+        }
+        KeyboardShortcuts.onKeyDown(for: .toggleMicrophone) { [self] in
+            appDelegate.toggleMicrophoneState()
         }
     }
 
@@ -61,10 +65,24 @@ final class AppState: ObservableObject {
 extension AppDelegate {
     func allowShortcuts(_ allow: Bool) {
         if allow {
-            KeyboardShortcuts.enable(.recordCurrentDisplay, .recordCurrentWindow, .recordSystemAudio)
+            KeyboardShortcuts.enable(.recordCurrentDisplay, .recordCurrentWindow, .recordSystemAudio, .toggleMicrophone)
         } else {
-            KeyboardShortcuts.disable(.recordCurrentDisplay, .recordCurrentWindow, .recordSystemAudio)
+            KeyboardShortcuts.disable(.recordCurrentDisplay, .recordCurrentWindow, .recordSystemAudio, .toggleMicrophone)
         }
+    }
+
+    func toggleMicrophoneState() {
+        let newValue = !ud.bool(forKey: Preferences.kRecordMic)
+        ud.set(newValue, forKey: Preferences.kRecordMic)
+        if newValue && (ud.string(forKey: Preferences.kSelectedMicrophone) ?? "").isEmpty {
+            if let defaultMic = AVCaptureDevice.default(for: .audio) {
+                ud.set(defaultMic.uniqueID, forKey: Preferences.kSelectedMicrophone)
+            }
+        }
+        if !newValue {
+            ud.set("", forKey: Preferences.kSelectedMicrophone)
+        }
+        updateIcon()
     }
 
     // a ScreenCaptureKit implementation does not work correctly, is it the order of the returned windows perhaps?

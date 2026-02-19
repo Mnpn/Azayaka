@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		170297D62BCD586A0035EB26 /* Updates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 170297D52BCD586A0035EB26 /* Updates.swift */; };
 		17322D4B2958D07E00185BB6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D4A2958D07E00185BB6 /* AppDelegate.swift */; };
+			0F1C092E83AF4B228AA7BC19 /* CameraOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraOverlay.swift; sourceTree = "<group>"; };
+			046C136414964EC58D53B5CD /* CameraOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F1C092E83AF4B228AA7BC19 /* CameraOverlay.swift */; };
 		17322D4F2958D08000185BB6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 17322D4E2958D08000185BB6 /* Assets.xcassets */; };
 		17322D5A2959286100185BB6 /* Processing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D592959286100185BB6 /* Processing.swift */; };
 		17322D5C295928BE00185BB6 /* Recording.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17322D5B295928BE00185BB6 /* Recording.swift */; };
@@ -75,6 +77,7 @@
 			isa = PBXGroup;
 			children = (
 				17322D4A2958D07E00185BB6 /* AppDelegate.swift */,
+						0F1C092E83AF4B228AA7BC19 /* CameraOverlay.swift */,
 				17BCDC7F295BAC9300448A97 /* Types.swift */,
 				17322D5D295929A000185BB6 /* Menu.swift */,
 				17DBD7C4295B0973005C0690 /* Preferences.swift */,
@@ -176,6 +179,7 @@
 				17DBD7C5295B0973005C0690 /* Preferences.swift in Sources */,
 				17BCDC80295BAC9400448A97 /* Types.swift in Sources */,
 				17322D4B2958D07E00185BB6 /* AppDelegate.swift in Sources */,
+						046C136414964EC58D53B5CD /* CameraOverlay.swift in Sources */,
 				17606AED2C694FE0008A064E /* Shortcuts.swift in Sources */,
 				17322D5C295928BE00185BB6 /* Recording.swift in Sources */,
 				17F7E18B2C65097400599CEF /* ClassicProcessing.swift in Sources */,
@@ -331,6 +335,7 @@
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Azayaka needs this permission to record your microphone alongside your display's content.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Azayaka needs this permission to show the camera overlay during recordings.";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -365,6 +370,7 @@
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Azayaka needs this permission to record your microphone alongside your display's content.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Azayaka needs this permission to show the camera overlay during recordings.";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

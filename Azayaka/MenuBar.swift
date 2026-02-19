@@ -11,6 +11,7 @@ import Foundation
 struct MenuBar: View {
     @State var recordingStatus: Bool!
     @State var recordingLength = "00:00"
+    @State var micMuted: Bool = true
 
     var body: some View {
         ZStack {
@@ -26,8 +27,16 @@ struct MenuBar: View {
                     Text(recordingLength)
                         .offset(y: -0.5)
                         .monospacedDigit()
+                    if micMuted {
+                        Image(systemName: "mic.slash")
+                            .font(.system(size: 12))
+                    }
                 } else {
                     Image("menuBarIcon")
+                    if micMuted {
+                        Image(systemName: "mic.slash")
+                            .font(.system(size: 12))
+                    }
                 }
             }
         }
