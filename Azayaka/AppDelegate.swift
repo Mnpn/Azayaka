@@ -57,6 +57,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, SCStreamDelegate, SCStreamOu
     var vwInput, awInput, micInput: AVAssetWriterInput!
     let audioEngine = AVAudioEngine()
     var startTime: Date?
+    var writerFailed = false
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         lazy var userDesktop = (NSSearchPathForDirectoriesInDomains(.desktopDirectory, .userDomainMask, true) as [String]).first!

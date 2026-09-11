@@ -6,14 +6,18 @@
 //
 
 import ScreenCaptureKit
+import OSLog
 
 // This file contains code related to the "classic" recorder. It uses an
 // AVAssetWriter instead of the ScreenCaptureKit recorder found in macOS Sequoia.
 // System audio-only recording still uses this.
 
+private let recordingLog = Logger(subsystem: "dev.mnpn.Azayaka", category: "recording")
+
 extension AppDelegate {
     func initClassicRecorder(conf: SCStreamConfiguration, encoder: AVVideoCodecType, filePath: String, fileType: AVFileType) {
         startTime = nil
+        writerFailed = false
 
         vW = try? AVAssetWriter.init(outputURL: URL(fileURLWithPath: filePath), fileType: fileType)
         let fpsMultiplier: Double = Double(ud.integer(forKey: Preferences.kFrameRate))/8
@@ -55,7 +59,7 @@ extension AppDelegate {
         if #unavailable(macOS 15), recordMic {
             let input = audioEngine.inputNode
             input.installTap(onBus: 0, bufferSize: 1024, format: input.inputFormat(forBus: 0)) { [self] (buffer, time) in
-                if micInput.isReadyForMoreMediaData && startTime != nil {
+                if canAppend(to: micInput) {
                     micInput.append(buffer.asSampleBuffer!)
                 }
             }
@@ -81,7 +85,7 @@ extension AppDelegate {
                     startTime = Date.now
                     vW.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
                 }
-                if vwInput.isReadyForMoreMediaData {
+                if canAppend(to: vwInput) {
                     vwInput.append(sampleBuffer)
                 }
                 break
@@ -93,18 +97,43 @@ extension AppDelegate {
                     }
                     catch { assertionFailure("audio file writing issue".local) }
                 } else { // otherwise send the audio data to AVAssetWriter
-                    if (awInput != nil) && awInput.isReadyForMoreMediaData {
+                    if canAppend(to: awInput) {
                         awInput.append(sampleBuffer)
                     }
                 }
             case .microphone: // only available on sequoia - older versions will use AVAudioEngine
                 if streamType != .systemaudio {
-                    if (micInput != nil) && micInput.isReadyForMoreMediaData {
+                    if canAppend(to: micInput) {
                         micInput.append(sampleBuffer)
                     }
                 }
             @unknown default:
                 assertionFailure("unknown stream type".local)
+        }
+    }
+
+    // AVAssetWriterInput.append() raises an Objective-C exception, which Swift is unable to catch, if
+    // the writer has not started a session or has already failed. isReadyForMoreMediaData reports
+    // neither of those states, so both are checked here before appending to any input. Audio buffers
+    // may arrive before the first video frame has started the session, and the writer can fail at any
+    // point during a recording, so without this an append would terminate the whole app.
+    func canAppend(to input: AVAssetWriterInput!) -> Bool {
+        guard let vW = vW, input != nil, startTime != nil else { return false }
+        guard vW.status == .writing else {
+            if vW.status == .failed { handleWriterFailure(vW.error) }
+            return false
+        }
+        return input.isReadyForMoreMediaData
+    }
+
+    // A failed writer will never accept another sample, so the recording is stopped rather than left
+    // running while silently dropping everything.
+    func handleWriterFailure(_ error: Error?) {
+        guard !writerFailed else { return } // buffers keep arriving until the stream actually stops
+        writerFailed = true
+        recordingLog.error("The asset writer failed, stopping the recording: \(error?.localizedDescription ?? "unknown error", privacy: .public)")
+        DispatchQueue.main.async { [self] in
+            stopRecording(withError: true) // this stops the capture and finalises the file
         }
     }
 }
