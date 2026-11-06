@@ -10,6 +10,7 @@ import AVFoundation
 import Darwin
 import AVFAudio
 import KeyboardShortcuts
+import Vision
 
 extension AppDelegate {
     @objc func prepRecord(_ sender: NSMenuItem) {
@@ -176,7 +177,7 @@ extension AppDelegate {
                                 if lowSpaceReason == nil && ud.bool(forKey: Preferences.kMergeAudio) {
                                     postprocessRecording(at: finishedPath)
                                 } else {
-                                    deliverRecording(at: finishedPath)
+                                    deliverRecording(at: finishedPath, allowOCR: lowSpaceReason == nil)
                                 }
                             }
                             if let lowSpaceReason {
@@ -241,8 +242,20 @@ extension AppDelegate {
         if fileName == nil || fileName!.isEmpty {
             fileName = "Recording at %t".local
         }
-        // bit of a magic number but worst case ".flac" is 5 characters on top of this..
-        let fileNameWithDates = fileName!.replacingOccurrences(of: "%t", with: dateFormatter.string(from: Date())).prefix(Int(NAME_MAX) - 5)
+        // A window title can contain path separators or control characters.
+        let rawTitle = window?.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let title = rawTitle.isEmpty ? "Window" : rawTitle
+        let unsafeCharacters = CharacterSet(charactersIn: "/:").union(.controlCharacters)
+        let safeTitle = title.components(separatedBy: unsafeCharacters).joined(separator: "-")
+        let expandedName = fileName!
+            .replacingOccurrences(of: "%t", with: dateFormatter.string(from: Date()))
+            .replacingOccurrences(of: "%n", with: safeTitle)
+        // Leave room for the extension and a duplicate-file suffix; NAME_MAX is in bytes.
+        var fileNameWithDates = ""
+        for character in expandedName {
+            guard fileNameWithDates.utf8.count + String(character).utf8.count <= 200 else { break }
+            fileNameWithDates.append(character)
+        }
 
         let saveDirectory = ud.string(forKey: Preferences.kSaveDirectory) ?? FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first!.path
         // ensure the destination folder exists
@@ -308,8 +321,116 @@ extension AppDelegate {
 }
 
 extension AppDelegate {
-    func deliverRecording(at path: String) {
-        sendRecordingFinishedNotification(filePath: path)
+    func deliverRecording(at path: String, allowOCR: Bool = true) {
+        let runOCR = allowOCR && ud.bool(forKey: Preferences.kOCREnabled)
+        let runTranscription = allowOCR && ud.bool(forKey: Preferences.kMacWhisper)
+        guard runOCR || runTranscription else {
+            sendRecordingFinishedNotification(filePath: path)
+            return
+        }
+        let configuredInterval = ud.integer(forKey: Preferences.kOCRInterval)
+        let interval = [30, 60, 120, 300].contains(configuredInterval) ? configuredInterval : 60
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            guard let self else { return }
+            let videoURL = URL(fileURLWithPath: path)
+            var errors: [String] = []
+            if runOCR {
+                do { try self.writeOCRTranscript(for: videoURL, interval: interval) }
+                catch { errors.append("OCR: " + error.localizedDescription) }
+            }
+            if runTranscription {
+                do { try self.writeMacWhisperTranscript(for: videoURL) }
+                catch { errors.append("MacWhisper: " + error.localizedDescription) }
+            }
+            DispatchQueue.main.async {
+                if !errors.isEmpty {
+                    let alert = NSAlert()
+                    alert.messageText = "Postprocessing could not be completed"
+                    alert.informativeText = "The recording is safe.\n\n" + errors.joined(separator: "\n\n")
+                    alert.addButton(withTitle: "OK")
+                    alert.runModal()
+                }
+                self.sendRecordingFinishedNotification(filePath: path)
+            }
+        }
+    }
+
+    private func writeOCRTranscript(for videoURL: URL, interval: Int) throws {
+        let outputURL = videoURL.deletingLastPathComponent()
+            .appendingPathComponent(videoURL.deletingPathExtension().lastPathComponent + " - ocr.md")
+        let temporaryURL = outputURL.deletingLastPathComponent()
+            .appendingPathComponent(".framelet-ocr-" + UUID().uuidString)
+        guard FileManager.default.createFile(atPath: temporaryURL.path, contents: nil) else {
+            throw NSError(domain: "FrameletOCR", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not create a temporary transcript."])
+        }
+        defer { try? FileManager.default.removeItem(at: temporaryURL) }
+        let file = try FileHandle(forWritingTo: temporaryURL)
+        let asset = AVURLAsset(url: videoURL)
+        let duration = CMTimeGetSeconds(asset.duration)
+        guard duration.isFinite, duration > 0 else {
+            try? file.close()
+            throw NSError(domain: "FrameletOCR", code: 2, userInfo: [NSLocalizedDescriptionKey: "Could not read the video duration."])
+        }
+        defer { try? file.close() }
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        generator.requestedTimeToleranceBefore = CMTime(seconds: 2, preferredTimescale: 600)
+        generator.requestedTimeToleranceAfter = CMTime(seconds: 2, preferredTimescale: 600)
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        request.usesLanguageCorrection = true
+        try file.write(contentsOf: Data("# OCR transcript\n\n".utf8))
+        var seconds = 0
+        while Double(seconds) < duration {
+            try autoreleasepool {
+                var actualTime = CMTime.zero
+                let image = try generator.copyCGImage(at: CMTime(seconds: Double(seconds), preferredTimescale: 600), actualTime: &actualTime)
+                try VNImageRequestHandler(cgImage: image, options: [:]).perform([request])
+                let lines = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+                let actualSeconds = CMTimeGetSeconds(actualTime)
+                let timestampSeconds = actualSeconds.isFinite ? max(0, Int(actualSeconds)) : seconds
+                let timestamp = String(format: "%02d:%02d:%02d", timestampSeconds / 3600, (timestampSeconds / 60) % 60, timestampSeconds % 60)
+                let text = lines.isEmpty ? "_No text recognized._" : lines.joined(separator: "\n\n")
+                try file.write(contentsOf: Data("## \(timestamp)\n\n\(text)\n\n".utf8))
+            }
+            seconds += interval
+        }
+        try file.close()
+        // Never replace a transcript that already exists.
+        try FileManager.default.moveItem(at: temporaryURL, to: outputURL)
+    }
+
+    private func writeMacWhisperTranscript(for videoURL: URL) throws {
+        let directory = videoURL.deletingLastPathComponent()
+        let outputURL = directory.appendingPathComponent(videoURL.deletingPathExtension().lastPathComponent + " - transcript.md")
+        let temporaryURL = directory.appendingPathComponent(".framelet-transcript-" + UUID().uuidString + ".md")
+        defer { try? FileManager.default.removeItem(at: temporaryURL) }
+        guard !FileManager.default.fileExists(atPath: outputURL.path) else {
+            throw NSError(domain: "FrameletMacWhisper", code: 1, userInfo: [NSLocalizedDescriptionKey: "A transcript with this name already exists."])
+        }
+        let directories = (ProcessInfo.processInfo.environment["PATH"] ?? "").split(separator: ":").map(String.init)
+            + ["/usr/local/bin", "/opt/homebrew/bin", "/opt/local/bin"]
+        guard let executable = directories.map({ URL(fileURLWithPath: $0).appendingPathComponent("mw").path })
+            .first(where: { FileManager.default.isExecutableFile(atPath: $0) }) else {
+            throw NSError(domain: "FrameletMacWhisper", code: 2, userInfo: [NSLocalizedDescriptionKey: "Install the CLI in MacWhisper Settings > Advanced > Command-Line Tool."])
+        }
+        let process = Process()
+        let errors = Pipe()
+        process.executableURL = URL(fileURLWithPath: executable)
+        process.arguments = ["transcribe", videoURL.path, "--language", "auto", "--format", "md", "--output", temporaryURL.path]
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = errors
+        try process.run()
+        let errorData = errors.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        guard process.terminationStatus == 0 else {
+            let detail = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            throw NSError(domain: "FrameletMacWhisper", code: 3, userInfo: [NSLocalizedDescriptionKey: detail.isEmpty ? "MacWhisper failed (exit \(process.terminationStatus))." : detail])
+        }
+        guard FileManager.default.fileExists(atPath: temporaryURL.path) else {
+            throw NSError(domain: "FrameletMacWhisper", code: 4, userInfo: [NSLocalizedDescriptionKey: "MacWhisper did not produce a transcript."])
+        }
+        try FileManager.default.moveItem(at: temporaryURL, to: outputURL)
     }
 
     func postprocessRecording(at path: String) {

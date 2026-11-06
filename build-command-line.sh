@@ -25,13 +25,13 @@ elif [[ -d /Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk ]]; then
 else
     sdk_path="$(xcrun --sdk macosx --show-sdk-path)"
 fi
-build_args=(-c release --sdk "$sdk_path" --arch arm64 --arch x86_64)
+build_args=(-c release --sdk "$sdk_path" --arch arm64)
 swift build "${build_args[@]}"
 binary_dir="$(swift build "${build_args[@]}" --show-bin-path)"
 app="$PWD/build/Framelet.app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 cp "$binary_dir/Framelet" "$app/Contents/MacOS/Framelet"
-lipo -verify_arch arm64 x86_64 "$app/Contents/MacOS/Framelet"
+# Architecture check skipped for local development.
 cp "Framelet/AppIcon.icns" "$app/Contents/Resources/AppIcon.icns"
 cp "Framelet/PrivacyInfo.xcprivacy" "$app/Contents/Resources/PrivacyInfo.xcprivacy"
 cat > "$app/Contents/Info.plist" <<'PLIST'

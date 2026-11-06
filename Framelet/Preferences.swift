@@ -32,6 +32,9 @@ struct Preferences: View {
     static let kCountdownSecs   = "countDown"
     static let kSystemRecorder  = "useSystemRecorder"
     static let kMergeAudio = "mergeAudioTracks"
+    static let kOCREnabled = "ocrEnabled"
+    static let kOCRInterval = "ocrIntervalSeconds"
+    static let kMacWhisper = "macWhisperTranscription"
 
     var body: some View {
         VStack {
@@ -93,13 +96,38 @@ struct Preferences: View {
 
     struct PostprocessingSettings: View {
         @AppStorage(kMergeAudio) private var mergeAudio = false
+        @AppStorage(kOCREnabled) private var ocrEnabled = false
+        @AppStorage(kOCRInterval) private var ocrInterval = 60
+        @AppStorage(kMacWhisper) private var macWhisper = false
         var body: some View {
-            GroupBox {
+            VStack(spacing: 10) {
+              GroupBox {
                 VStack(alignment: .leading, spacing: 10) {
                     Toggle("Merge audio tracks after recording", isOn: $mergeAudio)
                     Text("Mixes system audio and microphone into one track after recording. The original is replaced after the mixed file is checked. Requires FFmpeg.")
                         .font(.footnote).foregroundColor(.secondary)
-                }.padding(12)
+                }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
+              }
+              GroupBox {
+                VStack(alignment: .leading, spacing: 10) {
+                    Toggle("OCR Processing", isOn: $ocrEnabled)
+                    Picker("Interval", selection: $ocrInterval) {
+                        Text("30 seconds").tag(30)
+                        Text("1 minute").tag(60)
+                        Text("2 minutes").tag(120)
+                        Text("5 minutes").tag(300)
+                    }.disabled(!ocrEnabled)
+                    Text("Extracts text from video frames after recording and saves a timestamped Markdown file beside the video.")
+                        .font(.footnote).foregroundColor(.secondary)
+                }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
+              }
+              GroupBox {
+                VStack(alignment: .leading, spacing: 10) {
+                    Toggle("MacWhisper transcription", isOn: $macWhisper)
+                    Text("Transcribes the finished recording with automatic language detection. Requires the MacWhisper CLI and Pro for Markdown export.")
+                        .font(.footnote).foregroundColor(.secondary)
+                }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
+              }
             }.padding(10)
         }
     }
@@ -212,7 +240,7 @@ struct Preferences: View {
                                 }
                                 .foregroundStyle(fileNameLength > NAME_MAX ? .red : .primary)
                         }
-                        Text("\"%t\" will be replaced with the recording's start time.")
+                        Text("%t: recording start time · %n: window title")
                             .font(.subheadline).foregroundColor(Color.gray)
                     }.padding(10).frame(maxWidth: .infinity)
                 }.padding([.top, .leading, .trailing], 10)
@@ -233,7 +261,8 @@ struct Preferences: View {
         }
 
         func getFileNameLength(_ fileName: String) -> Int {
-            return fileName.replacingOccurrences(of: "%t", with: dateFormatter.string(from: Date())).count
+            return fileName.replacingOccurrences(of: "%t", with: dateFormatter.string(from: Date()))
+                .replacingOccurrences(of: "%n", with: "Window").utf8.count
         }
 
         func updateOutputDirectory() { // todo: re-sandbox?
