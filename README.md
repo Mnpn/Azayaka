@@ -22,7 +22,7 @@ Framelet is a fork of [Azayaka](https://github.com/Mnpn/Azayaka) by [Martin Pers
 
 ## Build with Command Line Tools
 
-Install Apple's Command Line Tools with the macOS 26.5 SDK. The current build script uses this SDK explicitly because newer SDKs can require SwiftUI compiler plugins that aren't included with the standalone Command Line Tools. An internet connection is needed on the first build to fetch the pinned keyboard shortcut dependency.
+Install Apple's Command Line Tools or Xcode. The build produces a Universal 2 app for both Apple silicon and Intel Macs. When available, the script uses the macOS 26.5 Command Line Tools SDK because newer standalone SDKs can lack SwiftUI compiler plugins; otherwise it uses the active macOS SDK. Set `FRAMELET_SDK_PATH` to override the SDK. An internet connection is needed on the first build to fetch the pinned keyboard shortcut dependency.
 
 ```bash
 ./build-command-line.sh

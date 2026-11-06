@@ -17,11 +17,21 @@ s = p.read_text()
 s = re.sub(r"#Preview \{\n[^}]*\n\}\n", "", s)
 p.write_text(s)
 PYCODE
-swift build -c release --sdk /Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk
-binary_dir="$(swift build -c release --sdk /Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk --show-bin-path)"
+if [[ -n "${FRAMELET_SDK_PATH:-}" ]]; then
+    sdk_path="$FRAMELET_SDK_PATH"
+elif [[ -d /Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk ]]; then
+    # The standalone CLT 27 SDK can lack SwiftUI's macro plugins.
+    sdk_path=/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk
+else
+    sdk_path="$(xcrun --sdk macosx --show-sdk-path)"
+fi
+build_args=(-c release --sdk "$sdk_path" --arch arm64 --arch x86_64)
+swift build "${build_args[@]}"
+binary_dir="$(swift build "${build_args[@]}" --show-bin-path)"
 app="$PWD/build/Framelet.app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 cp "$binary_dir/Framelet" "$app/Contents/MacOS/Framelet"
+lipo -verify_arch arm64 x86_64 "$app/Contents/MacOS/Framelet"
 cp "Framelet/AppIcon.icns" "$app/Contents/Resources/AppIcon.icns"
 cp "Framelet/PrivacyInfo.xcprivacy" "$app/Contents/Resources/PrivacyInfo.xcprivacy"
 cat > "$app/Contents/Info.plist" <<'PLIST'
@@ -34,7 +44,7 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <key>CFBundleIconFile</key><string>AppIcon</string>
 <key>CFBundleDisplayName</key><string>Framelet</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.1</string>
+<key>CFBundleShortVersionString</key><string>1.0.0</string>
 <key>CFBundleVersion</key><string>1</string>
 <key>LSMinimumSystemVersion</key><string>15.0</string>
 <key>LSUIElement</key><true/>
@@ -51,8 +61,10 @@ fi
 ditto "$bundle_path" "$app/Contents/Resources/KeyboardShortcuts_KeyboardShortcuts.bundle"
 ditto "$bundle_path" "$app/KeyboardShortcuts_KeyboardShortcuts.bundle"
 codesign --force --sign - --entitlements Framelet/Framelet.entitlements "$app"
-# Apply the same custom Finder icon as dragging AppIcon.icns onto Get Info.
-if ! xcrun swift tools/apply-finder-icon.swift "$app" "$app/Contents/Resources/AppIcon.icns"; then
+# Finder custom icons are applied only in an interactive desktop session.
+if [[ "${FRAMELET_SKIP_FINDER_ICON:-0}" == 1 ]]; then
+    echo 'Skipping custom Finder icon in this environment.'
+elif ! xcrun swift tools/apply-finder-icon.swift "$app" "$app/Contents/Resources/AppIcon.icns"; then
     echo 'Warning: could not apply the custom Finder icon; the bundled icon is still available.' >&2
 elif [[ -e "$app/"$'Icon\r' ]]; then
     echo 'Finder custom icon file is present.'
@@ -60,7 +72,8 @@ else
     echo 'Finder custom icon was accepted but its marker was not found; the app will retry at launch.' >&2
 fi
 if ! codesign --verify --deep --strict "$app"; then
-    echo 'Warning: macOS did not validate the app signature after setting its Finder icon.' >&2
+    echo 'Error: macOS did not validate the app signature.' >&2
+    exit 1
 fi
 echo "Built: $app"
 echo "Launch with: open \"$app\""

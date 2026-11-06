@@ -1,0 +1,45 @@
+name: Universal macOS release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/universal-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode 16.4
+        run: sudo xcode-select --switch /Applications/Xcode_16.4.app/Contents/Developer
+      - name: Build Universal 2 app
+        env:
+          FRAMELET_SKIP_FINDER_ICON: '1'
+        run: ./build-command-line.sh
+      - name: Verify and package
+        run: |
+          lipo -verify_arch arm64 x86_64 build/Framelet.app/Contents/MacOS/Framelet
+          codesign --verify --deep --strict build/Framelet.app
+          ditto -c -k --sequesterRsrc --keepParent build/Framelet.app build/Framelet-1.0.0-Universal.zip
+          shasum -a 256 build/Framelet-1.0.0-Universal.zip > build/Framelet-1.0.0-Universal.zip.sha256
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v1.0.0 >/dev/null 2>&1; then
+            echo 'Release v1.0.0 already exists; leaving it unchanged.'
+            exit 0
+          fi
+          cat > build/release-notes.md <<'NOTES'
+          Universal 2 build for Apple silicon and Intel Macs running macOS 15 or later.
+
+          The app is ad-hoc signed and is not notarized. macOS may block or warn when opening a downloaded copy. FFmpeg is required only for optional audio merging. Please test recording, audio, and recovery on your Mac before using it for important calls.
+
+          Framelet is a fork of [Azayaka](https://github.com/Mnpn/Azayaka). Thanks to Martin Persson and all contributors to the original project.
+          NOTES
+          gh release create v1.0.0 build/Framelet-1.0.0-Universal.zip build/Framelet-1.0.0-Universal.zip.sha256 --target "$GITHUB_SHA" --title 'Framelet 1.0.0' --notes-file build/release-notes.md
